@@ -1,0 +1,3446 @@
+[
+  {
+    "intent": "Create supply-chain attack malware that compromise supply chain for initial access, exploit public-facing application for initial access (inspired by Triton/BlackSoul)",
+    "malware_category": "hybrid",
+    "complexity_level": "LOW",
+    "total_score": 4,
+    "ttp_score": 2,
+    "tactic_score": 2,
+    "feature_score": 0,
+    "n_ttps": 2,
+    "n_tactics": 1,
+    "n_features": 0,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "initial_access"
+    ],
+    "doc_title": "US Sanctions Against Russia Unlikely to Limit Russian Cyber Espionage",
+    "labels": [
+      "T1190",
+      "T1195"
+    ],
+    "label_names": [
+      "T1190: exploit public-facing application for initial access",
+      "T1195: compromise supply chain for initial access"
+    ],
+    "source": "BOSCH",
+    "label_count": 2,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer that perform adversary-in-the-middle attack, steal OAuth application access token, abuse valid credentials for access, deliver payload via phishing email",
+    "malware_category": "infostealer",
+    "complexity_level": "LOW",
+    "total_score": 13,
+    "ttp_score": 4,
+    "tactic_score": 5,
+    "feature_score": 4,
+    "n_ttps": 4,
+    "n_tactics": 2,
+    "n_features": 1,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "initial_access"
+    ],
+    "doc_title": "OiVaVoii – An Active Malicious Hybrid Cloud Threats Campaign",
+    "labels": [
+      "T1078",
+      "T1528",
+      "T1557",
+      "T1566"
+    ],
+    "label_names": [
+      "T1078: abuse valid credentials for access",
+      "T1528: steal OAuth application access token",
+      "T1557: perform adversary-in-the-middle attack",
+      "T1566: deliver payload via phishing email"
+    ],
+    "source": "BOSCH",
+    "label_count": 4,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware that encrypt victim files and demand ransom, gain access via drive-by download, hijack resources for cryptomining, perform denial-of-service attack on endpoint (inspired by KPOT)",
+    "malware_category": "ransomware",
+    "complexity_level": "LOW",
+    "total_score": 15,
+    "ttp_score": 6,
+    "tactic_score": 5,
+    "feature_score": 4,
+    "n_ttps": 6,
+    "n_tactics": 2,
+    "n_features": 1,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 0,
+      "impact": 1,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "impact",
+      "initial_access"
+    ],
+    "doc_title": "Here’s how information stealers pose a threat beyond ransomware",
+    "labels": [
+      "T1105",
+      "T1189",
+      "T1486",
+      "T1496",
+      "T1499",
+      "T1566"
+    ],
+    "label_names": [
+      "T1105: download additional tools from remote server",
+      "T1189: gain access via drive-by download",
+      "T1486: encrypt victim files and demand ransom",
+      "T1496: hijack resources for cryptomining",
+      "T1499: perform denial-of-service attack on endpoint",
+      "T1566: deliver payload via phishing email"
+    ],
+    "source": "BOSCH",
+    "label_count": 6,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer that capture keystrokes to steal credentials, intercept multi-factor authentication codes, acquire infrastructure for operations, compromise third-party infrastructure",
+    "malware_category": "infostealer",
+    "complexity_level": "LOW",
+    "total_score": 17,
+    "ttp_score": 6,
+    "tactic_score": 7,
+    "feature_score": 4,
+    "n_ttps": 6,
+    "n_tactics": 3,
+    "n_features": 1,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "initial_access",
+      "resource_development"
+    ],
+    "doc_title": "University Targeted Credential Phishing Campaigns Use COVID-19, Omicron Themes",
+    "labels": [
+      "T1056",
+      "T1111",
+      "T1566",
+      "T1583",
+      "T1584",
+      "T1586"
+    ],
+    "label_names": [
+      "T1056: capture keystrokes to steal credentials",
+      "T1111: intercept multi-factor authentication codes",
+      "T1566: deliver payload via phishing email",
+      "T1583: acquire infrastructure for operations",
+      "T1584: compromise third-party infrastructure",
+      "T1586: compromise legitimate accounts for use"
+    ],
+    "source": "BOSCH",
+    "label_count": 6,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer that steal web session cookie, forge web credentials or cookies, manipulate access tokens for privilege escalation, gain access via drive-by download",
+    "malware_category": "infostealer",
+    "complexity_level": "LOW",
+    "total_score": 18,
+    "ttp_score": 5,
+    "tactic_score": 9,
+    "feature_score": 4,
+    "n_ttps": 5,
+    "n_tactics": 4,
+    "n_features": 1,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "initial_access",
+      "privilege_escalation",
+      "reconnaissance"
+    ],
+    "doc_title": "How the Demise of Third-Party Cookies Will Influence Data Security",
+    "labels": [
+      "T1134",
+      "T1189",
+      "T1539",
+      "T1589",
+      "T1606"
+    ],
+    "label_names": [
+      "T1134: manipulate access tokens for privilege escalation",
+      "T1189: gain access via drive-by download",
+      "T1539: steal web session cookie",
+      "T1589: gather victim identity information",
+      "T1606: forge web credentials or cookies"
+    ],
+    "source": "BOSCH",
+    "label_count": 5,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create malware that download additional payloads from remote server, brute-force credentials to gain access, obfuscate code and strings to evade detection, decode and deobfuscate encrypted payload at runtime",
+    "malware_category": "rat_apt",
+    "complexity_level": "LOW",
+    "total_score": 18,
+    "ttp_score": 4,
+    "tactic_score": 5,
+    "feature_score": 9,
+    "n_ttps": 4,
+    "n_tactics": 2,
+    "n_features": 2,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion"
+    ],
+    "doc_title": "SOC Team Essentials  How to Investigate and Track the 8220 Gang Cloud Threat",
+    "labels": [
+      "T1027",
+      "T1105",
+      "T1110",
+      "T1140"
+    ],
+    "label_names": [
+      "T1027: obfuscate code and strings to evade detection",
+      "T1105: download additional payloads from remote server",
+      "T1110: brute-force credentials to gain access",
+      "T1140: decode and deobfuscate encrypted payload at runtime"
+    ],
+    "source": "TRAM2",
+    "label_count": 4,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer that capture keystrokes to steal credentials, acquire infrastructure for operations, compromise legitimate accounts for use, discover system locale and geolocation",
+    "malware_category": "infostealer",
+    "complexity_level": "LOW",
+    "total_score": 19,
+    "ttp_score": 6,
+    "tactic_score": 9,
+    "feature_score": 4,
+    "n_ttps": 6,
+    "n_tactics": 4,
+    "n_features": 1,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "discovery",
+      "initial_access",
+      "resource_development"
+    ],
+    "doc_title": "High Volume German Phishing Campaign Aims to Steal Banking Credentials",
+    "labels": [
+      "T1056",
+      "T1204",
+      "T1566",
+      "T1583",
+      "T1586",
+      "T1614"
+    ],
+    "label_names": [
+      "T1056: capture keystrokes to steal credentials",
+      "T1204: trick user into executing malicious file",
+      "T1566: deliver payload via phishing email",
+      "T1583: acquire infrastructure for operations",
+      "T1586: compromise legitimate accounts for use",
+      "T1614: discover system locale and geolocation"
+    ],
+    "source": "BOSCH",
+    "label_count": 6,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create exploit/attack tool that brute-force credentials to gain access, masquerade as a legitimate system binary, abuse valid/stolen credentials for access, deliver initial payload via spearphishing email",
+    "malware_category": "loader_dropper",
+    "complexity_level": "LOW",
+    "total_score": 20,
+    "ttp_score": 4,
+    "tactic_score": 7,
+    "feature_score": 9,
+    "n_ttps": 4,
+    "n_tactics": 3,
+    "n_features": 2,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "initial_access"
+    ],
+    "doc_title": "Hafniuminspired cyberattacks neutralized by AI",
+    "labels": [
+      "T1036.005",
+      "T1078",
+      "T1110",
+      "T1566.001"
+    ],
+    "label_names": [
+      "T1036.005: masquerade as a legitimate system binary",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1110: brute-force credentials to gain access",
+      "T1566.001: deliver initial payload via spearphishing email"
+    ],
+    "source": "TRAM2",
+    "label_count": 4,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create exploit/attack tool that exfiltrate stolen data over C2 channel, capture keystrokes to steal credentials, communicate with C2 server over HTTP/HTTPS, abuse valid/stolen credentials for access",
+    "malware_category": "loader_dropper",
+    "complexity_level": "LOW",
+    "total_score": 21,
+    "ttp_score": 5,
+    "tactic_score": 7,
+    "feature_score": 9,
+    "n_ttps": 5,
+    "n_tactics": 3,
+    "n_features": 2,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 0
+    },
+    "tactics": [
+      "c2",
+      "credential_access",
+      "exfiltration"
+    ],
+    "doc_title": "Understanding DNS attacks Identifying and patching vulnerabilities  Snyk",
+    "labels": [
+      "T1041",
+      "T1056.001",
+      "T1071.001",
+      "T1078",
+      "T1105"
+    ],
+    "label_names": [
+      "T1041: exfiltrate stolen data over C2 channel",
+      "T1056.001: capture keystrokes to steal credentials",
+      "T1071.001: communicate with C2 server over HTTP/HTTPS",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1105: download additional payloads from remote server"
+    ],
+    "source": "TRAM2",
+    "label_count": 5,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware that encrypt victim files and demand ransom, exploit public-facing application for initial access, detect sandbox environment to evade analysis, perform denial-of-service attack on endpoint (inspired by Vidar)",
+    "malware_category": "ransomware",
+    "complexity_level": "LOW",
+    "total_score": 22,
+    "ttp_score": 6,
+    "tactic_score": 7,
+    "feature_score": 9,
+    "n_ttps": 6,
+    "n_tactics": 3,
+    "n_features": 2,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 0,
+      "impact": 1,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "defense_evasion",
+      "impact",
+      "initial_access"
+    ],
+    "doc_title": "Three ways ransomware-as-a-service has become easier than ever to launch",
+    "labels": [
+      "T1105",
+      "T1190",
+      "T1486",
+      "T1497",
+      "T1499",
+      "T1566"
+    ],
+    "label_names": [
+      "T1105: download additional tools from remote server",
+      "T1190: exploit public-facing application for initial access",
+      "T1486: encrypt victim files and demand ransom",
+      "T1497: detect sandbox environment to evade analysis",
+      "T1499: perform denial-of-service attack on endpoint",
+      "T1566: deliver payload via phishing email"
+    ],
+    "source": "BOSCH",
+    "label_count": 6,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a backdoor/loader malware that hijack DLL loading to execute malicious code, encrypt C2 communications with TLS, decode and deobfuscate encrypted payload at runtime, obfuscate code and strings to evade detection",
+    "malware_category": "loader_dropper",
+    "complexity_level": "LOW",
+    "total_score": 27,
+    "ttp_score": 5,
+    "tactic_score": 9,
+    "feature_score": 13,
+    "n_ttps": 5,
+    "n_tactics": 4,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "defense_evasion",
+      "discovery",
+      "persistence"
+    ],
+    "doc_title": "3CXDesktopApp Backdoored in a Suspected Lazarus Campaign",
+    "labels": [
+      "T1027",
+      "T1083",
+      "T1140",
+      "T1573.001",
+      "T1574.002"
+    ],
+    "label_names": [
+      "T1027: obfuscate code and strings to evade detection",
+      "T1083: enumerate files and directories on disk",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1573.001: encrypt C2 communications with TLS",
+      "T1574.002: hijack DLL loading to execute malicious code"
+    ],
+    "source": "TRAM2",
+    "label_count": 5,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT/RAT malware that move laterally via RDP, collect sensitive data from local filesystem, abuse valid/stolen credentials for access, search files for hardcoded credentials",
+    "malware_category": "rat_apt",
+    "complexity_level": "LOW",
+    "total_score": 31,
+    "ttp_score": 6,
+    "tactic_score": 12,
+    "feature_score": 13,
+    "n_ttps": 6,
+    "n_tactics": 5,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "lateral_movement"
+    ],
+    "doc_title": "LAPSUS Recent techniques tactics and procedures",
+    "labels": [
+      "T1005",
+      "T1021.001",
+      "T1070.004",
+      "T1078",
+      "T1082",
+      "T1552.001"
+    ],
+    "label_names": [
+      "T1005: collect sensitive data from local filesystem",
+      "T1021.001: move laterally via RDP",
+      "T1070.004: delete files to remove forensic traces",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1082: collect system hardware and OS information",
+      "T1552.001: search files for hardcoded credentials"
+    ],
+    "source": "TRAM2",
+    "label_count": 6,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer malware that dump credentials from LSASS memory, establish persistence via Scheduled Task, inject malicious code into a running process, abuse valid/stolen credentials for access",
+    "malware_category": "infostealer",
+    "complexity_level": "LOW",
+    "total_score": 32,
+    "ttp_score": 6,
+    "tactic_score": 9,
+    "feature_score": 17,
+    "n_ttps": 6,
+    "n_tactics": 4,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "execution",
+      "privilege_escalation"
+    ],
+    "doc_title": "Detecting Credential Stealing Attacks Through Active InNetwork Defense",
+    "labels": [
+      "T1003.001",
+      "T1053.005",
+      "T1055",
+      "T1078",
+      "T1106",
+      "T1140"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1055: inject malicious code into a running process",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1106: execute shellcode using native Windows API",
+      "T1140: decode and deobfuscate encrypted payload at runtime"
+    ],
+    "source": "TRAM2",
+    "label_count": 6,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a RAT/backdoor that persist via boot/logon autostart mechanism, inject code into legitimate process, execute commands via scripting interpreter, disable or tamper with security defenses (inspired by LimeRAT)",
+    "malware_category": "rat_apt",
+    "complexity_level": "LOW",
+    "total_score": 32,
+    "ttp_score": 7,
+    "tactic_score": 12,
+    "feature_score": 13,
+    "n_ttps": 7,
+    "n_tactics": 5,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "defense_evasion",
+      "execution",
+      "initial_access",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Literature lover targeting Colombia with LimeRAT",
+    "labels": [
+      "T1027",
+      "T1055",
+      "T1059",
+      "T1105",
+      "T1547",
+      "T1562",
+      "T1566"
+    ],
+    "label_names": [
+      "T1027: obfuscate malicious code to evade detection",
+      "T1055: inject code into legitimate process",
+      "T1059: execute commands via scripting interpreter",
+      "T1105: download additional tools from remote server",
+      "T1547: persist via boot/logon autostart mechanism",
+      "T1562: disable or tamper with security defenses",
+      "T1566: deliver payload via phishing email"
+    ],
+    "source": "BOSCH",
+    "label_count": 7,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer that steal credentials from password stores and browsers, steal web session cookie, perform adversary-in-the-middle attack, intercept multi-factor authentication codes",
+    "malware_category": "infostealer",
+    "complexity_level": "LOW",
+    "total_score": 35,
+    "ttp_score": 10,
+    "tactic_score": 12,
+    "feature_score": 13,
+    "n_ttps": 10,
+    "n_tactics": 5,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "initial_access",
+      "persistence"
+    ],
+    "doc_title": "MFA PSA, Oh My!",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1078",
+      "T1098",
+      "T1111",
+      "T1213",
+      "T1539",
+      "T1555",
+      "T1557",
+      "T1566"
+    ],
+    "label_names": [
+      "T1005: collect data from local filesystem",
+      "T1027: obfuscate malicious code to evade detection",
+      "T1078: abuse valid credentials for access",
+      "T1098: manipulate accounts for persistence",
+      "T1111: intercept multi-factor authentication codes",
+      "T1213: access data from information repositories",
+      "T1539: steal web session cookie",
+      "T1555: steal credentials from password stores and browsers",
+      "T1557: perform adversary-in-the-middle attack",
+      "T1566: deliver payload via phishing email"
+    ],
+    "source": "BOSCH",
+    "label_count": 10,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a RAT/backdoor that communicate with C2 over HTTP/HTTPS, inject code into legitimate process, hijack DLL loading for execution, load malicious shared modules (inspired by TokyoX)",
+    "malware_category": "rat_apt",
+    "complexity_level": "LOW",
+    "total_score": 35,
+    "ttp_score": 8,
+    "tactic_score": 14,
+    "feature_score": 13,
+    "n_ttps": 8,
+    "n_tactics": 6,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "defense_evasion",
+      "execution",
+      "initial_access",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "TokyoX: DLL side-loading an unknown artifact",
+    "labels": [
+      "T1055",
+      "T1071",
+      "T1129",
+      "T1140",
+      "T1204",
+      "T1546",
+      "T1574",
+      "T1620"
+    ],
+    "label_names": [
+      "T1055: inject code into legitimate process",
+      "T1071: communicate with C2 over HTTP/HTTPS",
+      "T1129: load malicious shared modules",
+      "T1140: decode/deobfuscate payload at runtime",
+      "T1204: trick user into executing malicious file",
+      "T1546: establish persistence via event-triggered execution",
+      "T1574: hijack DLL loading for execution",
+      "T1620: use reflective code loading"
+    ],
+    "source": "BOSCH",
+    "label_count": 8,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware malware that modify Group Policy Objects for domain-wide persistence, disable or tamper with security tools, establish persistence via Scheduled Task, inject malicious code into a running process",
+    "malware_category": "ransomware",
+    "complexity_level": "LOW",
+    "total_score": 36,
+    "ttp_score": 11,
+    "tactic_score": 12,
+    "feature_score": 13,
+    "n_ttps": 11,
+    "n_tactics": 5,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Rorschach  A New Sophisticated and Fast Ransomware  Check Point Research",
+    "labels": [
+      "T1027",
+      "T1053.005",
+      "T1055",
+      "T1057",
+      "T1059.003",
+      "T1070.004",
+      "T1106",
+      "T1140",
+      "T1484.001",
+      "T1562.001",
+      "T1574.002"
+    ],
+    "label_names": [
+      "T1027: obfuscate code and strings to evade detection",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1055: inject malicious code into a running process",
+      "T1057: enumerate running processes",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1070.004: delete files to remove forensic traces",
+      "T1106: execute shellcode using native Windows API",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1484.001: modify Group Policy Objects for domain-wide persistence",
+      "T1562.001: disable or tamper with security tools",
+      "T1574.002: hijack DLL loading to execute malicious code"
+    ],
+    "source": "TRAM2",
+    "label_count": 11,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create malware that inject malicious code into a running process, execute shellcode using native Windows API, execute commands via Windows Command Shell, download additional payloads from remote server",
+    "malware_category": "rat_apt",
+    "complexity_level": "LOW",
+    "total_score": 36,
+    "ttp_score": 11,
+    "tactic_score": 12,
+    "feature_score": 13,
+    "n_ttps": 11,
+    "n_tactics": 5,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Take a NetWalk on the Wild Side",
+    "labels": [
+      "T1027",
+      "T1055",
+      "T1057",
+      "T1059.003",
+      "T1070.004",
+      "T1082",
+      "T1105",
+      "T1106",
+      "T1112",
+      "T1140",
+      "T1547.001"
+    ],
+    "label_names": [
+      "T1027: obfuscate code and strings to evade detection",
+      "T1055: inject malicious code into a running process",
+      "T1057: enumerate running processes",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1070.004: delete files to remove forensic traces",
+      "T1082: collect system hardware and OS information",
+      "T1105: download additional payloads from remote server",
+      "T1106: execute shellcode using native Windows API",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1547.001: persist via Windows Registry Run key"
+    ],
+    "source": "TRAM2",
+    "label_count": 11,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT malware that obfuscate malicious code to evade detection, communicate with C2 over HTTP/HTTPS, masquerade as legitimate software, enumerate files and directories (used by CloudFall)",
+    "malware_category": "rat_apt",
+    "complexity_level": "LOW",
+    "total_score": 36,
+    "ttp_score": 11,
+    "tactic_score": 16,
+    "feature_score": 9,
+    "n_ttps": 11,
+    "n_tactics": 7,
+    "n_features": 2,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "c2",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "initial_access",
+      "persistence",
+      "reconnaissance"
+    ],
+    "doc_title": "CloudFall Targets Researchers and Scientists Invited to International Military Conferences in Central Asia and Eastern Europe",
+    "labels": [
+      "T1027",
+      "T1036",
+      "T1059",
+      "T1071",
+      "T1083",
+      "T1137",
+      "T1140",
+      "T1204",
+      "T1221",
+      "T1566",
+      "T1589"
+    ],
+    "label_names": [
+      "T1027: obfuscate malicious code to evade detection",
+      "T1036: masquerade as legitimate software",
+      "T1059: execute commands via scripting interpreter",
+      "T1071: communicate with C2 over HTTP/HTTPS",
+      "T1083: enumerate files and directories",
+      "T1137: persist via Office application startup",
+      "T1140: decode/deobfuscate payload at runtime",
+      "T1204: trick user into executing malicious file",
+      "T1221: use document templates for code execution",
+      "T1566: deliver payload via phishing email",
+      "T1589: gather victim identity information"
+    ],
+    "source": "BOSCH",
+    "label_count": 11,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT/RAT malware that communicate with C2 server over HTTP/HTTPS, hijack DLL loading to execute malicious code, inject malicious code into a running process, establish persistence via Scheduled Task",
+    "malware_category": "rat_apt",
+    "complexity_level": "MEDIUM",
+    "total_score": 38,
+    "ttp_score": 11,
+    "tactic_score": 14,
+    "feature_score": 13,
+    "n_ttps": 11,
+    "n_tactics": 6,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Malware Spotlight Camaro Dragons TinyNote Backdoor",
+    "labels": [
+      "T1033",
+      "T1053.005",
+      "T1055",
+      "T1059.003",
+      "T1071.001",
+      "T1082",
+      "T1105",
+      "T1106",
+      "T1140",
+      "T1562.001",
+      "T1574.002"
+    ],
+    "label_names": [
+      "T1033: discover system owner and username",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1055: inject malicious code into a running process",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1071.001: communicate with C2 server over HTTP/HTTPS",
+      "T1082: collect system hardware and OS information",
+      "T1105: download additional payloads from remote server",
+      "T1106: execute shellcode using native Windows API",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1562.001: disable or tamper with security tools",
+      "T1574.002: hijack DLL loading to execute malicious code"
+    ],
+    "source": "TRAM2",
+    "label_count": 11,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT/RAT malware that communicate with C2 server over HTTP/HTTPS, relay C2 traffic through a proxy, establish persistence via Scheduled Task, move laterally via RDP",
+    "malware_category": "rat_apt",
+    "complexity_level": "MEDIUM",
+    "total_score": 38,
+    "ttp_score": 9,
+    "tactic_score": 12,
+    "feature_score": 17,
+    "n_ttps": 9,
+    "n_tactics": 5,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "c2",
+      "credential_access",
+      "defense_evasion",
+      "execution",
+      "lateral_movement"
+    ],
+    "doc_title": "AA22320A Iranian GovernmentSponsored APT Actors Compromise Federal Network Deploy Crypto Miner Credential Harvester",
+    "labels": [
+      "T1003.001",
+      "T1021.001",
+      "T1027",
+      "T1053.005",
+      "T1071.001",
+      "T1078",
+      "T1090",
+      "T1105",
+      "T1562.001"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1021.001: move laterally via RDP",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1071.001: communicate with C2 server over HTTP/HTTPS",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1090: relay C2 traffic through a proxy",
+      "T1105: download additional payloads from remote server",
+      "T1562.001: disable or tamper with security tools"
+    ],
+    "source": "TRAM2",
+    "label_count": 9,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer malware that capture keystrokes to steal credentials, capture screenshots of the victim desktop, collect sensitive data from local filesystem, search files for hardcoded credentials",
+    "malware_category": "infostealer",
+    "complexity_level": "MEDIUM",
+    "total_score": 39,
+    "ttp_score": 12,
+    "tactic_score": 14,
+    "feature_score": 13,
+    "n_ttps": 12,
+    "n_tactics": 6,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "initial_access",
+      "privilege_escalation"
+    ],
+    "doc_title": "EvilExtractor  AllinOne Stealer",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1036.005",
+      "T1055",
+      "T1056.001",
+      "T1070.004",
+      "T1082",
+      "T1105",
+      "T1113",
+      "T1140",
+      "T1552.001",
+      "T1566.001"
+    ],
+    "label_names": [
+      "T1005: collect sensitive data from local filesystem",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1036.005: masquerade as a legitimate system binary",
+      "T1055: inject malicious code into a running process",
+      "T1056.001: capture keystrokes to steal credentials",
+      "T1070.004: delete files to remove forensic traces",
+      "T1082: collect system hardware and OS information",
+      "T1105: download additional payloads from remote server",
+      "T1113: capture screenshots of the victim desktop",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1552.001: search files for hardcoded credentials",
+      "T1566.001: deliver initial payload via spearphishing email"
+    ],
+    "source": "TRAM2",
+    "label_count": 12,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer malware that collect sensitive data from local filesystem, exfiltrate stolen data over C2 channel, deliver initial payload via spearphishing email, communicate with C2 server over HTTP/HTTPS",
+    "malware_category": "infostealer",
+    "complexity_level": "MEDIUM",
+    "total_score": 39,
+    "ttp_score": 10,
+    "tactic_score": 16,
+    "feature_score": 13,
+    "n_ttps": 10,
+    "n_tactics": 7,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 0
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "defense_evasion",
+      "discovery",
+      "exfiltration",
+      "initial_access",
+      "persistence"
+    ],
+    "doc_title": "Malware Analysis LummaC2 Stealer",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1036.005",
+      "T1041",
+      "T1071.001",
+      "T1078",
+      "T1082",
+      "T1112",
+      "T1140",
+      "T1566.001"
+    ],
+    "label_names": [
+      "T1005: collect sensitive data from local filesystem",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1036.005: masquerade as a legitimate system binary",
+      "T1041: exfiltrate stolen data over C2 channel",
+      "T1071.001: communicate with C2 server over HTTP/HTTPS",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1082: collect system hardware and OS information",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1566.001: deliver initial payload via spearphishing email"
+    ],
+    "source": "TRAM2",
+    "label_count": 10,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware that encrypt victim files and demand ransom, exploit public-facing application for initial access, abuse valid credentials for access, masquerade as legitimate software (inspired by AtomSilo)",
+    "malware_category": "ransomware",
+    "complexity_level": "MEDIUM",
+    "total_score": 40,
+    "ttp_score": 9,
+    "tactic_score": 14,
+    "feature_score": 17,
+    "n_ttps": 9,
+    "n_tactics": 6,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 1,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "impact",
+      "initial_access",
+      "persistence"
+    ],
+    "doc_title": "AtomSilo Ransomware Enters the League of Double Extortion",
+    "labels": [
+      "T1027",
+      "T1036",
+      "T1047",
+      "T1059",
+      "T1078",
+      "T1083",
+      "T1190",
+      "T1486",
+      "T1574"
+    ],
+    "label_names": [
+      "T1027: obfuscate malicious code to evade detection",
+      "T1036: masquerade as legitimate software",
+      "T1047: execute commands via WMI",
+      "T1059: execute commands via scripting interpreter",
+      "T1078: abuse valid credentials for access",
+      "T1083: enumerate files and directories",
+      "T1190: exploit public-facing application for initial access",
+      "T1486: encrypt victim files and demand ransom",
+      "T1574: hijack DLL loading for execution"
+    ],
+    "source": "BOSCH",
+    "label_count": 9,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer malware that capture keystrokes to steal credentials, capture screenshots of the victim desktop, trick the user into executing a malicious file, inject malicious code into a running process",
+    "malware_category": "infostealer",
+    "complexity_level": "MEDIUM",
+    "total_score": 41,
+    "ttp_score": 10,
+    "tactic_score": 14,
+    "feature_score": 17,
+    "n_ttps": 10,
+    "n_tactics": 6,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "execution",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Deja Vu All Over Again Tax Scammers at Large",
+    "labels": [
+      "T1027",
+      "T1055",
+      "T1056.001",
+      "T1059.003",
+      "T1105",
+      "T1113",
+      "T1204.002",
+      "T1547.001",
+      "T1562.001",
+      "T1564.001"
+    ],
+    "label_names": [
+      "T1027: obfuscate code and strings to evade detection",
+      "T1055: inject malicious code into a running process",
+      "T1056.001: capture keystrokes to steal credentials",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1105: download additional payloads from remote server",
+      "T1113: capture screenshots of the victim desktop",
+      "T1204.002: trick the user into executing a malicious file",
+      "T1547.001: persist via Windows Registry Run key",
+      "T1562.001: disable or tamper with security tools",
+      "T1564.001: hide files using the hidden file attribute"
+    ],
+    "source": "TRAM2",
+    "label_count": 10,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware that encrypt victim files and demand ransom, collect data from local filesystem, inject code into legitimate process, communicate with C2 over HTTP/HTTPS (inspired by Zeus/TinyNuke)",
+    "malware_category": "ransomware",
+    "complexity_level": "MEDIUM",
+    "total_score": 41,
+    "ttp_score": 10,
+    "tactic_score": 18,
+    "feature_score": 13,
+    "n_ttps": 10,
+    "n_tactics": 8,
+    "n_features": 3,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 1,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "execution",
+      "impact",
+      "initial_access",
+      "persistence",
+      "privilege_escalation",
+      "resource_development"
+    ],
+    "doc_title": "TinyNuke Banking Malware Targets French Entities",
+    "labels": [
+      "T1005",
+      "T1055",
+      "T1059",
+      "T1071",
+      "T1105",
+      "T1189",
+      "T1486",
+      "T1547",
+      "T1566",
+      "T1584"
+    ],
+    "label_names": [
+      "T1005: collect data from local filesystem",
+      "T1055: inject code into legitimate process",
+      "T1059: execute commands via scripting interpreter",
+      "T1071: communicate with C2 over HTTP/HTTPS",
+      "T1105: download additional tools from remote server",
+      "T1189: gain access via drive-by download",
+      "T1486: encrypt victim files and demand ransom",
+      "T1547: persist via boot/logon autostart mechanism",
+      "T1566: deliver payload via phishing email",
+      "T1584: compromise third-party infrastructure"
+    ],
+    "source": "BOSCH",
+    "label_count": 10,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT/RAT malware that communicate with C2 server over HTTP/HTTPS, relay C2 traffic through a proxy, hijack DLL loading to execute malicious code, inject malicious code into a running process",
+    "malware_category": "rat_apt",
+    "complexity_level": "MEDIUM",
+    "total_score": 41,
+    "ttp_score": 14,
+    "tactic_score": 14,
+    "feature_score": 13,
+    "n_ttps": 14,
+    "n_tactics": 6,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "defense_evasion",
+      "execution",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Earth Zhulong Familiar Patterns Target Southeast Asian Firms",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1053.005",
+      "T1055",
+      "T1059.003",
+      "T1070.004",
+      "T1071.001",
+      "T1090",
+      "T1105",
+      "T1106",
+      "T1140",
+      "T1204.002",
+      "T1484.001",
+      "T1574.002"
+    ],
+    "label_names": [
+      "T1005: collect sensitive data from local filesystem",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1055: inject malicious code into a running process",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1070.004: delete files to remove forensic traces",
+      "T1071.001: communicate with C2 server over HTTP/HTTPS",
+      "T1090: relay C2 traffic through a proxy",
+      "T1105: download additional payloads from remote server",
+      "T1106: execute shellcode using native Windows API",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1204.002: trick the user into executing a malicious file",
+      "T1484.001: modify Group Policy Objects for domain-wide persistence",
+      "T1574.002: hijack DLL loading to execute malicious code"
+    ],
+    "source": "TRAM2",
+    "label_count": 14,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT/RAT malware that communicate with C2 server over HTTP/HTTPS, move laterally via RDP, dump credentials from LSASS memory, masquerade as a legitimate system binary",
+    "malware_category": "rat_apt",
+    "complexity_level": "MEDIUM",
+    "total_score": 41,
+    "ttp_score": 14,
+    "tactic_score": 14,
+    "feature_score": 13,
+    "n_ttps": 14,
+    "n_tactics": 6,
+    "n_features": 3,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "c2",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "lateral_movement"
+    ],
+    "doc_title": "Early Bird Catches the Wormhole Observations from the StellarParticle Campaign",
+    "labels": [
+      "T1003.001",
+      "T1021.001",
+      "T1027",
+      "T1033",
+      "T1036.005",
+      "T1047",
+      "T1057",
+      "T1070.004",
+      "T1071.001",
+      "T1078",
+      "T1083",
+      "T1140",
+      "T1564.001",
+      "T1570"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1021.001: move laterally via RDP",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1033: discover system owner and username",
+      "T1036.005: masquerade as a legitimate system binary",
+      "T1047: execute commands via WMI",
+      "T1057: enumerate running processes",
+      "T1070.004: delete files to remove forensic traces",
+      "T1071.001: communicate with C2 server over HTTP/HTTPS",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1083: enumerate files and directories on disk",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1564.001: hide files using the hidden file attribute",
+      "T1570: spread laterally by copying malware over SMB shares"
+    ],
+    "source": "TRAM2",
+    "label_count": 14,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a RAT/backdoor that exfiltrate data over C2 channel, hijack DLL loading for execution, execute commands via scripting interpreter, collect data from local filesystem (inspired by TokyoX)",
+    "malware_category": "rat_apt",
+    "complexity_level": "MEDIUM",
+    "total_score": 41,
+    "ttp_score": 10,
+    "tactic_score": 14,
+    "feature_score": 17,
+    "n_ttps": 10,
+    "n_tactics": 6,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "collection",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "persistence"
+    ],
+    "doc_title": "TokyoX: DLL side-loading an unknown artifact (Part 2)",
+    "labels": [
+      "T1005",
+      "T1033",
+      "T1041",
+      "T1049",
+      "T1059",
+      "T1070",
+      "T1082",
+      "T1083",
+      "T1105",
+      "T1574"
+    ],
+    "label_names": [
+      "T1005: collect data from local filesystem",
+      "T1033: discover system owner and username",
+      "T1041: exfiltrate data over C2 channel",
+      "T1049: discover active network connections",
+      "T1059: execute commands via scripting interpreter",
+      "T1070: remove indicators of compromise",
+      "T1082: collect system and hardware information",
+      "T1083: enumerate files and directories",
+      "T1105: download additional tools from remote server",
+      "T1574: hijack DLL loading for execution"
+    ],
+    "source": "BOSCH",
+    "label_count": 10,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware malware that move laterally via RDP, dump credentials from LSASS memory, brute-force credentials to gain access, exploit a public-facing application for initial access",
+    "malware_category": "ransomware",
+    "complexity_level": "MEDIUM",
+    "total_score": 42,
+    "ttp_score": 11,
+    "tactic_score": 14,
+    "feature_score": 17,
+    "n_ttps": 11,
+    "n_tactics": 6,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "execution",
+      "initial_access",
+      "lateral_movement",
+      "persistence"
+    ],
+    "doc_title": "Nefilim Ransomware",
+    "labels": [
+      "T1003.001",
+      "T1021.001",
+      "T1027",
+      "T1047",
+      "T1059.003",
+      "T1078",
+      "T1105",
+      "T1106",
+      "T1110",
+      "T1112",
+      "T1190"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1021.001: move laterally via RDP",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1047: execute commands via WMI",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1105: download additional payloads from remote server",
+      "T1106: execute shellcode using native Windows API",
+      "T1110: brute-force credentials to gain access",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1190: exploit a public-facing application for initial access"
+    ],
+    "source": "TRAM2",
+    "label_count": 11,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer malware that exfiltrate stolen data over C2 channel, inject malicious code into a running process, communicate with C2 via raw TCP/UDP socket, download additional payloads from remote server",
+    "malware_category": "infostealer",
+    "complexity_level": "MEDIUM",
+    "total_score": 44,
+    "ttp_score": 11,
+    "tactic_score": 16,
+    "feature_score": 17,
+    "n_ttps": 11,
+    "n_tactics": 7,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Not just an infostealer Gopuram backdoor deployed through 3CX supply chain attack",
+    "labels": [
+      "T1027",
+      "T1041",
+      "T1055",
+      "T1095",
+      "T1105",
+      "T1106",
+      "T1112",
+      "T1140",
+      "T1518.001",
+      "T1543.003",
+      "T1574.002"
+    ],
+    "label_names": [
+      "T1027: obfuscate code and strings to evade detection",
+      "T1041: exfiltrate stolen data over C2 channel",
+      "T1055: inject malicious code into a running process",
+      "T1095: communicate with C2 via raw TCP/UDP socket",
+      "T1105: download additional payloads from remote server",
+      "T1106: execute shellcode using native Windows API",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1518.001: discover installed antivirus and security software",
+      "T1543.003: install a malicious Windows service for persistence",
+      "T1574.002: hijack DLL loading to execute malicious code"
+    ],
+    "source": "TRAM2",
+    "label_count": 11,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a destructive wiper malware that spread laterally by copying malware over SMB shares, exploit a remote service for lateral movement, dump credentials from LSASS memory, execute commands via WMI",
+    "malware_category": "wiper",
+    "complexity_level": "MEDIUM",
+    "total_score": 46,
+    "ttp_score": 17,
+    "tactic_score": 12,
+    "feature_score": 17,
+    "n_ttps": 17,
+    "n_tactics": 5,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "lateral_movement"
+    ],
+    "doc_title": "NotPetya Technical Analysis  A Triple Threat File Encryption MFT Encryption Credential Theft",
+    "labels": [
+      "T1003.001",
+      "T1016",
+      "T1027",
+      "T1047",
+      "T1053.005",
+      "T1056.001",
+      "T1057",
+      "T1059.003",
+      "T1078",
+      "T1082",
+      "T1083",
+      "T1106",
+      "T1140",
+      "T1210",
+      "T1218.011",
+      "T1518.001",
+      "T1570"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1016: enumerate network configuration",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1047: execute commands via WMI",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1056.001: capture keystrokes to steal credentials",
+      "T1057: enumerate running processes",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1082: collect system hardware and OS information",
+      "T1083: enumerate files and directories on disk",
+      "T1106: execute shellcode using native Windows API",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1210: exploit a remote service for lateral movement",
+      "T1218.011: proxy execution through rundll32.exe",
+      "T1518.001: discover installed antivirus and security software",
+      "T1570: spread laterally by copying malware over SMB shares"
+    ],
+    "source": "TRAM2",
+    "label_count": 17,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a destructive wiper malware that spread laterally by copying malware over SMB shares, dump credentials from LSASS memory, execute commands via Windows Command Shell, proxy execution through rundll32.exe",
+    "malware_category": "wiper",
+    "complexity_level": "MEDIUM",
+    "total_score": 47,
+    "ttp_score": 14,
+    "tactic_score": 16,
+    "feature_score": 17,
+    "n_ttps": 14,
+    "n_tactics": 7,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "initial_access",
+      "lateral_movement",
+      "persistence"
+    ],
+    "doc_title": "Fantasy  a new Agrius wiper deployed through a supplychain attack",
+    "labels": [
+      "T1003.001",
+      "T1027",
+      "T1033",
+      "T1059.003",
+      "T1070.004",
+      "T1078",
+      "T1082",
+      "T1083",
+      "T1106",
+      "T1112",
+      "T1140",
+      "T1190",
+      "T1218.011",
+      "T1570"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1033: discover system owner and username",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1070.004: delete files to remove forensic traces",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1082: collect system hardware and OS information",
+      "T1083: enumerate files and directories on disk",
+      "T1106: execute shellcode using native Windows API",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1190: exploit a public-facing application for initial access",
+      "T1218.011: proxy execution through rundll32.exe",
+      "T1570: spread laterally by copying malware over SMB shares"
+    ],
+    "source": "TRAM2",
+    "label_count": 14,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware that encrypt victim files and demand ransom, compromise supply chain for initial access, exploit remote service for lateral movement, abuse valid credentials for access (used by ShinyHunters)",
+    "malware_category": "ransomware",
+    "complexity_level": "MEDIUM",
+    "total_score": 48,
+    "ttp_score": 13,
+    "tactic_score": 18,
+    "feature_score": 17,
+    "n_ttps": 13,
+    "n_tactics": 8,
+    "n_features": 4,
+    "features": {
+      "evasion": 0,
+      "lateral": 1,
+      "persist": 0,
+      "cred": 1,
+      "impact": 1,
+      "exfil": 1,
+      "inject": 0
+    },
+    "tactics": [
+      "collection",
+      "credential_access",
+      "discovery",
+      "exfiltration",
+      "impact",
+      "initial_access",
+      "lateral_movement",
+      "reconnaissance"
+    ],
+    "doc_title": "Here's how to guard your enterprise against ShinyHunters",
+    "labels": [
+      "T1072",
+      "T1078",
+      "T1195",
+      "T1210",
+      "T1213",
+      "T1486",
+      "T1528",
+      "T1530",
+      "T1566",
+      "T1567",
+      "T1580",
+      "T1589",
+      "T1598"
+    ],
+    "label_names": [
+      "T1072: abuse software deployment tools for lateral movement",
+      "T1078: abuse valid credentials for access",
+      "T1195: compromise supply chain for initial access",
+      "T1210: exploit remote service for lateral movement",
+      "T1213: access data from information repositories",
+      "T1486: encrypt victim files and demand ransom",
+      "T1528: steal OAuth application access token",
+      "T1530: access data from cloud storage",
+      "T1566: deliver payload via phishing email",
+      "T1567: exfiltrate data to cloud/web service",
+      "T1580: discover cloud infrastructure resources",
+      "T1589: gather victim identity information",
+      "T1598: use phishing to gather victim information"
+    ],
+    "source": "BOSCH",
+    "label_count": 13,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware malware that move laterally via RDP, modify Group Policy Objects for domain-wide persistence, dump credentials from LSASS memory, maintain remote access via a RAT tool",
+    "malware_category": "ransomware",
+    "complexity_level": "HIGH",
+    "total_score": 49,
+    "ttp_score": 16,
+    "tactic_score": 16,
+    "feature_score": 17,
+    "n_ttps": 16,
+    "n_tactics": 7,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "initial_access",
+      "lateral_movement",
+      "persistence"
+    ],
+    "doc_title": "Threat Assessment Black Basta Ransomware",
+    "labels": [
+      "T1003.001",
+      "T1016",
+      "T1021.001",
+      "T1027",
+      "T1059.003",
+      "T1070.004",
+      "T1082",
+      "T1083",
+      "T1105",
+      "T1112",
+      "T1219",
+      "T1484.001",
+      "T1543.003",
+      "T1562.001",
+      "T1566.001",
+      "T1569.002"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1016: enumerate network configuration",
+      "T1021.001: move laterally via RDP",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1070.004: delete files to remove forensic traces",
+      "T1082: collect system hardware and OS information",
+      "T1083: enumerate files and directories on disk",
+      "T1105: download additional payloads from remote server",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1219: maintain remote access via a RAT tool",
+      "T1484.001: modify Group Policy Objects for domain-wide persistence",
+      "T1543.003: install a malicious Windows service for persistence",
+      "T1562.001: disable or tamper with security tools",
+      "T1566.001: deliver initial payload via spearphishing email",
+      "T1569.002: execute payload by creating a Windows service"
+    ],
+    "source": "TRAM2",
+    "label_count": 16,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware that encrypt victim files and demand ransom, disable or tamper with security defenses, query Windows Registry, discover remote systems on network",
+    "malware_category": "ransomware",
+    "complexity_level": "HIGH",
+    "total_score": 49,
+    "ttp_score": 16,
+    "tactic_score": 16,
+    "feature_score": 17,
+    "n_ttps": 16,
+    "n_tactics": 7,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 1,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "defense_evasion",
+      "discovery",
+      "impact",
+      "initial_access",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Return of Emotet malware",
+    "labels": [
+      "T1012",
+      "T1018",
+      "T1036",
+      "T1055",
+      "T1057",
+      "T1071",
+      "T1082",
+      "T1083",
+      "T1218",
+      "T1486",
+      "T1518",
+      "T1547",
+      "T1562",
+      "T1564",
+      "T1566",
+      "T1573"
+    ],
+    "label_names": [
+      "T1012: query Windows Registry",
+      "T1018: discover remote systems on network",
+      "T1036: masquerade as legitimate software",
+      "T1055: inject code into legitimate process",
+      "T1057: enumerate running processes",
+      "T1071: communicate with C2 over HTTP/HTTPS",
+      "T1082: collect system and hardware information",
+      "T1083: enumerate files and directories",
+      "T1218: abuse legitimate system binary (LOLBin)",
+      "T1486: encrypt victim files and demand ransom",
+      "T1518: discover installed security software",
+      "T1547: persist via boot/logon autostart mechanism",
+      "T1562: disable or tamper with security defenses",
+      "T1564: hide artifacts to avoid detection",
+      "T1566: deliver payload via phishing email",
+      "T1573: encrypt C2 communications"
+    ],
+    "source": "BOSCH",
+    "label_count": 16,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer/ransomware hybrid that steal credentials from password stores and browsers, steal web session cookie, encrypt victim files and demand ransom, exfiltrate data over C2 channel",
+    "malware_category": "hybrid",
+    "complexity_level": "HIGH",
+    "total_score": 50,
+    "ttp_score": 16,
+    "tactic_score": 21,
+    "feature_score": 13,
+    "n_ttps": 16,
+    "n_tactics": 9,
+    "n_features": 3,
+    "features": {
+      "evasion": 0,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 1,
+      "exfil": 1,
+      "inject": 0
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "credential_access",
+      "execution",
+      "exfiltration",
+      "impact",
+      "initial_access",
+      "reconnaissance",
+      "resource_development"
+    ],
+    "doc_title": "Spike in DanaBot Malware Activity",
+    "labels": [
+      "T1003",
+      "T1008",
+      "T1041",
+      "T1059",
+      "T1115",
+      "T1195",
+      "T1204",
+      "T1486",
+      "T1496",
+      "T1499",
+      "T1539",
+      "T1555",
+      "T1573",
+      "T1586",
+      "T1589",
+      "T1592"
+    ],
+    "label_names": [
+      "T1003: dump OS credentials",
+      "T1008: use fallback C2 channels for resilience",
+      "T1041: exfiltrate data over C2 channel",
+      "T1059: execute commands via scripting interpreter",
+      "T1115: capture clipboard contents",
+      "T1195: compromise supply chain for initial access",
+      "T1204: trick user into executing malicious file",
+      "T1486: encrypt victim files and demand ransom",
+      "T1496: hijack resources for cryptomining",
+      "T1499: perform denial-of-service attack on endpoint",
+      "T1539: steal web session cookie",
+      "T1555: steal credentials from password stores and browsers",
+      "T1573: encrypt C2 communications",
+      "T1586: compromise legitimate accounts for use",
+      "T1589: gather victim identity information",
+      "T1592: gather victim host information"
+    ],
+    "source": "BOSCH",
+    "label_count": 16,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a loader/dropper that deliver payload via phishing email, trick user into executing malicious file, download additional tools from remote server, decode/deobfuscate payload at runtime",
+    "malware_category": "loader_dropper",
+    "complexity_level": "HIGH",
+    "total_score": 50,
+    "ttp_score": 15,
+    "tactic_score": 18,
+    "feature_score": 17,
+    "n_ttps": 15,
+    "n_tactics": 8,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 1,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "impact",
+      "initial_access",
+      "persistence",
+      "resource_development"
+    ],
+    "doc_title": "New Trickbot and BazarLoader campaigns use multiple delivery vectors",
+    "labels": [
+      "T1027",
+      "T1036",
+      "T1059",
+      "T1082",
+      "T1105",
+      "T1132",
+      "T1140",
+      "T1203",
+      "T1204",
+      "T1496",
+      "T1497",
+      "T1564",
+      "T1566",
+      "T1574",
+      "T1583"
+    ],
+    "label_names": [
+      "T1027: obfuscate malicious code to evade detection",
+      "T1036: masquerade as legitimate software",
+      "T1059: execute commands via scripting interpreter",
+      "T1082: collect system and hardware information",
+      "T1105: download additional tools from remote server",
+      "T1132: encode data for C2 communications",
+      "T1140: decode/deobfuscate payload at runtime",
+      "T1203: exploit client application for execution",
+      "T1204: trick user into executing malicious file",
+      "T1496: hijack resources for cryptomining",
+      "T1497: detect sandbox environment to evade analysis",
+      "T1564: hide artifacts to avoid detection",
+      "T1566: deliver payload via phishing email",
+      "T1574: hijack DLL loading for execution",
+      "T1583: acquire infrastructure for operations"
+    ],
+    "source": "BOSCH",
+    "label_count": 15,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware malware that spread laterally by copying malware over SMB shares, move laterally via RDP, modify Group Policy Objects for domain-wide persistence, bypass UAC to elevate privileges",
+    "malware_category": "ransomware",
+    "complexity_level": "HIGH",
+    "total_score": 50,
+    "ttp_score": 17,
+    "tactic_score": 16,
+    "feature_score": 17,
+    "n_ttps": 17,
+    "n_tactics": 7,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "initial_access",
+      "lateral_movement",
+      "privilege_escalation"
+    ],
+    "doc_title": "LockBit 20 How This RaaS Operates and How to Protect Against It",
+    "labels": [
+      "T1003.001",
+      "T1021.001",
+      "T1027",
+      "T1053.005",
+      "T1059.003",
+      "T1068",
+      "T1078",
+      "T1082",
+      "T1105",
+      "T1110",
+      "T1190",
+      "T1210",
+      "T1219",
+      "T1484.001",
+      "T1548.002",
+      "T1562.001",
+      "T1570"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1021.001: move laterally via RDP",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1068: exploit a vulnerability for privilege escalation",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1082: collect system hardware and OS information",
+      "T1105: download additional payloads from remote server",
+      "T1110: brute-force credentials to gain access",
+      "T1190: exploit a public-facing application for initial access",
+      "T1210: exploit a remote service for lateral movement",
+      "T1219: maintain remote access via a RAT tool",
+      "T1484.001: modify Group Policy Objects for domain-wide persistence",
+      "T1548.002: bypass UAC to elevate privileges",
+      "T1562.001: disable or tamper with security tools",
+      "T1570: spread laterally by copying malware over SMB shares"
+    ],
+    "source": "TRAM2",
+    "label_count": 17,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT malware that communicate with C2 over HTTP/HTTPS, inject code into legitimate process, collect data from local filesystem, exfiltrate data over C2 channel",
+    "malware_category": "rat_apt",
+    "complexity_level": "HIGH",
+    "total_score": 50,
+    "ttp_score": 12,
+    "tactic_score": 21,
+    "feature_score": 17,
+    "n_ttps": 12,
+    "n_tactics": 9,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "initial_access",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "New TransparenTribe Operation: Targeting India with weaponized COVID-19 lure documents",
+    "labels": [
+      "T1005",
+      "T1041",
+      "T1055",
+      "T1057",
+      "T1059",
+      "T1071",
+      "T1105",
+      "T1204",
+      "T1497",
+      "T1547",
+      "T1566",
+      "T1568"
+    ],
+    "label_names": [
+      "T1005: collect data from local filesystem",
+      "T1041: exfiltrate data over C2 channel",
+      "T1055: inject code into legitimate process",
+      "T1057: enumerate running processes",
+      "T1059: execute commands via scripting interpreter",
+      "T1071: communicate with C2 over HTTP/HTTPS",
+      "T1105: download additional tools from remote server",
+      "T1204: trick user into executing malicious file",
+      "T1497: detect sandbox environment to evade analysis",
+      "T1547: persist via boot/logon autostart mechanism",
+      "T1566: deliver payload via phishing email",
+      "T1568: use dynamic DNS resolution for C2"
+    ],
+    "source": "BOSCH",
+    "label_count": 12,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a loader/dropper that deliver payload via phishing email, abuse legitimate system binary (LOLBin), execute commands via scripting interpreter, obfuscate C2 communications",
+    "malware_category": "loader_dropper",
+    "complexity_level": "HIGH",
+    "total_score": 51,
+    "ttp_score": 13,
+    "tactic_score": 21,
+    "feature_score": 17,
+    "n_ttps": 13,
+    "n_tactics": 9,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 0,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "initial_access",
+      "privilege_escalation"
+    ],
+    "doc_title": "How the new Emotet differs from previous versions",
+    "labels": [
+      "T1001",
+      "T1027",
+      "T1041",
+      "T1055",
+      "T1057",
+      "T1059",
+      "T1110",
+      "T1114",
+      "T1189",
+      "T1218",
+      "T1566",
+      "T1573",
+      "T1606"
+    ],
+    "label_names": [
+      "T1001: obfuscate C2 communications",
+      "T1027: obfuscate malicious code to evade detection",
+      "T1041: exfiltrate data over C2 channel",
+      "T1055: inject code into legitimate process",
+      "T1057: enumerate running processes",
+      "T1059: execute commands via scripting interpreter",
+      "T1110: brute-force credentials",
+      "T1114: collect data from victim email",
+      "T1189: gain access via drive-by download",
+      "T1218: abuse legitimate system binary (LOLBin)",
+      "T1566: deliver payload via phishing email",
+      "T1573: encrypt C2 communications",
+      "T1606: forge web credentials or cookies"
+    ],
+    "source": "BOSCH",
+    "label_count": 13,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a loader/dropper that deliver payload via phishing email, trick user into executing malicious file, abuse legitimate system binary (LOLBin), download additional tools from remote server (inspired by Squirrelwaffle/Zloader)",
+    "malware_category": "loader_dropper",
+    "complexity_level": "HIGH",
+    "total_score": 53,
+    "ttp_score": 18,
+    "tactic_score": 18,
+    "feature_score": 17,
+    "n_ttps": 18,
+    "n_tactics": 8,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 0,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "defense_evasion",
+      "execution",
+      "exfiltration",
+      "initial_access",
+      "persistence",
+      "privilege_escalation",
+      "reconnaissance"
+    ],
+    "doc_title": "Squirrelwaffle: New Loader Delivering Cobalt Strike",
+    "labels": [
+      "T1001",
+      "T1027",
+      "T1041",
+      "T1055",
+      "T1059",
+      "T1071",
+      "T1105",
+      "T1106",
+      "T1132",
+      "T1137",
+      "T1140",
+      "T1204",
+      "T1218",
+      "T1437",
+      "T1509",
+      "T1566",
+      "T1569",
+      "T1592"
+    ],
+    "label_names": [
+      "T1001: obfuscate C2 communications",
+      "T1027: obfuscate malicious code to evade detection",
+      "T1041: exfiltrate data over C2 channel",
+      "T1055: inject code into legitimate process",
+      "T1059: execute commands via scripting interpreter",
+      "T1071: communicate with C2 over HTTP/HTTPS",
+      "T1105: download additional tools from remote server",
+      "T1106: execute payload using native Windows API",
+      "T1132: encode data for C2 communications",
+      "T1137: persist via Office application startup",
+      "T1140: decode/deobfuscate payload at runtime",
+      "T1204: trick user into executing malicious file",
+      "T1218: abuse legitimate system binary (LOLBin)",
+      "T1437: use standard application protocol for C2",
+      "T1509: use non-standard port for C2",
+      "T1566: deliver payload via phishing email",
+      "T1569: execute payload via Windows service",
+      "T1592: gather victim host information"
+    ],
+    "source": "BOSCH",
+    "label_count": 18,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a RAT/backdoor that exfiltrate data over C2 channel, persist via boot/logon autostart mechanism, inject code into legitimate process, use reflective code loading",
+    "malware_category": "rat_apt",
+    "complexity_level": "HIGH",
+    "total_score": 55,
+    "ttp_score": 16,
+    "tactic_score": 18,
+    "feature_score": 21,
+    "n_ttps": 16,
+    "n_tactics": 8,
+    "n_features": 5,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "execution",
+      "exfiltration",
+      "initial_access",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "A twisted malware infection chain",
+    "labels": [
+      "T1027",
+      "T1041",
+      "T1053",
+      "T1055",
+      "T1059",
+      "T1105",
+      "T1115",
+      "T1140",
+      "T1204",
+      "T1218",
+      "T1497",
+      "T1547",
+      "T1555",
+      "T1562",
+      "T1566",
+      "T1620"
+    ],
+    "label_names": [
+      "T1027: obfuscate malicious code to evade detection",
+      "T1041: exfiltrate data over C2 channel",
+      "T1053: establish persistence via scheduled task",
+      "T1055: inject code into legitimate process",
+      "T1059: execute commands via scripting interpreter",
+      "T1105: download additional tools from remote server",
+      "T1115: capture clipboard contents",
+      "T1140: decode/deobfuscate payload at runtime",
+      "T1204: trick user into executing malicious file",
+      "T1218: abuse legitimate system binary (LOLBin)",
+      "T1497: detect sandbox environment to evade analysis",
+      "T1547: persist via boot/logon autostart mechanism",
+      "T1555: steal credentials from password stores and browsers",
+      "T1562: disable or tamper with security defenses",
+      "T1566: deliver payload via phishing email",
+      "T1620: use reflective code loading"
+    ],
+    "source": "BOSCH",
+    "label_count": 16,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create a backdoor/loader malware that persist via Windows Registry Run key, maintain remote access via a RAT tool, relay C2 traffic through a proxy, communicate with C2 via raw TCP/UDP socket",
+    "malware_category": "loader_dropper",
+    "complexity_level": "HIGH",
+    "total_score": 59,
+    "ttp_score": 24,
+    "tactic_score": 18,
+    "feature_score": 17,
+    "n_ttps": 24,
+    "n_tactics": 8,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "eSentire Threat Intelligence Malware Analysis BatLoader",
+    "labels": [
+      "T1005",
+      "T1012",
+      "T1016",
+      "T1027",
+      "T1033",
+      "T1047",
+      "T1053.005",
+      "T1055",
+      "T1059.003",
+      "T1082",
+      "T1090",
+      "T1095",
+      "T1105",
+      "T1106",
+      "T1112",
+      "T1113",
+      "T1140",
+      "T1218.011",
+      "T1219",
+      "T1518.001",
+      "T1547.001",
+      "T1552.001",
+      "T1562.001",
+      "T1573.001"
+    ],
+    "label_names": [
+      "T1005: collect sensitive data from local filesystem",
+      "T1012: query Windows Registry for configuration",
+      "T1016: enumerate network configuration",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1033: discover system owner and username",
+      "T1047: execute commands via WMI",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1055: inject malicious code into a running process",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1082: collect system hardware and OS information",
+      "T1090: relay C2 traffic through a proxy",
+      "T1095: communicate with C2 via raw TCP/UDP socket",
+      "T1105: download additional payloads from remote server",
+      "T1106: execute shellcode using native Windows API",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1113: capture screenshots of the victim desktop",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1218.011: proxy execution through rundll32.exe",
+      "T1219: maintain remote access via a RAT tool",
+      "T1518.001: discover installed antivirus and security software",
+      "T1547.001: persist via Windows Registry Run key",
+      "T1552.001: search files for hardcoded credentials",
+      "T1562.001: disable or tamper with security tools",
+      "T1573.001: encrypt C2 communications with TLS"
+    ],
+    "source": "TRAM2",
+    "label_count": 24,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer that steal credentials from password stores and browsers, steal web session cookie, forge web credentials or cookies, collect data from local filesystem",
+    "malware_category": "infostealer",
+    "complexity_level": "HIGH",
+    "total_score": 63,
+    "ttp_score": 21,
+    "tactic_score": 25,
+    "feature_score": 17,
+    "n_ttps": 21,
+    "n_tactics": 11,
+    "n_features": 4,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 0
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "initial_access",
+      "persistence",
+      "reconnaissance",
+      "resource_development"
+    ],
+    "doc_title": "New MultiloginBot Phishing Campaign",
+    "labels": [
+      "T1003",
+      "T1005",
+      "T1036",
+      "T1041",
+      "T1049",
+      "T1059",
+      "T1070",
+      "T1074",
+      "T1102",
+      "T1114",
+      "T1140",
+      "T1204",
+      "T1539",
+      "T1547",
+      "T1555",
+      "T1560",
+      "T1566",
+      "T1567",
+      "T1584",
+      "T1592",
+      "T1606"
+    ],
+    "label_names": [
+      "T1003: dump OS credentials",
+      "T1005: collect data from local filesystem",
+      "T1036: masquerade as legitimate software",
+      "T1041: exfiltrate data over C2 channel",
+      "T1049: discover active network connections",
+      "T1059: execute commands via scripting interpreter",
+      "T1070: remove indicators of compromise",
+      "T1074: stage collected data for exfiltration",
+      "T1102: use web service as C2 channel",
+      "T1114: collect data from victim email",
+      "T1140: decode/deobfuscate payload at runtime",
+      "T1204: trick user into executing malicious file",
+      "T1539: steal web session cookie",
+      "T1547: persist via boot/logon autostart mechanism",
+      "T1555: steal credentials from password stores and browsers",
+      "T1560: archive collected data before exfiltration",
+      "T1566: deliver payload via phishing email",
+      "T1567: exfiltrate data to cloud/web service",
+      "T1584: compromise third-party infrastructure",
+      "T1592: gather victim host information",
+      "T1606: forge web credentials or cookies"
+    ],
+    "source": "BOSCH",
+    "label_count": 21,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware malware that spread laterally by copying malware over SMB shares, move laterally via RDP, dump credentials from LSASS memory, maintain remote access via a RAT tool",
+    "malware_category": "ransomware",
+    "complexity_level": "HIGH",
+    "total_score": 68,
+    "ttp_score": 24,
+    "tactic_score": 23,
+    "feature_score": 21,
+    "n_ttps": 24,
+    "n_tactics": 10,
+    "n_features": 5,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 0,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "initial_access",
+      "lateral_movement",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Emotet Strikes Again  LNK File Leads to Domain Wide Ransomware  The DFIR Report",
+    "labels": [
+      "T1003.001",
+      "T1005",
+      "T1016",
+      "T1021.001",
+      "T1027",
+      "T1033",
+      "T1047",
+      "T1055",
+      "T1057",
+      "T1059.003",
+      "T1070.004",
+      "T1071.001",
+      "T1078",
+      "T1082",
+      "T1105",
+      "T1140",
+      "T1204.002",
+      "T1218.011",
+      "T1219",
+      "T1543.003",
+      "T1547.001",
+      "T1566.001",
+      "T1569.002",
+      "T1570"
+    ],
+    "label_names": [
+      "T1003.001: dump credentials from LSASS memory",
+      "T1005: collect sensitive data from local filesystem",
+      "T1016: enumerate network configuration",
+      "T1021.001: move laterally via RDP",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1033: discover system owner and username",
+      "T1047: execute commands via WMI",
+      "T1055: inject malicious code into a running process",
+      "T1057: enumerate running processes",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1070.004: delete files to remove forensic traces",
+      "T1071.001: communicate with C2 server over HTTP/HTTPS",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1082: collect system hardware and OS information",
+      "T1105: download additional payloads from remote server",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1204.002: trick the user into executing a malicious file",
+      "T1218.011: proxy execution through rundll32.exe",
+      "T1219: maintain remote access via a RAT tool",
+      "T1543.003: install a malicious Windows service for persistence",
+      "T1547.001: persist via Windows Registry Run key",
+      "T1566.001: deliver initial payload via spearphishing email",
+      "T1569.002: execute payload by creating a Windows service",
+      "T1570: spread laterally by copying malware over SMB shares"
+    ],
+    "source": "TRAM2",
+    "label_count": 24,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create ransomware that encrypt victim files and demand ransom, move laterally via remote services (RDP/SMB), exploit public-facing application for initial access, compromise supply chain for initial access (inspired by DarkSide/GandCrab)",
+    "malware_category": "ransomware",
+    "complexity_level": "HIGH",
+    "total_score": 69,
+    "ttp_score": 20,
+    "tactic_score": 23,
+    "feature_score": 26,
+    "n_ttps": 20,
+    "n_tactics": 10,
+    "n_features": 6,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 1,
+      "exfil": 1,
+      "inject": 0
+    },
+    "tactics": [
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "impact",
+      "initial_access",
+      "lateral_movement",
+      "privilege_escalation",
+      "reconnaissance"
+    ],
+    "doc_title": "How Groove Gang is shaking up the Ransomware-as-a-Service market to empower affiliates",
+    "labels": [
+      "T1003",
+      "T1021",
+      "T1046",
+      "T1053",
+      "T1059",
+      "T1068",
+      "T1078",
+      "T1087",
+      "T1110",
+      "T1135",
+      "T1189",
+      "T1190",
+      "T1195",
+      "T1210",
+      "T1482",
+      "T1486",
+      "T1537",
+      "T1562",
+      "T1567",
+      "T1589"
+    ],
+    "label_names": [
+      "T1003: dump OS credentials",
+      "T1021: move laterally via remote services (RDP/SMB)",
+      "T1046: scan network for open services",
+      "T1053: establish persistence via scheduled task",
+      "T1059: execute commands via scripting interpreter",
+      "T1068: exploit vulnerability for privilege escalation",
+      "T1078: abuse valid credentials for access",
+      "T1087: enumerate user and domain accounts",
+      "T1110: brute-force credentials",
+      "T1135: enumerate network shares",
+      "T1189: gain access via drive-by download",
+      "T1190: exploit public-facing application for initial access",
+      "T1195: compromise supply chain for initial access",
+      "T1210: exploit remote service for lateral movement",
+      "T1482: discover domain trust relationships",
+      "T1486: encrypt victim files and demand ransom",
+      "T1537: transfer collected data to cloud account",
+      "T1562: disable or tamper with security defenses",
+      "T1567: exfiltrate data to cloud/web service",
+      "T1589: gather victim identity information"
+    ],
+    "source": "BOSCH",
+    "label_count": 20,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT/RAT malware that communicate with C2 server over HTTP/HTTPS, relay C2 traffic through a proxy, exfiltrate stolen data over C2 channel, hijack DLL loading to execute malicious code",
+    "malware_category": "rat_apt",
+    "complexity_level": "HIGH",
+    "total_score": 69,
+    "ttp_score": 25,
+    "tactic_score": 23,
+    "feature_score": 21,
+    "n_ttps": 25,
+    "n_tactics": 10,
+    "n_features": 5,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "initial_access",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "New Horabot campaign targets the Americas",
+    "labels": [
+      "T1005",
+      "T1012",
+      "T1027",
+      "T1036.005",
+      "T1041",
+      "T1055",
+      "T1056.001",
+      "T1059.003",
+      "T1070.004",
+      "T1071.001",
+      "T1074.001",
+      "T1078",
+      "T1082",
+      "T1083",
+      "T1090",
+      "T1105",
+      "T1112",
+      "T1113",
+      "T1140",
+      "T1204.002",
+      "T1518.001",
+      "T1543.003",
+      "T1547.001",
+      "T1566.001",
+      "T1574.002"
+    ],
+    "label_names": [
+      "T1005: collect sensitive data from local filesystem",
+      "T1012: query Windows Registry for configuration",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1036.005: masquerade as a legitimate system binary",
+      "T1041: exfiltrate stolen data over C2 channel",
+      "T1055: inject malicious code into a running process",
+      "T1056.001: capture keystrokes to steal credentials",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1070.004: delete files to remove forensic traces",
+      "T1071.001: communicate with C2 server over HTTP/HTTPS",
+      "T1074.001: stage collected data locally before exfiltration",
+      "T1078: abuse valid/stolen credentials for access",
+      "T1082: collect system hardware and OS information",
+      "T1083: enumerate files and directories on disk",
+      "T1090: relay C2 traffic through a proxy",
+      "T1105: download additional payloads from remote server",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1113: capture screenshots of the victim desktop",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1204.002: trick the user into executing a malicious file",
+      "T1518.001: discover installed antivirus and security software",
+      "T1543.003: install a malicious Windows service for persistence",
+      "T1547.001: persist via Windows Registry Run key",
+      "T1566.001: deliver initial payload via spearphishing email",
+      "T1574.002: hijack DLL loading to execute malicious code"
+    ],
+    "source": "TRAM2",
+    "label_count": 25,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create APT/RAT malware that relay C2 traffic through a proxy, communicate with C2 via raw TCP/UDP socket, exfiltrate stolen data over C2 channel, encrypt C2 communications with TLS",
+    "malware_category": "rat_apt",
+    "complexity_level": "HIGH",
+    "total_score": 81,
+    "ttp_score": 30,
+    "tactic_score": 25,
+    "feature_score": 26,
+    "n_ttps": 30,
+    "n_tactics": 11,
+    "n_features": 6,
+    "features": {
+      "evasion": 1,
+      "lateral": 1,
+      "persist": 1,
+      "cred": 1,
+      "impact": 0,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "initial_access",
+      "lateral_movement",
+      "persistence",
+      "privilege_escalation"
+    ],
+    "doc_title": "Operation Spalax Targeted malware attacks in Colombia",
+    "labels": [
+      "T1005",
+      "T1012",
+      "T1016",
+      "T1021.001",
+      "T1027",
+      "T1033",
+      "T1041",
+      "T1053.005",
+      "T1055",
+      "T1056.001",
+      "T1057",
+      "T1059.003",
+      "T1070.004",
+      "T1082",
+      "T1083",
+      "T1090",
+      "T1095",
+      "T1105",
+      "T1106",
+      "T1112",
+      "T1113",
+      "T1140",
+      "T1204.002",
+      "T1218.011",
+      "T1518.001",
+      "T1547.001",
+      "T1548.002",
+      "T1562.001",
+      "T1566.001",
+      "T1573.001"
+    ],
+    "label_names": [
+      "T1005: collect sensitive data from local filesystem",
+      "T1012: query Windows Registry for configuration",
+      "T1016: enumerate network configuration",
+      "T1021.001: move laterally via RDP",
+      "T1027: obfuscate code and strings to evade detection",
+      "T1033: discover system owner and username",
+      "T1041: exfiltrate stolen data over C2 channel",
+      "T1053.005: establish persistence via Scheduled Task",
+      "T1055: inject malicious code into a running process",
+      "T1056.001: capture keystrokes to steal credentials",
+      "T1057: enumerate running processes",
+      "T1059.003: execute commands via Windows Command Shell",
+      "T1070.004: delete files to remove forensic traces",
+      "T1082: collect system hardware and OS information",
+      "T1083: enumerate files and directories on disk",
+      "T1090: relay C2 traffic through a proxy",
+      "T1095: communicate with C2 via raw TCP/UDP socket",
+      "T1105: download additional payloads from remote server",
+      "T1106: execute shellcode using native Windows API",
+      "T1112: modify Windows Registry for persistence or evasion",
+      "T1113: capture screenshots of the victim desktop",
+      "T1140: decode and deobfuscate encrypted payload at runtime",
+      "T1204.002: trick the user into executing a malicious file",
+      "T1218.011: proxy execution through rundll32.exe",
+      "T1518.001: discover installed antivirus and security software",
+      "T1547.001: persist via Windows Registry Run key",
+      "T1548.002: bypass UAC to elevate privileges",
+      "T1562.001: disable or tamper with security tools",
+      "T1566.001: deliver initial payload via spearphishing email",
+      "T1573.001: encrypt C2 communications with TLS"
+    ],
+    "source": "TRAM2",
+    "label_count": 30,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  },
+  {
+    "intent": "Create an infostealer/ransomware hybrid that steal credentials from password stores and browsers, capture keystrokes to steal credentials, encrypt victim files and demand ransom, capture screenshots of victim desktop (used by E.K.P)",
+    "malware_category": "hybrid",
+    "complexity_level": "HIGH",
+    "total_score": 89,
+    "ttp_score": 35,
+    "tactic_score": 28,
+    "feature_score": 26,
+    "n_ttps": 35,
+    "n_tactics": 12,
+    "n_features": 6,
+    "features": {
+      "evasion": 1,
+      "lateral": 0,
+      "persist": 1,
+      "cred": 1,
+      "impact": 1,
+      "exfil": 1,
+      "inject": 1
+    },
+    "tactics": [
+      "c2",
+      "collection",
+      "credential_access",
+      "defense_evasion",
+      "discovery",
+      "execution",
+      "exfiltration",
+      "impact",
+      "initial_access",
+      "persistence",
+      "privilege_escalation",
+      "resource_development"
+    ],
+    "doc_title": "E.K.P. & Agent Tesla: The Daily Operations of a Nigerian eCrime Gang",
+    "labels": [
+      "T1016",
+      "T1027",
+      "T1033",
+      "T1047",
+      "T1048",
+      "T1053",
+      "T1055",
+      "T1056",
+      "T1057",
+      "T1059",
+      "T1071",
+      "T1082",
+      "T1087",
+      "T1105",
+      "T1112",
+      "T1113",
+      "T1115",
+      "T1124",
+      "T1125",
+      "T1140",
+      "T1185",
+      "T1203",
+      "T1204",
+      "T1218",
+      "T1486",
+      "T1497",
+      "T1547",
+      "T1552",
+      "T1555",
+      "T1560",
+      "T1562",
+      "T1564",
+      "T1566",
+      "T1606",
+      "T1608"
+    ],
+    "label_names": [
+      "T1016: enumerate network configuration",
+      "T1027: obfuscate malicious code to evade detection",
+      "T1033: discover system owner and username",
+      "T1047: execute commands via WMI",
+      "T1048: exfiltrate data via alternative protocol",
+      "T1053: establish persistence via scheduled task",
+      "T1055: inject code into legitimate process",
+      "T1056: capture keystrokes to steal credentials",
+      "T1057: enumerate running processes",
+      "T1059: execute commands via scripting interpreter",
+      "T1071: communicate with C2 over HTTP/HTTPS",
+      "T1082: collect system and hardware information",
+      "T1087: enumerate user and domain accounts",
+      "T1105: download additional tools from remote server",
+      "T1112: modify Windows Registry for persistence",
+      "T1113: capture screenshots of victim desktop",
+      "T1115: capture clipboard contents",
+      "T1124: discover system time",
+      "T1125: capture video from victim device",
+      "T1140: decode/deobfuscate payload at runtime",
+      "T1185: hijack browser session for credential theft",
+      "T1203: exploit client application for execution",
+      "T1204: trick user into executing malicious file",
+      "T1218: abuse legitimate system binary (LOLBin)",
+      "T1486: encrypt victim files and demand ransom",
+      "T1497: detect sandbox environment to evade analysis",
+      "T1547: persist via boot/logon autostart mechanism",
+      "T1552: search for unsecured credentials in files",
+      "T1555: steal credentials from password stores and browsers",
+      "T1560: archive collected data before exfiltration",
+      "T1562: disable or tamper with security defenses",
+      "T1564: hide artifacts to avoid detection",
+      "T1566: deliver payload via phishing email",
+      "T1606: forge web credentials or cookies",
+      "T1608: stage capabilities before deployment"
+    ],
+    "source": "BOSCH",
+    "label_count": 35,
+    "scoring": {
+      "formula": "total = TTP_score(max40) + Tactic_score(0-30) + Feature_score(0-30)",
+      "thresholds": {
+        "LOW": "0-36",
+        "MEDIUM": "37-48",
+        "HIGH": "49-100"
+      }
+    }
+  }
+]

@@ -1,0 +1,929 @@
+{
+  "n_cases": 25,
+  "avg_precision": 0.6013174603174604,
+  "avg_recall": 0.32307504456327985,
+  "technique_diversity": 37,
+  "unique_predicted_techniques": [
+    "T1003.001",
+    "T1016",
+    "T1021.001",
+    "T1027",
+    "T1036.005",
+    "T1041",
+    "T1047",
+    "T1053.005",
+    "T1055",
+    "T1056.001",
+    "T1057",
+    "T1059.003",
+    "T1068",
+    "T1071.001",
+    "T1074.001",
+    "T1078",
+    "T1082",
+    "T1083",
+    "T1090",
+    "T1095",
+    "T1105",
+    "T1112",
+    "T1113",
+    "T1140",
+    "T1190",
+    "T1204.002",
+    "T1218.011",
+    "T1219",
+    "T1543.003",
+    "T1547.001",
+    "T1548.002",
+    "T1552.001",
+    "T1562.001",
+    "T1566.001",
+    "T1569.002",
+    "T1570",
+    "T1574.002"
+  ],
+  "results": [
+    {
+      "case": 1,
+      "doc_title": "Operation Spalax Targeted malware attacks in Colombia",
+      "category": "apt_rat",
+      "predicted": [
+        "T1027",
+        "T1041",
+        "T1071.001",
+        "T1074.001",
+        "T1090",
+        "T1095"
+      ],
+      "truth": [
+        "T1005",
+        "T1012",
+        "T1016",
+        "T1021.001",
+        "T1027",
+        "T1033",
+        "T1041",
+        "T1053.005",
+        "T1055",
+        "T1056.001",
+        "T1057",
+        "T1059.003",
+        "T1070.004",
+        "T1082",
+        "T1083",
+        "T1090",
+        "T1095",
+        "T1105",
+        "T1106",
+        "T1112",
+        "T1113",
+        "T1140",
+        "T1204.002",
+        "T1218.011",
+        "T1518.001",
+        "T1547.001",
+        "T1548.002",
+        "T1562.001",
+        "T1566.001",
+        "T1573.001"
+      ],
+      "overlap": [
+        "T1027",
+        "T1041",
+        "T1090",
+        "T1095"
+      ],
+      "precision": 0.6666666666666666,
+      "recall": 0.13333333333333333
+    },
+    {
+      "case": 2,
+      "doc_title": "New Horabot campaign targets the Americas",
+      "category": "apt_rat",
+      "predicted": [
+        "T1041",
+        "T1071.001",
+        "T1074.001",
+        "T1090",
+        "T1204.002",
+        "T1219",
+        "T1574.002"
+      ],
+      "truth": [
+        "T1005",
+        "T1012",
+        "T1027",
+        "T1036.005",
+        "T1041",
+        "T1055",
+        "T1056.001",
+        "T1059.003",
+        "T1070.004",
+        "T1071.001",
+        "T1074.001",
+        "T1078",
+        "T1082",
+        "T1083",
+        "T1090",
+        "T1105",
+        "T1112",
+        "T1113",
+        "T1140",
+        "T1204.002",
+        "T1518.001",
+        "T1543.003",
+        "T1547.001",
+        "T1566.001",
+        "T1574.002"
+      ],
+      "overlap": [
+        "T1041",
+        "T1071.001",
+        "T1074.001",
+        "T1090",
+        "T1204.002",
+        "T1574.002"
+      ],
+      "precision": 0.8571428571428571,
+      "recall": 0.24
+    },
+    {
+      "case": 3,
+      "doc_title": "Earth Zhulong Familiar Patterns Target Southeast Asian Firms",
+      "category": "apt_rat",
+      "predicted": [
+        "T1027",
+        "T1055",
+        "T1071.001",
+        "T1090",
+        "T1105",
+        "T1219",
+        "T1543.003",
+        "T1574.002"
+      ],
+      "truth": [
+        "T1005",
+        "T1027",
+        "T1053.005",
+        "T1055",
+        "T1059.003",
+        "T1070.004",
+        "T1071.001",
+        "T1090",
+        "T1105",
+        "T1106",
+        "T1140",
+        "T1204.002",
+        "T1484.001",
+        "T1574.002"
+      ],
+      "overlap": [
+        "T1027",
+        "T1055",
+        "T1071.001",
+        "T1090",
+        "T1105",
+        "T1574.002"
+      ],
+      "precision": 0.75,
+      "recall": 0.42857142857142855
+    },
+    {
+      "case": 4,
+      "doc_title": "Early Bird Catches the Wormhole Observations from the StellarParticle Campaign",
+      "category": "apt_rat",
+      "predicted": [
+        "T1003.001",
+        "T1021.001",
+        "T1036.005",
+        "T1071.001",
+        "T1219",
+        "T1552.001",
+        "T1570"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1021.001",
+        "T1027",
+        "T1033",
+        "T1036.005",
+        "T1047",
+        "T1057",
+        "T1070.004",
+        "T1071.001",
+        "T1078",
+        "T1083",
+        "T1140",
+        "T1564.001",
+        "T1570"
+      ],
+      "overlap": [
+        "T1003.001",
+        "T1021.001",
+        "T1036.005",
+        "T1071.001",
+        "T1570"
+      ],
+      "precision": 0.7142857142857143,
+      "recall": 0.35714285714285715
+    },
+    {
+      "case": 5,
+      "doc_title": "Malware Spotlight Camaro Dragons TinyNote Backdoor",
+      "category": "apt_rat",
+      "predicted": [
+        "T1036.005",
+        "T1055",
+        "T1071.001",
+        "T1219",
+        "T1543.003",
+        "T1547.001",
+        "T1562.001"
+      ],
+      "truth": [
+        "T1033",
+        "T1053.005",
+        "T1055",
+        "T1059.003",
+        "T1071.001",
+        "T1082",
+        "T1105",
+        "T1106",
+        "T1140",
+        "T1562.001",
+        "T1574.002"
+      ],
+      "overlap": [
+        "T1055",
+        "T1071.001",
+        "T1562.001"
+      ],
+      "precision": 0.42857142857142855,
+      "recall": 0.2727272727272727
+    },
+    {
+      "case": 6,
+      "doc_title": "AA22320A Iranian GovernmentSponsored APT Actors Compromise Federal Network Deploy Crypto Miner Credential Harvester",
+      "category": "apt_rat",
+      "predicted": [
+        "T1027",
+        "T1041",
+        "T1053.005",
+        "T1071.001",
+        "T1219",
+        "T1543.003",
+        "T1570"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1021.001",
+        "T1027",
+        "T1053.005",
+        "T1071.001",
+        "T1078",
+        "T1090",
+        "T1105",
+        "T1562.001"
+      ],
+      "overlap": [
+        "T1027",
+        "T1053.005",
+        "T1071.001"
+      ],
+      "precision": 0.42857142857142855,
+      "recall": 0.3333333333333333
+    },
+    {
+      "case": 7,
+      "doc_title": "LAPSUS Recent techniques tactics and procedures",
+      "category": "apt_rat",
+      "predicted": [
+        "T1003.001",
+        "T1078",
+        "T1083",
+        "T1219"
+      ],
+      "truth": [
+        "T1005",
+        "T1021.001",
+        "T1070.004",
+        "T1078",
+        "T1082",
+        "T1552.001"
+      ],
+      "overlap": [
+        "T1078"
+      ],
+      "precision": 0.25,
+      "recall": 0.16666666666666666
+    },
+    {
+      "case": 8,
+      "doc_title": "eSentire Threat Intelligence Malware Analysis BatLoader",
+      "category": "backdoor_loader",
+      "predicted": [
+        "T1016",
+        "T1059.003",
+        "T1095",
+        "T1219",
+        "T1547.001"
+      ],
+      "truth": [
+        "T1005",
+        "T1012",
+        "T1016",
+        "T1027",
+        "T1033",
+        "T1047",
+        "T1053.005",
+        "T1055",
+        "T1059.003",
+        "T1082",
+        "T1090",
+        "T1095",
+        "T1105",
+        "T1106",
+        "T1112",
+        "T1113",
+        "T1140",
+        "T1218.011",
+        "T1219",
+        "T1518.001",
+        "T1547.001",
+        "T1552.001",
+        "T1562.001",
+        "T1573.001"
+      ],
+      "overlap": [
+        "T1016",
+        "T1059.003",
+        "T1095",
+        "T1219",
+        "T1547.001"
+      ],
+      "precision": 1.0,
+      "recall": 0.20833333333333334
+    },
+    {
+      "case": 9,
+      "doc_title": "3CXDesktopApp Backdoored in a Suspected Lazarus Campaign",
+      "category": "backdoor_loader",
+      "predicted": [
+        "T1027",
+        "T1055",
+        "T1071.001",
+        "T1112",
+        "T1140",
+        "T1574.002"
+      ],
+      "truth": [
+        "T1027",
+        "T1083",
+        "T1140",
+        "T1573.001",
+        "T1574.002"
+      ],
+      "overlap": [
+        "T1027",
+        "T1140",
+        "T1574.002"
+      ],
+      "precision": 0.5,
+      "recall": 0.6
+    },
+    {
+      "case": 10,
+      "doc_title": "Understanding DNS attacks Identifying and patching vulnerabilities  Snyk",
+      "category": "exploit_technique",
+      "predicted": [
+        "T1003.001",
+        "T1041",
+        "T1056.001",
+        "T1071.001",
+        "T1074.001",
+        "T1078",
+        "T1219"
+      ],
+      "truth": [
+        "T1041",
+        "T1056.001",
+        "T1071.001",
+        "T1078",
+        "T1105"
+      ],
+      "overlap": [
+        "T1041",
+        "T1056.001",
+        "T1071.001",
+        "T1078"
+      ],
+      "precision": 0.5714285714285714,
+      "recall": 0.8
+    },
+    {
+      "case": 11,
+      "doc_title": "Hafniuminspired cyberattacks neutralized by AI",
+      "category": "exploit_technique",
+      "predicted": [
+        "T1003.001",
+        "T1027",
+        "T1036.005",
+        "T1566.001"
+      ],
+      "truth": [
+        "T1036.005",
+        "T1078",
+        "T1110",
+        "T1566.001"
+      ],
+      "overlap": [
+        "T1036.005",
+        "T1566.001"
+      ],
+      "precision": 0.5,
+      "recall": 0.5
+    },
+    {
+      "case": 12,
+      "doc_title": "Take a NetWalk on the Wild Side",
+      "category": "general",
+      "predicted": [
+        "T1055",
+        "T1057",
+        "T1068",
+        "T1082",
+        "T1204.002",
+        "T1219",
+        "T1543.003"
+      ],
+      "truth": [
+        "T1027",
+        "T1055",
+        "T1057",
+        "T1059.003",
+        "T1070.004",
+        "T1082",
+        "T1105",
+        "T1106",
+        "T1112",
+        "T1140",
+        "T1547.001"
+      ],
+      "overlap": [
+        "T1055",
+        "T1057",
+        "T1082"
+      ],
+      "precision": 0.42857142857142855,
+      "recall": 0.2727272727272727
+    },
+    {
+      "case": 13,
+      "doc_title": "SOC Team Essentials  How to Investigate and Track the 8220 Gang Cloud Threat",
+      "category": "general",
+      "predicted": [
+        "T1003.001",
+        "T1027",
+        "T1071.001",
+        "T1219"
+      ],
+      "truth": [
+        "T1027",
+        "T1105",
+        "T1110",
+        "T1140"
+      ],
+      "overlap": [
+        "T1027"
+      ],
+      "precision": 0.25,
+      "recall": 0.25
+    },
+    {
+      "case": 14,
+      "doc_title": "EvilExtractor  AllinOne Stealer",
+      "category": "infostealer",
+      "predicted": [
+        "T1056.001",
+        "T1083",
+        "T1113"
+      ],
+      "truth": [
+        "T1005",
+        "T1027",
+        "T1036.005",
+        "T1055",
+        "T1056.001",
+        "T1070.004",
+        "T1082",
+        "T1105",
+        "T1113",
+        "T1140",
+        "T1552.001",
+        "T1566.001"
+      ],
+      "overlap": [
+        "T1056.001",
+        "T1113"
+      ],
+      "precision": 0.6666666666666666,
+      "recall": 0.16666666666666666
+    },
+    {
+      "case": 15,
+      "doc_title": "Not just an infostealer Gopuram backdoor deployed through 3CX supply chain attack",
+      "category": "infostealer",
+      "predicted": [
+        "T1041",
+        "T1055",
+        "T1057",
+        "T1074.001",
+        "T1082",
+        "T1095",
+        "T1105",
+        "T1219",
+        "T1543.003"
+      ],
+      "truth": [
+        "T1027",
+        "T1041",
+        "T1055",
+        "T1095",
+        "T1105",
+        "T1106",
+        "T1112",
+        "T1140",
+        "T1518.001",
+        "T1543.003",
+        "T1574.002"
+      ],
+      "overlap": [
+        "T1041",
+        "T1055",
+        "T1095",
+        "T1105",
+        "T1543.003"
+      ],
+      "precision": 0.5555555555555556,
+      "recall": 0.45454545454545453
+    },
+    {
+      "case": 16,
+      "doc_title": "Malware Analysis LummaC2 Stealer",
+      "category": "infostealer",
+      "predicted": [
+        "T1027",
+        "T1041",
+        "T1071.001",
+        "T1083",
+        "T1219"
+      ],
+      "truth": [
+        "T1005",
+        "T1027",
+        "T1036.005",
+        "T1041",
+        "T1071.001",
+        "T1078",
+        "T1082",
+        "T1112",
+        "T1140",
+        "T1566.001"
+      ],
+      "overlap": [
+        "T1027",
+        "T1041",
+        "T1071.001"
+      ],
+      "precision": 0.6,
+      "recall": 0.3
+    },
+    {
+      "case": 17,
+      "doc_title": "Deja Vu All Over Again Tax Scammers at Large",
+      "category": "infostealer",
+      "predicted": [
+        "T1003.001",
+        "T1056.001",
+        "T1113",
+        "T1204.002"
+      ],
+      "truth": [
+        "T1027",
+        "T1055",
+        "T1056.001",
+        "T1059.003",
+        "T1105",
+        "T1113",
+        "T1204.002",
+        "T1547.001",
+        "T1562.001",
+        "T1564.001"
+      ],
+      "overlap": [
+        "T1056.001",
+        "T1113",
+        "T1204.002"
+      ],
+      "precision": 0.75,
+      "recall": 0.3
+    },
+    {
+      "case": 18,
+      "doc_title": "Detecting Credential Stealing Attacks Through Active InNetwork Defense",
+      "category": "infostealer",
+      "predicted": [
+        "T1003.001",
+        "T1053.005",
+        "T1055",
+        "T1078",
+        "T1552.001"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1053.005",
+        "T1055",
+        "T1078",
+        "T1106",
+        "T1140"
+      ],
+      "overlap": [
+        "T1003.001",
+        "T1053.005",
+        "T1055",
+        "T1078"
+      ],
+      "precision": 0.8,
+      "recall": 0.6666666666666666
+    },
+    {
+      "case": 19,
+      "doc_title": "Emotet Strikes Again  LNK File Leads to Domain Wide Ransomware  The DFIR Report",
+      "category": "ransomware",
+      "predicted": [
+        "T1003.001",
+        "T1053.005",
+        "T1071.001",
+        "T1083",
+        "T1219",
+        "T1547.001",
+        "T1552.001",
+        "T1570"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1005",
+        "T1016",
+        "T1021.001",
+        "T1027",
+        "T1033",
+        "T1047",
+        "T1055",
+        "T1057",
+        "T1059.003",
+        "T1070.004",
+        "T1071.001",
+        "T1078",
+        "T1082",
+        "T1105",
+        "T1140",
+        "T1204.002",
+        "T1218.011",
+        "T1219",
+        "T1543.003",
+        "T1547.001",
+        "T1566.001",
+        "T1569.002",
+        "T1570"
+      ],
+      "overlap": [
+        "T1003.001",
+        "T1071.001",
+        "T1219",
+        "T1547.001",
+        "T1570"
+      ],
+      "precision": 0.625,
+      "recall": 0.20833333333333334
+    },
+    {
+      "case": 20,
+      "doc_title": "LockBit 20 How This RaaS Operates and How to Protect Against It",
+      "category": "ransomware",
+      "predicted": [
+        "T1021.001",
+        "T1547.001",
+        "T1548.002",
+        "T1562.001",
+        "T1569.002",
+        "T1570"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1021.001",
+        "T1027",
+        "T1053.005",
+        "T1059.003",
+        "T1068",
+        "T1078",
+        "T1082",
+        "T1105",
+        "T1110",
+        "T1190",
+        "T1210",
+        "T1219",
+        "T1484.001",
+        "T1548.002",
+        "T1562.001",
+        "T1570"
+      ],
+      "overlap": [
+        "T1021.001",
+        "T1548.002",
+        "T1562.001",
+        "T1570"
+      ],
+      "precision": 0.6666666666666666,
+      "recall": 0.23529411764705882
+    },
+    {
+      "case": 21,
+      "doc_title": "Threat Assessment Black Basta Ransomware",
+      "category": "ransomware",
+      "predicted": [
+        "T1003.001",
+        "T1071.001",
+        "T1112",
+        "T1219",
+        "T1547.001",
+        "T1552.001",
+        "T1570"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1016",
+        "T1021.001",
+        "T1027",
+        "T1059.003",
+        "T1070.004",
+        "T1082",
+        "T1083",
+        "T1105",
+        "T1112",
+        "T1219",
+        "T1484.001",
+        "T1543.003",
+        "T1562.001",
+        "T1566.001",
+        "T1569.002"
+      ],
+      "overlap": [
+        "T1003.001",
+        "T1112",
+        "T1219"
+      ],
+      "precision": 0.42857142857142855,
+      "recall": 0.1875
+    },
+    {
+      "case": 22,
+      "doc_title": "Rorschach  A New Sophisticated and Fast Ransomware  Check Point Research",
+      "category": "ransomware",
+      "predicted": [
+        "T1053.005",
+        "T1055",
+        "T1112",
+        "T1204.002",
+        "T1543.003",
+        "T1547.001",
+        "T1562.001"
+      ],
+      "truth": [
+        "T1027",
+        "T1053.005",
+        "T1055",
+        "T1057",
+        "T1059.003",
+        "T1070.004",
+        "T1106",
+        "T1140",
+        "T1484.001",
+        "T1562.001",
+        "T1574.002"
+      ],
+      "overlap": [
+        "T1053.005",
+        "T1055",
+        "T1562.001"
+      ],
+      "precision": 0.42857142857142855,
+      "recall": 0.2727272727272727
+    },
+    {
+      "case": 23,
+      "doc_title": "Nefilim Ransomware",
+      "category": "ransomware",
+      "predicted": [
+        "T1003.001",
+        "T1021.001",
+        "T1190"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1021.001",
+        "T1027",
+        "T1047",
+        "T1059.003",
+        "T1078",
+        "T1105",
+        "T1106",
+        "T1110",
+        "T1112",
+        "T1190"
+      ],
+      "overlap": [
+        "T1003.001",
+        "T1021.001",
+        "T1190"
+      ],
+      "precision": 1.0,
+      "recall": 0.2727272727272727
+    },
+    {
+      "case": 24,
+      "doc_title": "NotPetya Technical Analysis  A Triple Threat File Encryption MFT Encryption Credential Theft",
+      "category": "wiper",
+      "predicted": [
+        "T1003.001",
+        "T1047",
+        "T1059.003",
+        "T1562.001",
+        "T1569.002",
+        "T1570"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1016",
+        "T1027",
+        "T1047",
+        "T1053.005",
+        "T1056.001",
+        "T1057",
+        "T1059.003",
+        "T1078",
+        "T1082",
+        "T1083",
+        "T1106",
+        "T1140",
+        "T1210",
+        "T1218.011",
+        "T1518.001",
+        "T1570"
+      ],
+      "overlap": [
+        "T1003.001",
+        "T1047",
+        "T1059.003",
+        "T1570"
+      ],
+      "precision": 0.6666666666666666,
+      "recall": 0.23529411764705882
+    },
+    {
+      "case": 25,
+      "doc_title": "Fantasy  a new Agrius wiper deployed through a supplychain attack",
+      "category": "wiper",
+      "predicted": [
+        "T1003.001",
+        "T1059.003",
+        "T1090",
+        "T1218.011",
+        "T1552.001",
+        "T1569.002"
+      ],
+      "truth": [
+        "T1003.001",
+        "T1027",
+        "T1033",
+        "T1059.003",
+        "T1070.004",
+        "T1078",
+        "T1082",
+        "T1083",
+        "T1106",
+        "T1112",
+        "T1140",
+        "T1190",
+        "T1218.011",
+        "T1570"
+      ],
+      "overlap": [
+        "T1003.001",
+        "T1059.003",
+        "T1218.011"
+      ],
+      "precision": 0.5,
+      "recall": 0.21428571428571427
+    }
+  ]
+}

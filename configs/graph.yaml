@@ -1,0 +1,17 @@
+# Wiring cơ bản; 4 agent sẽ bổ sung sau
+graph:
+  entry: planner            # sẽ update khi thêm đủ nodes
+  nodes:
+    planner:
+      impl: src.runtime.nodes:planner_node   # tạm thời dùng stub
+    developer:
+      impl: src.runtime.nodes:developer_node # TODO (stub)
+    integrator:
+      impl: src.runtime.nodes:integration_node # TODO (stub)
+    builder:
+      impl: src.runtime.nodes:builder_node   # TODO (stub)
+  edges:
+    - [planner, developer]
+    - [developer, integrator]
+    - [integrator, builder]
+  finish: builder

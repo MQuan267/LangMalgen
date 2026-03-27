@@ -1,0 +1,535 @@
+[
+  {
+    "doc_title": "NotPetya Technical Analysis  A Triple Threat File Encryption MFT Encryption Credential Theft",
+    "intent": "Encrypt files and the Master File Table, dump credentials from LSASS, and spread laterally using Windows Management Instrumentation.",
+    "labels": [
+      "T1003.001",
+      "T1016",
+      "T1027",
+      "T1047",
+      "T1053.005",
+      "T1056.001",
+      "T1057",
+      "T1059.003",
+      "T1078",
+      "T1082",
+      "T1083",
+      "T1106",
+      "T1140",
+      "T1210",
+      "T1218.011",
+      "T1518.001",
+      "T1570"
+    ]
+  },
+  {
+    "doc_title": "Earth Zhulong Familiar Patterns Target Southeast Asian Firms",
+    "intent": "Inject code into legitimate processes, schedule tasks for persistence, and exfiltrate data using HTTP communication channels.",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1053.005",
+      "T1055",
+      "T1059.003",
+      "T1070.004",
+      "T1071.001",
+      "T1090",
+      "T1105",
+      "T1106",
+      "T1140",
+      "T1204.002",
+      "T1484.001",
+      "T1574.002"
+    ]
+  },
+  {
+    "doc_title": "Malware Spotlight Camaro Dragons TinyNote Backdoor",
+    "intent": "Injects code into legitimate processes and communicates with command and control server over HTTP for remote task execution.",
+    "labels": [
+      "T1033",
+      "T1053.005",
+      "T1055",
+      "T1059.003",
+      "T1071.001",
+      "T1082",
+      "T1105",
+      "T1106",
+      "T1140",
+      "T1562.001",
+      "T1574.002"
+    ]
+  },
+  {
+    "doc_title": "Rorschach  A New Sophisticated and Fast Ransomware  Check Point Research",
+    "intent": "Encrypt files rapidly and disable security tools by injecting code into processes and using scheduled tasks for persistence.",
+    "labels": [
+      "T1027",
+      "T1053.005",
+      "T1055",
+      "T1057",
+      "T1059.003",
+      "T1070.004",
+      "T1106",
+      "T1140",
+      "T1484.001",
+      "T1562.001",
+      "T1574.002"
+    ]
+  },
+  {
+    "doc_title": "Bypassing Intel CET with Counterfeit Objects  OffSec",
+    "intent": "Inject counterfeit objects into legitimate processes to bypass Intel CET and execute unauthorized code.",
+    "labels": [
+      "T1055",
+      "T1106"
+    ]
+  },
+  {
+    "doc_title": "Emotet Strikes Again  LNK File Leads to Domain Wide Ransomware  The DFIR Report",
+    "intent": "Execute PowerShell scripts to dump credentials, move laterally across the network, and deploy ransomware for file encryption.",
+    "labels": [
+      "T1003.001",
+      "T1005",
+      "T1016",
+      "T1021.001",
+      "T1027",
+      "T1033",
+      "T1047",
+      "T1055",
+      "T1057",
+      "T1059.003",
+      "T1070.004",
+      "T1071.001",
+      "T1078",
+      "T1082",
+      "T1105",
+      "T1140",
+      "T1204.002",
+      "T1218.011",
+      "T1219",
+      "T1543.003",
+      "T1547.001",
+      "T1566.001",
+      "T1569.002",
+      "T1570"
+    ]
+  },
+  {
+    "doc_title": "Malware Analysis LummaC2 Stealer",
+    "intent": "Exfiltrate system information and credentials by disguising as legitimate processes and communicating with C2 over HTTP.",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1036.005",
+      "T1041",
+      "T1071.001",
+      "T1078",
+      "T1082",
+      "T1112",
+      "T1140",
+      "T1566.001"
+    ]
+  },
+  {
+    "doc_title": "FedEx Phishing Campaign Abusing TrustedForm and PAAY",
+    "intent": "Exploit TrustedForm and PAAY to harvest user credentials by redirecting victims to phishing sites mimicking FedEx services.",
+    "labels": [
+      "T1204.002"
+    ]
+  },
+  {
+    "doc_title": "Take a NetWalk on the Wild Side",
+    "intent": "Inject code into legitimate processes, execute PowerShell scripts, and establish persistence by modifying registry keys and startup programs.",
+    "labels": [
+      "T1027",
+      "T1055",
+      "T1057",
+      "T1059.003",
+      "T1070.004",
+      "T1082",
+      "T1105",
+      "T1106",
+      "T1112",
+      "T1140",
+      "T1547.001"
+    ]
+  },
+  {
+    "doc_title": "Malicious OAuth applications used to compromise email servers and spread spam  Microsoft Security Blog",
+    "intent": "Exploit OAuth tokens to gain unauthorized access to email servers and distribute spam emails through compromised accounts.",
+    "labels": [
+      "T1110"
+    ]
+  },
+  {
+    "doc_title": "Nefilim Ransomware",
+    "intent": "Encrypt files using AES and exfiltrate data via SMB protocol after exploiting vulnerabilities for initial access.",
+    "labels": [
+      "T1003.001",
+      "T1021.001",
+      "T1027",
+      "T1047",
+      "T1059.003",
+      "T1078",
+      "T1105",
+      "T1106",
+      "T1110",
+      "T1112",
+      "T1190"
+    ]
+  },
+  {
+    "doc_title": "Deja Vu All Over Again Tax Scammers at Large",
+    "intent": "Inject code into legitimate processes, capture keystrokes and screenshots, and exfiltrate data via HTTP C2 channel.",
+    "labels": [
+      "T1027",
+      "T1055",
+      "T1056.001",
+      "T1059.003",
+      "T1105",
+      "T1113",
+      "T1204.002",
+      "T1547.001",
+      "T1562.001",
+      "T1564.001"
+    ]
+  },
+  {
+    "doc_title": "Threat Assessment Black Basta Ransomware",
+    "intent": "Encrypt files, disable security tools, and establish persistence through service creation while exfiltrating data via encrypted channels.",
+    "labels": [
+      "T1003.001",
+      "T1016",
+      "T1021.001",
+      "T1027",
+      "T1059.003",
+      "T1070.004",
+      "T1082",
+      "T1083",
+      "T1105",
+      "T1112",
+      "T1219",
+      "T1484.001",
+      "T1543.003",
+      "T1562.001",
+      "T1566.001",
+      "T1569.002"
+    ]
+  },
+  {
+    "doc_title": "Hafniuminspired cyberattacks neutralized by AI",
+    "intent": "Gain unauthorized access using stolen credentials and perform brute-force attacks to escalate privileges and send data via phishing emails.",
+    "labels": [
+      "T1036.005",
+      "T1078",
+      "T1110",
+      "T1566.001"
+    ]
+  },
+  {
+    "doc_title": "eSentire Threat Intelligence Malware Analysis BatLoader",
+    "intent": "Capture system information and credentials, inject code into processes, and communicate with C2 server via HTTP for data exfiltration.",
+    "labels": [
+      "T1005",
+      "T1012",
+      "T1016",
+      "T1027",
+      "T1033",
+      "T1047",
+      "T1053.005",
+      "T1055",
+      "T1059.003",
+      "T1071.001",
+      "T1082",
+      "T1090",
+      "T1095",
+      "T1105",
+      "T1106",
+      "T1112",
+      "T1113",
+      "T1140",
+      "T1218.011",
+      "T1219",
+      "T1518.001",
+      "T1547.001",
+      "T1552.001",
+      "T1562.001",
+      "T1573.001"
+    ]
+  },
+  {
+    "doc_title": "Early Bird Catches the Wormhole Observations from the StellarParticle Campaign",
+    "intent": "Dump credentials from LSASS, disguise malicious processes, and establish lateral movement using remote services and encrypted HTTP communication.",
+    "labels": [
+      "T1003.001",
+      "T1021.001",
+      "T1027",
+      "T1033",
+      "T1036.005",
+      "T1047",
+      "T1057",
+      "T1070.004",
+      "T1071.001",
+      "T1078",
+      "T1083",
+      "T1140",
+      "T1564.001",
+      "T1570"
+    ]
+  },
+  {
+    "doc_title": "3CXDesktopApp Backdoored in a Suspected Lazarus Campaign  ",
+    "intent": "Decrypt and execute payloads in memory, then exfiltrate system information and files via encrypted communication channels.",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1082",
+      "T1083",
+      "T1106",
+      "T1140",
+      "T1573.001",
+      "T1574.002"
+    ]
+  },
+  {
+    "doc_title": "Not just an infostealer Gopuram backdoor deployed through 3CX supply chain attack",
+    "intent": "Inject code into legitimate processes, modify registry keys for persistence, and exfiltrate data via encrypted HTTP communication.",
+    "labels": [
+      "T1027",
+      "T1041",
+      "T1055",
+      "T1095",
+      "T1105",
+      "T1106",
+      "T1112",
+      "T1140",
+      "T1518.001",
+      "T1543.003",
+      "T1574.002"
+    ]
+  },
+  {
+    "doc_title": "AA21200A Tactics Techniques and Procedures of Indicted APT40 Actors Associated with Chinas MSS Hainan State Security Department",
+    "intent": "Exfiltrate collected files and credentials via HTTP after exploiting web vulnerabilities and using spear-phishing for initial access.",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1041",
+      "T1074.001",
+      "T1078",
+      "T1090",
+      "T1105",
+      "T1190",
+      "T1204.002",
+      "T1566.001"
+    ]
+  },
+  {
+    "doc_title": "Operation Spalax Targeted malware attacks in Colombia",
+    "intent": "Capture keystrokes and screenshots, establish persistence via DLL hijacking, and exfiltrate data over encrypted HTTPS channels.",
+    "labels": [
+      "T1005",
+      "T1012",
+      "T1016",
+      "T1021.001",
+      "T1027",
+      "T1033",
+      "T1041",
+      "T1053.005",
+      "T1055",
+      "T1056.001",
+      "T1057",
+      "T1059.003",
+      "T1070.004",
+      "T1082",
+      "T1083",
+      "T1090",
+      "T1095",
+      "T1105",
+      "T1106",
+      "T1112",
+      "T1113",
+      "T1140",
+      "T1204.002",
+      "T1218.011",
+      "T1518.001",
+      "T1547.001",
+      "T1548.002",
+      "T1562.001",
+      "T1566.001",
+      "T1573.001"
+    ]
+  },
+  {
+    "doc_title": "LAPSUS Recent techniques tactics and procedures",
+    "intent": "Exfiltrate files using remote desktop protocol, disable security logs, and dump credentials from memory for lateral movement.",
+    "labels": [
+      "T1005",
+      "T1021.001",
+      "T1070.004",
+      "T1078",
+      "T1082",
+      "T1552.001"
+    ]
+  },
+  {
+    "doc_title": "Detecting Credential Stealing Attacks Through Active InNetwork Defense",
+    "intent": "Dump credentials from memory using LSASS access and establish persistence through scheduled tasks and DLL injection.",
+    "labels": [
+      "T1003.001",
+      "T1053.005",
+      "T1055",
+      "T1078",
+      "T1082",
+      "T1106",
+      "T1140",
+      "T1190"
+    ]
+  },
+  {
+    "doc_title": "Understanding DNS attacks Identifying and patching vulnerabilities  Snyk",
+    "intent": "Capture keystrokes, exfiltrate data via DNS tunneling, and establish remote access using stolen credentials.",
+    "labels": [
+      "T1041",
+      "T1056.001",
+      "T1071.001",
+      "T1078",
+      "T1105"
+    ]
+  },
+  {
+    "doc_title": "EvilExtractor  AllinOne Stealer",
+    "intent": "Capture keystrokes and screenshots, decrypt stored passwords, and exfiltrate data via HTTP while disguising as legitimate software.",
+    "labels": [
+      "T1005",
+      "T1027",
+      "T1036.005",
+      "T1055",
+      "T1056.001",
+      "T1070.004",
+      "T1082",
+      "T1105",
+      "T1113",
+      "T1140",
+      "T1552.001",
+      "T1566.001"
+    ]
+  },
+  {
+    "doc_title": "LockBit 20 How This RaaS Operates and How to Protect Against It",
+    "intent": "Encrypt files using strong algorithms and disable security tools to prevent detection and facilitate ransom demands.",
+    "labels": [
+      "T1003.001",
+      "T1021.001",
+      "T1027",
+      "T1053.005",
+      "T1059.003",
+      "T1068",
+      "T1078",
+      "T1082",
+      "T1105",
+      "T1110",
+      "T1190",
+      "T1210",
+      "T1219",
+      "T1484.001",
+      "T1548.002",
+      "T1562.001",
+      "T1570"
+    ]
+  },
+  {
+    "doc_title": "SOC Team Essentials  How to Investigate and Track the 8220 Gang Cloud Threat",
+    "intent": "Decrypts and executes payloads from remote servers, then brute forces SSH credentials for lateral movement across cloud environments.",
+    "labels": [
+      "T1027",
+      "T1105",
+      "T1110",
+      "T1140"
+    ]
+  },
+  {
+    "doc_title": "Fantasy  a new Agrius wiper deployed through a supplychain attack",
+    "intent": "Deploys a wiper through supply chain compromise, obfuscates code, and deletes logs to hinder detection and recovery efforts.",
+    "labels": [
+      "T1003.001",
+      "T1027",
+      "T1033",
+      "T1059.003",
+      "T1070.004",
+      "T1078",
+      "T1082",
+      "T1083",
+      "T1106",
+      "T1112",
+      "T1140",
+      "T1190",
+      "T1218.011",
+      "T1570"
+    ]
+  },
+  {
+    "doc_title": "AA22320A Iranian GovernmentSponsored APT Actors Compromise Federal Network Deploy Crypto Miner Credential Harvester",
+    "intent": "Compromise network using web exploits, dump credentials, and deploy crypto miner while maintaining persistence through scheduled tasks.",
+    "labels": [
+      "T1003.001",
+      "T1021.001",
+      "T1027",
+      "T1053.005",
+      "T1071.001",
+      "T1078",
+      "T1090",
+      "T1105",
+      "T1190",
+      "T1562.001"
+    ]
+  },
+  {
+    "doc_title": "New Horabot campaign targets the Americas",
+    "intent": "Capture keystrokes and screenshots, exfiltrate data via HTTP, and maintain persistence through DLL hijacking and registry modifications.",
+    "labels": [
+      "T1005",
+      "T1012",
+      "T1027",
+      "T1036.005",
+      "T1041",
+      "T1055",
+      "T1056.001",
+      "T1059.003",
+      "T1070.004",
+      "T1071.001",
+      "T1074.001",
+      "T1078",
+      "T1082",
+      "T1083",
+      "T1090",
+      "T1105",
+      "T1112",
+      "T1113",
+      "T1140",
+      "T1204.002",
+      "T1518.001",
+      "T1543.003",
+      "T1547.001",
+      "T1566.001",
+      "T1574.002"
+    ]
+  },
+  {
+    "doc_title": "StopRansomware Royal Ransomware",
+    "intent": "Encrypt files using compromised credentials and disable security tools while exfiltrating data through an encrypted channel.",
+    "labels": [
+      "T1021.001",
+      "T1027",
+      "T1059.003",
+      "T1070.004",
+      "T1078",
+      "T1105",
+      "T1190",
+      "T1484.001",
+      "T1562.001",
+      "T1566.001",
+      "T1570"
+    ]
+  }
+]

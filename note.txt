@@ -1,0 +1,3 @@
+GOOGLE_API_KEY=AIzaSyCJoTVhjJkoZ5IGvrXz27aU2-3Wi6VpUm8
+GEMINI_MODEL=gemini-1.5-flash
+PROVIDER=gemini

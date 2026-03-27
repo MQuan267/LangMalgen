@@ -1,0 +1,20 @@
+# secrets & env
+.env
+
+# virtualenv / cache
+.venv/
+__pycache__/
+*.pyc
+
+# build & artifacts
+artifacts/
+logs/
+dist/
+build/
+*.spec
+
+# OS/editor junk
+.DS_Store
+.vscode/
+.idea/
+.verifier_cache/

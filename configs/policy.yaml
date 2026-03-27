@@ -1,0 +1,7 @@
+# Chính sách an toàn mặc định cho mô phỏng
+network: blocked            # blocked | localhost-only
+os_introspection: mock_only # mock_only | none
+denylist:
+  - "raw_syscalls"
+  - "exfil_http"
+  - "exfil_dns"
