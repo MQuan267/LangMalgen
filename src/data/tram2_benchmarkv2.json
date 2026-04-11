@@ -1,0 +1,1137 @@
+{
+  "tier1": [
+    {
+      "id": "T1-01",
+      "source_report": "Malware Spotlight Camaro Dragons TinyNote Backdoor",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Inject shellcode into a running process, establish persistence via scheduled task, load malicious code through DLL hijacking, discover the current user, and communicate with a C2 server over HTTPS.",
+      "labels": [
+        "T1033",
+        "T1053.005",
+        "T1055",
+        "T1059.003",
+        "T1071.001",
+        "T1082",
+        "T1105",
+        "T1106",
+        "T1140",
+        "T1562.001",
+        "T1574.002"
+      ],
+      "selected_ttps": [
+        "T1033",
+        "T1053.005",
+        "T1055",
+        "T1071.001",
+        "T1574.002"
+      ],
+      "core_ttps": [
+        "T1053.005",
+        "T1055",
+        "T1071.001",
+        "T1574.002"
+      ],
+      "behavior_clusters": [
+        "discovery",
+        "evasion",
+        "injection",
+        "outbound_comms",
+        "persistence"
+      ],
+      "n_labels": 11,
+      "n_selected": 5,
+      "n_core": 4
+    },
+    {
+      "id": "T1-02",
+      "source_report": "eSentire Threat Intelligence Malware Analysis BatLoader",
+      "category": "loader_dropper",
+      "malgen_input_prompt": "Download additional tools from a remote server, decode and deobfuscate an encrypted payload at runtime, execute commands via Windows Command Shell and rundll32, and write a registry Run key for persistence on logon.",
+      "labels": [
+        "T1005",
+        "T1012",
+        "T1016",
+        "T1027",
+        "T1033",
+        "T1047",
+        "T1053.005",
+        "T1055",
+        "T1059.003",
+        "T1082",
+        "T1090",
+        "T1095",
+        "T1105",
+        "T1106",
+        "T1112",
+        "T1113",
+        "T1140",
+        "T1218.011",
+        "T1219",
+        "T1518.001",
+        "T1547.001",
+        "T1552.001",
+        "T1562.001",
+        "T1573.001"
+      ],
+      "selected_ttps": [
+        "T1059.003",
+        "T1105",
+        "T1140",
+        "T1218.011",
+        "T1547.001"
+      ],
+      "core_ttps": [
+        "T1105",
+        "T1140",
+        "T1218.011",
+        "T1547.001"
+      ],
+      "behavior_clusters": [
+        "decode_unpack",
+        "download_tool",
+        "execution",
+        "persistence"
+      ],
+      "n_labels": 24,
+      "n_selected": 5,
+      "n_core": 4
+    },
+    {
+      "id": "T1-03",
+      "source_report": "Take a NetWalk on the Wild Side",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Inject shellcode into a remote process, enumerate running processes and system information, execute payload via native Windows API calls, then delete files to remove forensic evidence.",
+      "labels": [
+        "T1027",
+        "T1055",
+        "T1057",
+        "T1059.003",
+        "T1070.004",
+        "T1082",
+        "T1105",
+        "T1106",
+        "T1112",
+        "T1140",
+        "T1547.001"
+      ],
+      "selected_ttps": [
+        "T1055",
+        "T1057",
+        "T1070.004",
+        "T1082",
+        "T1106"
+      ],
+      "core_ttps": [
+        "T1055",
+        "T1070.004",
+        "T1106"
+      ],
+      "behavior_clusters": [
+        "cleanup",
+        "discovery",
+        "execution",
+        "injection"
+      ],
+      "n_labels": 11,
+      "n_selected": 5,
+      "n_core": 3
+    },
+    {
+      "id": "T1-04",
+      "source_report": "Understanding DNS attacks Identifying and patching vulnerabilities  Snyk",
+      "category": "loader_dropper",
+      "malgen_input_prompt": "Download additional tools from a remote server, capture keyboard input via low-level hook, and exfiltrate collected data to a C2 server over HTTPS.",
+      "labels": [
+        "T1041",
+        "T1056.001",
+        "T1071.001",
+        "T1078",
+        "T1105"
+      ],
+      "selected_ttps": [
+        "T1041",
+        "T1056.001",
+        "T1071.001",
+        "T1105"
+      ],
+      "core_ttps": [
+        "T1041",
+        "T1056.001",
+        "T1105"
+      ],
+      "behavior_clusters": [
+        "download_tool",
+        "local_collection",
+        "outbound_comms"
+      ],
+      "n_labels": 5,
+      "n_selected": 4,
+      "n_core": 3
+    },
+    {
+      "id": "T1-05",
+      "source_report": "Deja Vu All Over Again Tax Scammers at Large",
+      "category": "infostealer",
+      "malgen_input_prompt": "Capture keystrokes via low-level hook, take periodic screenshots of the desktop, inject shellcode into a remote process, and write a registry Run key for persistent execution on logon.",
+      "labels": [
+        "T1027",
+        "T1055",
+        "T1056.001",
+        "T1059.003",
+        "T1105",
+        "T1113",
+        "T1204.002",
+        "T1547.001",
+        "T1562.001",
+        "T1564.001"
+      ],
+      "selected_ttps": [
+        "T1055",
+        "T1056.001",
+        "T1113",
+        "T1547.001"
+      ],
+      "core_ttps": [
+        "T1055",
+        "T1056.001",
+        "T1113",
+        "T1547.001"
+      ],
+      "behavior_clusters": [
+        "evasion",
+        "injection",
+        "local_collection",
+        "persistence"
+      ],
+      "n_labels": 10,
+      "n_selected": 4,
+      "n_core": 4
+    },
+    {
+      "id": "T1-06",
+      "source_report": "3CXDesktopApp Backdoored in a Suspected Lazarus Campaign",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Hijack DLL search order to load malicious code, enumerate files and directories on disk, obfuscate the payload, and encrypt the C2 channel using TLS.",
+      "labels": [
+        "T1027",
+        "T1083",
+        "T1140",
+        "T1573.001",
+        "T1574.002"
+      ],
+      "selected_ttps": [
+        "T1027",
+        "T1083",
+        "T1573.001",
+        "T1574.002"
+      ],
+      "core_ttps": [
+        "T1027",
+        "T1573.001",
+        "T1574.002"
+      ],
+      "behavior_clusters": [
+        "decode_unpack",
+        "discovery",
+        "evasion",
+        "outbound_comms"
+      ],
+      "n_labels": 5,
+      "n_selected": 4,
+      "n_core": 3
+    },
+    {
+      "id": "T1-07",
+      "source_report": "Not just an infostealer Gopuram backdoor deployed through 3CX supply chain attack",
+      "category": "infostealer",
+      "malgen_input_prompt": "Inject shellcode into a remote process, communicate with a C2 server over raw TCP socket, exfiltrate collected data, execute payload via native Windows API calls, and modify the Windows Registry for persistence.",
+      "labels": [
+        "T1027",
+        "T1041",
+        "T1055",
+        "T1095",
+        "T1105",
+        "T1106",
+        "T1112",
+        "T1140",
+        "T1518.001",
+        "T1543.003",
+        "T1574.002"
+      ],
+      "selected_ttps": [
+        "T1041",
+        "T1055",
+        "T1095",
+        "T1106",
+        "T1112"
+      ],
+      "core_ttps": [
+        "T1041",
+        "T1055",
+        "T1106",
+        "T1112"
+      ],
+      "behavior_clusters": [
+        "execution",
+        "injection",
+        "outbound_comms",
+        "persistence"
+      ],
+      "n_labels": 11,
+      "n_selected": 5,
+      "n_core": 4
+    }
+  ],
+  "tier2": [
+    {
+      "id": "T2-01",
+      "source_report": "AA21200A Tactics Techniques and Procedures of Indicted APT40 Actors Associated with Chinas MSS Hainan State Security Department",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Collect sensitive files from the local filesystem, obfuscate and encode the payload to evade detection, then download and transfer additional tools from a remote server.",
+      "labels": [
+        "T1005",
+        "T1027",
+        "T1078",
+        "T1105",
+        "T1204.002"
+      ],
+      "selected_ttps": [
+        "T1005",
+        "T1027",
+        "T1105"
+      ],
+      "core_ttps": [
+        "T1005",
+        "T1027",
+        "T1105"
+      ],
+      "behavior_clusters": [
+        "decode_unpack",
+        "download_tool",
+        "local_collection"
+      ],
+      "n_labels": 5,
+      "n_selected": 3,
+      "n_core": 3
+    },
+    {
+      "id": "T2-02",
+      "source_report": "Operation Spalax Targeted malware attacks in Colombia",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Inject shellcode into a remote process, create a scheduled task for persistence, communicate with C2 over raw TCP socket, encrypt the C2 channel using TLS, and exfiltrate data over the C2 channel.",
+      "labels": [
+        "T1005",
+        "T1012",
+        "T1016",
+        "T1021.001",
+        "T1027",
+        "T1033",
+        "T1041",
+        "T1053.005",
+        "T1055",
+        "T1056.001",
+        "T1057",
+        "T1059.003",
+        "T1070.004",
+        "T1082",
+        "T1083",
+        "T1090",
+        "T1095",
+        "T1105",
+        "T1106",
+        "T1112",
+        "T1113",
+        "T1140",
+        "T1204.002",
+        "T1218.011",
+        "T1518.001",
+        "T1547.001",
+        "T1548.002",
+        "T1562.001",
+        "T1566.001",
+        "T1573.001"
+      ],
+      "selected_ttps": [
+        "T1041",
+        "T1053.005",
+        "T1055",
+        "T1095",
+        "T1573.001"
+      ],
+      "core_ttps": [
+        "T1041",
+        "T1053.005",
+        "T1055",
+        "T1573.001"
+      ],
+      "behavior_clusters": [
+        "injection",
+        "outbound_comms",
+        "persistence"
+      ],
+      "n_labels": 30,
+      "n_selected": 5,
+      "n_core": 4
+    },
+    {
+      "id": "T2-03",
+      "source_report": "Detecting Credential Stealing Attacks Through Active InNetwork Defense",
+      "category": "infostealer",
+      "malgen_input_prompt": "Dump credentials from LSASS process memory, inject shellcode into a remote process, and create a scheduled task for persistence.",
+      "labels": [
+        "T1003.001",
+        "T1053.005",
+        "T1055",
+        "T1078",
+        "T1106",
+        "T1140"
+      ],
+      "selected_ttps": [
+        "T1003.001",
+        "T1053.005",
+        "T1055"
+      ],
+      "core_ttps": [
+        "T1003.001",
+        "T1053.005",
+        "T1055"
+      ],
+      "behavior_clusters": [
+        "injection",
+        "local_collection",
+        "persistence"
+      ],
+      "n_labels": 6,
+      "n_selected": 3,
+      "n_core": 3
+    },
+    {
+      "id": "T2-04",
+      "source_report": "Fantasy  a new Agrius wiper deployed through a supplychain attack",
+      "category": "wiper",
+      "malgen_input_prompt": "Dump credentials from LSASS memory, discover the current user, execute commands via Windows Command Shell, and execute payload via rundll32.",
+      "labels": [
+        "T1003.001",
+        "T1027",
+        "T1033",
+        "T1059.003",
+        "T1070.004",
+        "T1078",
+        "T1082",
+        "T1083",
+        "T1106",
+        "T1112",
+        "T1140",
+        "T1190",
+        "T1218.011",
+        "T1570"
+      ],
+      "selected_ttps": [
+        "T1003.001",
+        "T1033",
+        "T1059.003",
+        "T1218.011"
+      ],
+      "core_ttps": [
+        "T1003.001",
+        "T1059.003",
+        "T1218.011"
+      ],
+      "behavior_clusters": [
+        "discovery",
+        "execution",
+        "local_collection"
+      ],
+      "n_labels": 14,
+      "n_selected": 4,
+      "n_core": 3
+    },
+    {
+      "id": "T2-05",
+      "source_report": "Earth Zhulong Familiar Patterns Target Southeast Asian Firms",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Hijack DLL search order to load malicious code, inject shellcode into a remote process, create a scheduled task for persistence, and communicate with a C2 server over HTTPS.",
+      "labels": [
+        "T1005",
+        "T1027",
+        "T1053.005",
+        "T1055",
+        "T1059.003",
+        "T1070.004",
+        "T1071.001",
+        "T1090",
+        "T1105",
+        "T1106",
+        "T1140",
+        "T1204.002",
+        "T1484.001",
+        "T1574.002"
+      ],
+      "selected_ttps": [
+        "T1053.005",
+        "T1055",
+        "T1071.001",
+        "T1574.002"
+      ],
+      "core_ttps": [
+        "T1053.005",
+        "T1055",
+        "T1071.001",
+        "T1574.002"
+      ],
+      "behavior_clusters": [
+        "evasion",
+        "injection",
+        "outbound_comms",
+        "persistence"
+      ],
+      "n_labels": 14,
+      "n_selected": 4,
+      "n_core": 4
+    },
+    {
+      "id": "T2-06",
+      "source_report": "Rorschach  A New Sophisticated and Fast Ransomware  Check Point Research",
+      "category": "ransomware",
+      "malgen_input_prompt": "Inject shellcode into a remote process, disable Windows Defender and antivirus software, and create a scheduled task for persistence and execution.",
+      "labels": [
+        "T1027",
+        "T1053.005",
+        "T1055",
+        "T1057",
+        "T1059.003",
+        "T1070.004",
+        "T1106",
+        "T1140",
+        "T1484.001",
+        "T1562.001",
+        "T1574.002"
+      ],
+      "selected_ttps": [
+        "T1053.005",
+        "T1055",
+        "T1562.001"
+      ],
+      "core_ttps": [
+        "T1053.005",
+        "T1055",
+        "T1562.001"
+      ],
+      "behavior_clusters": [
+        "evasion",
+        "injection",
+        "persistence"
+      ],
+      "n_labels": 11,
+      "n_selected": 3,
+      "n_core": 3
+    },
+    {
+      "id": "T2-07",
+      "source_report": "New Horabot campaign targets the Americas",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Collect sensitive data from the local filesystem, inject shellcode into a remote process, hijack DLL search order to load malicious code, and exfiltrate data over HTTPS.",
+      "labels": [
+        "T1005",
+        "T1012",
+        "T1027",
+        "T1036.005",
+        "T1041",
+        "T1055",
+        "T1056.001",
+        "T1059.003",
+        "T1070.004",
+        "T1071.001",
+        "T1074.001",
+        "T1078",
+        "T1082",
+        "T1083",
+        "T1090",
+        "T1105",
+        "T1112",
+        "T1113",
+        "T1140",
+        "T1204.002",
+        "T1518.001",
+        "T1543.003",
+        "T1547.001",
+        "T1566.001",
+        "T1574.002"
+      ],
+      "selected_ttps": [
+        "T1005",
+        "T1041",
+        "T1055",
+        "T1071.001",
+        "T1574.002"
+      ],
+      "core_ttps": [
+        "T1005",
+        "T1041",
+        "T1055",
+        "T1574.002"
+      ],
+      "behavior_clusters": [
+        "evasion",
+        "injection",
+        "local_collection",
+        "outbound_comms"
+      ],
+      "n_labels": 25,
+      "n_selected": 5,
+      "n_core": 4
+    },
+    {
+      "id": "T2-08",
+      "source_report": "Early Bird Catches the Wormhole Observations from the StellarParticle Campaign",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Dump credentials from LSASS process memory, discover the current user and system owner, masquerade the process as a legitimate Windows binary, and beacon out over HTTPS.",
+      "labels": [
+        "T1003.001",
+        "T1021.001",
+        "T1027",
+        "T1033",
+        "T1036.005",
+        "T1047",
+        "T1057",
+        "T1070.004",
+        "T1071.001",
+        "T1078",
+        "T1083",
+        "T1140",
+        "T1564.001",
+        "T1570"
+      ],
+      "selected_ttps": [
+        "T1003.001",
+        "T1033",
+        "T1036.005",
+        "T1071.001"
+      ],
+      "core_ttps": [
+        "T1003.001",
+        "T1036.005",
+        "T1071.001"
+      ],
+      "behavior_clusters": [
+        "discovery",
+        "evasion",
+        "local_collection",
+        "outbound_comms"
+      ],
+      "n_labels": 14,
+      "n_selected": 4,
+      "n_core": 3
+    }
+  ],
+  "tier3": [
+    {
+      "id": "T3-01",
+      "source_report": "AA22320A Iranian GovernmentSponsored APT Actors Compromise Federal Network Deploy Crypto Miner Credential Harvester",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Dump credentials from LSASS process memory, create a scheduled task for persistence, and communicate with a C2 server over HTTPS.",
+      "labels": [
+        "T1003.001",
+        "T1021.001",
+        "T1027",
+        "T1053.005",
+        "T1071.001",
+        "T1078",
+        "T1090",
+        "T1105",
+        "T1562.001"
+      ],
+      "selected_ttps": [
+        "T1003.001",
+        "T1053.005",
+        "T1071.001"
+      ],
+      "core_ttps": [
+        "T1003.001",
+        "T1053.005",
+        "T1071.001"
+      ],
+      "behavior_clusters": [
+        "local_collection",
+        "outbound_comms",
+        "persistence"
+      ],
+      "n_labels": 9,
+      "n_selected": 3,
+      "n_core": 3
+    },
+    {
+      "id": "T3-02",
+      "source_report": "EvilExtractor  AllinOne Stealer",
+      "category": "infostealer",
+      "malgen_input_prompt": "Capture keyboard input via low-level hook, take periodic screenshots, collect sensitive data from the filesystem, and search for plaintext credentials in config files.",
+      "labels": [
+        "T1005",
+        "T1027",
+        "T1036.005",
+        "T1055",
+        "T1056.001",
+        "T1070.004",
+        "T1082",
+        "T1105",
+        "T1113",
+        "T1140",
+        "T1552.001",
+        "T1566.001"
+      ],
+      "selected_ttps": [
+        "T1005",
+        "T1056.001",
+        "T1113",
+        "T1552.001"
+      ],
+      "core_ttps": [
+        "T1005",
+        "T1056.001",
+        "T1113",
+        "T1552.001"
+      ],
+      "behavior_clusters": [
+        "local_collection"
+      ],
+      "n_labels": 12,
+      "n_selected": 4,
+      "n_core": 4
+    },
+    {
+      "id": "T3-03",
+      "source_report": "Bypassing Intel CET with Counterfeit Objects  OffSec",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Inject shellcode into a remote process and execute payload using native Windows API calls.",
+      "labels": [
+        "T1055",
+        "T1106"
+      ],
+      "selected_ttps": [
+        "T1055",
+        "T1106"
+      ],
+      "core_ttps": [
+        "T1055",
+        "T1106"
+      ],
+      "behavior_clusters": [
+        "execution",
+        "injection"
+      ],
+      "n_labels": 2,
+      "n_selected": 2,
+      "n_core": 2
+    },
+    {
+      "id": "T3-04",
+      "source_report": "Malware Analysis LummaC2 Stealer",
+      "category": "infostealer",
+      "malgen_input_prompt": "Collect sensitive files from the local filesystem and exfiltrate them to a C2 server over HTTPS.",
+      "labels": [
+        "T1005",
+        "T1027",
+        "T1036.005",
+        "T1041",
+        "T1071.001",
+        "T1078",
+        "T1082",
+        "T1112",
+        "T1140",
+        "T1566.001"
+      ],
+      "selected_ttps": [
+        "T1005",
+        "T1041",
+        "T1071.001"
+      ],
+      "core_ttps": [
+        "T1005",
+        "T1041"
+      ],
+      "behavior_clusters": [
+        "local_collection",
+        "outbound_comms"
+      ],
+      "n_labels": 10,
+      "n_selected": 3,
+      "n_core": 2
+    },
+    {
+      "id": "T3-05",
+      "source_report": "SOC Team Essentials  How to Investigate and Track the 8220 Gang Cloud Threat",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Obfuscate and encode a payload, download additional tools from a remote server, and decode the encrypted payload at runtime.",
+      "labels": [
+        "T1027",
+        "T1105",
+        "T1110",
+        "T1140"
+      ],
+      "selected_ttps": [
+        "T1027",
+        "T1105",
+        "T1140"
+      ],
+      "core_ttps": [
+        "T1027",
+        "T1105",
+        "T1140"
+      ],
+      "behavior_clusters": [
+        "decode_unpack",
+        "download_tool"
+      ],
+      "n_labels": 4,
+      "n_selected": 3,
+      "n_core": 3
+    },
+    {
+      "id": "T3-06",
+      "source_report": "LAPSUS Recent techniques tactics and procedures",
+      "category": "rat_apt",
+      "malgen_input_prompt": "Collect sensitive data from the local filesystem and securely delete files to remove forensic evidence.",
+      "labels": [
+        "T1005",
+        "T1021.001",
+        "T1070.004",
+        "T1078",
+        "T1082",
+        "T1552.001"
+      ],
+      "selected_ttps": [
+        "T1005",
+        "T1070.004"
+      ],
+      "core_ttps": [
+        "T1005",
+        "T1070.004"
+      ],
+      "behavior_clusters": [
+        "cleanup",
+        "local_collection"
+      ],
+      "n_labels": 6,
+      "n_selected": 2,
+      "n_core": 2
+    }
+  ],
+  "exclude": [
+    {
+      "id": "EXCL-01",
+      "source_report": "FedEx Phishing Campaign Abusing TrustedForm and PAAY",
+      "category": "infostealer",
+      "exclude_reasons": [
+        "single_ttp",
+        "hollow_after_drop"
+      ],
+      "labels": [
+        "T1204.002"
+      ],
+      "selected_ttps": [
+        "T1204.002"
+      ],
+      "lateral_ttps": [],
+      "core_after_drop": [
+        "T1204.002"
+      ]
+    },
+    {
+      "id": "EXCL-02",
+      "source_report": "Malicious OAuth applications used to compromise email servers and spread spam  Microsoft Security Blog",
+      "category": "loader_dropper",
+      "exclude_reasons": [
+        "single_ttp",
+        "lateral_heavy",
+        "hollow_after_drop"
+      ],
+      "labels": [
+        "T1110"
+      ],
+      "selected_ttps": [
+        "T1110"
+      ],
+      "lateral_ttps": [
+        "T1110"
+      ],
+      "core_after_drop": []
+    },
+    {
+      "id": "EXCL-03",
+      "source_report": "StopRansomware Royal Ransomware",
+      "category": "ransomware",
+      "exclude_reasons": [
+        "lateral_heavy",
+        "hollow_after_drop"
+      ],
+      "labels": [
+        "T1021.001",
+        "T1562.001",
+        "T1570"
+      ],
+      "selected_ttps": [
+        "T1570",
+        "T1021.001",
+        "T1562.001"
+      ],
+      "lateral_ttps": [
+        "T1570",
+        "T1021.001"
+      ],
+      "core_after_drop": [
+        "T1562.001"
+      ]
+    },
+    {
+      "id": "EXCL-04",
+      "source_report": "Hafniuminspired cyberattacks neutralized by AI",
+      "category": "loader_dropper",
+      "exclude_reasons": [
+        "lateral_heavy",
+        "hollow_after_drop"
+      ],
+      "labels": [
+        "T1036.005",
+        "T1078",
+        "T1110",
+        "T1566.001"
+      ],
+      "selected_ttps": [
+        "T1566.001",
+        "T1036.005",
+        "T1078",
+        "T1110"
+      ],
+      "lateral_ttps": [
+        "T1566.001",
+        "T1078",
+        "T1110"
+      ],
+      "core_after_drop": [
+        "T1036.005"
+      ]
+    },
+    {
+      "id": "EXCL-05",
+      "source_report": "Nefilim Ransomware",
+      "category": "ransomware",
+      "exclude_reasons": [],
+      "labels": [
+        "T1003.001",
+        "T1021.001",
+        "T1027",
+        "T1047",
+        "T1059.003",
+        "T1078",
+        "T1105",
+        "T1106",
+        "T1110",
+        "T1112",
+        "T1190"
+      ],
+      "selected_ttps": [
+        "T1021.001",
+        "T1003.001",
+        "T1110",
+        "T1190",
+        "T1047"
+      ],
+      "lateral_ttps": [
+        "T1021.001",
+        "T1110"
+      ],
+      "core_after_drop": [
+        "T1003.001",
+        "T1190",
+        "T1047"
+      ]
+    },
+    {
+      "id": "EXCL-06",
+      "source_report": "Threat Assessment Black Basta Ransomware",
+      "category": "ransomware",
+      "exclude_reasons": [
+        "campaign_scale"
+      ],
+      "labels": [
+        "T1003.001",
+        "T1016",
+        "T1021.001",
+        "T1027",
+        "T1059.003",
+        "T1070.004",
+        "T1082",
+        "T1083",
+        "T1105",
+        "T1112",
+        "T1219",
+        "T1484.001",
+        "T1543.003",
+        "T1562.001",
+        "T1566.001",
+        "T1569.002"
+      ],
+      "selected_ttps": [
+        "T1021.001",
+        "T1484.001",
+        "T1003.001",
+        "T1219",
+        "T1562.001",
+        "T1016"
+      ],
+      "lateral_ttps": [
+        "T1021.001",
+        "T1484.001",
+        "T1219"
+      ],
+      "core_after_drop": [
+        "T1003.001",
+        "T1562.001",
+        "T1016"
+      ]
+    },
+    {
+      "id": "EXCL-07",
+      "source_report": "NotPetya Technical Analysis  A Triple Threat File Encryption MFT Encryption Credential Theft",
+      "category": "wiper",
+      "exclude_reasons": [
+        "campaign_scale"
+      ],
+      "labels": [
+        "T1003.001",
+        "T1016",
+        "T1027",
+        "T1047",
+        "T1053.005",
+        "T1056.001",
+        "T1057",
+        "T1059.003",
+        "T1078",
+        "T1082",
+        "T1083",
+        "T1106",
+        "T1140",
+        "T1210",
+        "T1218.011",
+        "T1518.001",
+        "T1570"
+      ],
+      "selected_ttps": [
+        "T1570",
+        "T1210",
+        "T1003.001",
+        "T1047",
+        "T1059.003",
+        "T1218.011"
+      ],
+      "lateral_ttps": [
+        "T1570",
+        "T1210"
+      ],
+      "core_after_drop": [
+        "T1003.001",
+        "T1047",
+        "T1059.003",
+        "T1218.011"
+      ]
+    },
+    {
+      "id": "EXCL-08",
+      "source_report": "LockBit 20 How This RaaS Operates and How to Protect Against It",
+      "category": "ransomware",
+      "exclude_reasons": [
+        "lateral_heavy",
+        "campaign_scale"
+      ],
+      "labels": [
+        "T1003.001",
+        "T1021.001",
+        "T1027",
+        "T1053.005",
+        "T1059.003",
+        "T1068",
+        "T1078",
+        "T1082",
+        "T1105",
+        "T1110",
+        "T1190",
+        "T1210",
+        "T1219",
+        "T1484.001",
+        "T1548.002",
+        "T1562.001",
+        "T1570"
+      ],
+      "selected_ttps": [
+        "T1570",
+        "T1021.001",
+        "T1484.001",
+        "T1548.002",
+        "T1003.001",
+        "T1110"
+      ],
+      "lateral_ttps": [
+        "T1570",
+        "T1021.001",
+        "T1484.001",
+        "T1110"
+      ],
+      "core_after_drop": [
+        "T1548.002",
+        "T1003.001"
+      ]
+    },
+    {
+      "id": "EXCL-09",
+      "source_report": "Emotet Strikes Again  LNK File Leads to Domain Wide Ransomware  The DFIR Report",
+      "category": "ransomware",
+      "exclude_reasons": [
+        "campaign_scale"
+      ],
+      "labels": [
+        "T1003.001",
+        "T1005",
+        "T1016",
+        "T1021.001",
+        "T1027",
+        "T1033",
+        "T1047",
+        "T1055",
+        "T1057",
+        "T1059.003",
+        "T1070.004",
+        "T1071.001",
+        "T1078",
+        "T1082",
+        "T1105",
+        "T1140",
+        "T1204.002",
+        "T1218.011",
+        "T1219",
+        "T1543.003",
+        "T1547.001",
+        "T1566.001",
+        "T1569.002",
+        "T1570"
+      ],
+      "selected_ttps": [
+        "T1570",
+        "T1021.001",
+        "T1003.001",
+        "T1219",
+        "T1005",
+        "T1016"
+      ],
+      "lateral_ttps": [
+        "T1570",
+        "T1021.001",
+        "T1219"
+      ],
+      "core_after_drop": [
+        "T1003.001",
+        "T1005",
+        "T1016"
+      ]
+    }
+  ]
+}
