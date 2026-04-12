@@ -22,9 +22,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller --onefile ^
-            --name latest ^
-            artifacts/latest/latest.py
+            pyinstaller --onefile --name latest artifacts/latest/latest.py
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
