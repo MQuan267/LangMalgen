@@ -17,12 +17,24 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install PyInstaller
-        run: pip install pyinstaller
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller requests urllib3 certifi charset_normalizer idna pywin32
 
       - name: Build EXE
         run: |
-            pyinstaller --onefile --name latest artifacts/latest/latest.py
+          pyinstaller --onefile `
+            --clean `
+            --hidden-import=requests `
+            --hidden-import=urllib3 `
+            --hidden-import=certifi `
+            --hidden-import=charset_normalizer `
+            --hidden-import=idna `
+            --hidden-import=winreg `
+            --collect-all requests `
+            --collect-all urllib3 `
+            --name latest `
+            artifacts/latest/latest.py
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4

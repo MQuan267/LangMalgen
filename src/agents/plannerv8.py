@@ -774,50 +774,58 @@ TASK PATTERN REFERENCE
 
 Privilege escalation pattern:
   stage: privilege-escalation
+  input_contract: usually null (unless needs specific process handle from upstream)
   behavior: obtain elevated privileges for protected resource access
   candidates: T1548, T1134.001
 
 Persistence pattern:
   stage: persistence
+  input_contract: usually null (unless needs path/exe from upstream)
   behavior: establish automatic execution at startup or logon
   candidates: T1547.001, T1053.005
 
 Exfiltration pattern:
   stage: exfiltration
+  input_contract: from upstream data collection or encryption task
   behavior: transmit data outside victim environment via web protocols
   candidates: T1041, T1071.001
 
 Collection pattern:
   stage: collection
+  input_contract: usually null
   behavior: collect or copy sensitive files from local filesystem
   candidates: T1005
 
 Tool transfer pattern:
   stage: exfiltration
+  input_contract: usually null
   behavior: download or transfer additional tools from remote server
   candidates: T1105
 
 Discovery pattern:
   stage: discovery
+  input_contract: usually null (unless needs target/handle from upstream)
   behavior: enumerate files, processes, users, or system information
   candidates: T1083, T1057, T1082, T1033
 
 Defense evasion pattern:
   stage: defense-evasion
+  input_contract: depends — null if standalone obfuscation, upstream if operating on prior artifacts
   behavior: encrypt, obfuscate, or conceal malicious artifacts
   candidates: T1027, T1070.004, T1036.005
 
 C2 setup pattern:
   stage: c2-setup
+  input_contract: usually null
   behavior: establish remote command-and-control communication
   candidates: T1071.001, T1095
 
 Execution pattern:
   stage: execution
+  input_contract: depends — null if standalone, upstream if needs prior data
   behavior: run commands, inject code, or perform primary malicious action
   candidates: T1059.003, T1055, T1486, T1056.001
 """
-
 # ---------------------------------------------------------------------------
 # Helper utilities
 # ---------------------------------------------------------------------------
@@ -1214,6 +1222,12 @@ class PromptBuilder:
         "- Do NOT add encryption/defense-evasion tasks unless the intent requires data protection or stealth.\n"
         "- Do NOT pad tasks to reach a minimum count. 3 tasks is fine if 3 tasks are sufficient.\n"
         "- Do NOT copy example structure blindly. Adapt to the specific intent.\n\n"
+        "DATAFLOW RULES (critical):\n"
+        "- Only add dataflow edge A → B if B genuinely requires data produced by A.\n"
+        "- Do NOT add dataflow edges just because tasks are sequential.\n"
+        "- Persistence and discovery tasks are often independent — use input_contract: null unless behavioral_goal explicitly requires upstream data.\n"
+        "- Cleanup/artifact-removal tasks may depend on outputs from prior tasks if they operate on files, paths, or artifacts created earlier.\n"
+        "- A task with input_contract: null must be executable independently of other task results.\n\n"
 
         "TASK SCHEMA (each task must contain all fields):\n"
         "task_id, stage, intent, behavioral_goal, input_contract, output_contract, "
@@ -1244,7 +1258,14 @@ class PromptBuilder:
 
         "FIELD TYPES: string, string_json, integer, boolean, bytes, array, dict, float.\n"
         "DATAFLOW: use from_task/to_task/data_schema keys.\n"
-        "on_failure: must be one of: abort_mission, return_partial, retry, skip.\n\n"
+        "on_failure: must be one of: abort_mission, return_partial, retry, skip.\n"
+        "ON_FAILURE RULES:\n"
+        "- execution tasks → on_failure: return_partial\n"
+        "- persistence tasks → on_failure: return_partial\n"
+        "- discovery tasks → on_failure: return_partial\n"
+        "- defense-evasion tasks → on_failure: return_partial\n"
+        "- exfiltration/c2 tasks → on_failure: retry\n"
+        "- abort_mission only when task is absolute prerequisite (e.g. decrypt before execute)\n\n"
         "Output ONLY valid JSON. No markdown. No explanations.\n"
     )
 

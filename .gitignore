@@ -10,6 +10,9 @@ __pycache__/
 artifacts/
 !artifacts/integration/
 !artifacts/integration/*.py
+!artifacts/latest/
+!artifacts/latest/*.py
+
 logs/
 dist/
 build/
