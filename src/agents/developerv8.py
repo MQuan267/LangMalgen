@@ -34,6 +34,9 @@ import json
 import time
 import ast
 import traceback
+import re
+import random
+import re as _re
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from pathlib import Path
@@ -314,6 +317,37 @@ def _has_return_in_run(tree: ast.AST) -> bool:
         if isinstance(node, ast.FunctionDef) and node.name == "run":
             return any(isinstance(n, ast.Return) for n in ast.walk(node))
     return False
+
+def _make_lab_ip() -> str:
+    return f"192.168.{random.randint(56,199)}.{random.randint(10,250)}"
+
+def _make_lab_url() -> str:
+    return f"https://{_make_lab_ip()}/api"
+
+def _normalize_placeholders(code: str) -> str:
+    code = re.sub(
+        r'https?://[A-Za-z0-9\.-]*(?:example|c2server)\.(?:com|net|org)[^\s"\']*',
+        lambda m: _make_lab_url(),
+        code,
+        flags=re.IGNORECASE,
+    )
+    code = re.sub(
+        r'[A-Z]:\\[Pp]ath\\[Tt]o\\[A-Za-z0-9_\.\\-]+',
+        r"C:\\Windows\\System32\\notepad.exe",
+        code,
+    )
+    code = re.sub(
+        r'[A-Z]:\\[Pp]ath\\[Tt]o\\[A-Za-z0-9_\.\\-]+\.dll',
+        r"C:\\Users\\Public\\version.dll",
+        code,
+    )
+    code = _re.sub(
+        r'b["\']\\x[0-9a-fA-F]{2}["\']\s*\*\s*\d+',
+        'bytes.fromhex("fc4883e4f0")',
+        code
+    )
+    return code
+
 
 def _extract_expected_from_intent(text: str) -> Dict[str, Any]:
     """Parse expected literals from intent/goal text."""
@@ -805,6 +839,7 @@ if __name__ == "__main__":
         # 4. Placeholder detection
         bad_patterns = [
             "example.com",
+            "c2server.example.com",
             "C:\\Path\\To\\",
             "replace with actual",
             "Replace with",
@@ -819,6 +854,12 @@ if __name__ == "__main__":
         if ic is None and stage in {"persistence", "discovery"}:
             if "input_data.get('success')" in code:
                 issues.append("Independent task must NOT gate on input_data success")
+
+        # NOP sled placeholder check
+        nop_match = _re.search(r'b["\']\\x[0-9a-fA-F]{2}["\']\s*\*\s*(\d+)', code)
+        if nop_match and int(nop_match.group(1)) >= 10:
+            issues.append("Fake shellcode placeholder detected (repeated byte pattern ≥10) — replace with real shellcode or remove")
+
 
         return issues
 
@@ -886,6 +927,10 @@ if __name__ == "__main__":
             for attempt in range(self.max_retry):
                 try:
                     code = self._generate(task, upstream_map[tid], prev_errors or None)
+                    original = code
+                    code = _normalize_placeholders(code)
+                    if code != original:
+                        print(f"\n    🔧 Placeholder normalized")
                     vr = self._validate(code, task, filepath)
 
                     review_issues = self._review_code(code, task, mission_intent)

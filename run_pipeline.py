@@ -167,6 +167,30 @@ def main():
     if not latest_file.exists():
         raise RuntimeError("❌ latest/latest.py not found")
 
+    # 🔥 đọc kết quả integrator
+    integration_result_file = sorted(
+        Path("artifacts/integration").glob("*.py"),
+        key=lambda p: p.stat().st_mtime
+    )[-1]
+
+    # ❗ hoặc tốt hơn: parse JSON output từ integrator (nếu bạn lưu)
+
+    # TEMP FIX đơn giản:
+    match = re.search(r"\{[\s\S]*\}", stdout)
+    if not match:
+        print("\n⛔ Skip push — cannot parse integrator output")
+        return
+
+    try:
+        result_json = json.loads(match.group(0))
+    except Exception:
+        print("\n⛔ Skip push — invalid JSON")
+        return
+
+    if not (result_json.get("artifact_valid") and result_json.get("json_valid")):
+        print("\n⛔ Skip push — artifact not fully valid")
+        return
+
     print(f"📄 Latest file: {latest_file}")
 
     # ── 5. Git push ────────────────────────────

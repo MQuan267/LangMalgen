@@ -50,6 +50,39 @@ def _syntax_ok(code: str) -> bool:
     except SyntaxError:
         return False
 
+def _classify_runtime_error(error: str) -> str:
+    err = (error or "").lower()
+
+    # hard artifact failures
+    if any(x in err for x in [
+        "syntaxerror",
+        "invalid json",
+        "missing __result__",
+        "missing 'success' key",
+        "nameerror",
+        "importerror",
+        "attributeerror",
+        "exit 1",
+        "exit 2",
+        "traceback",
+    ]):
+        return "artifact"
+
+    # environment-dependent failures
+    if any(x in err for x in [
+        "timeout",
+        "connection",
+        "refused",
+        "timed out",
+        "dns",
+        "temporary failure in name resolution",
+        "no such file",
+        "file not found",
+        "network is unreachable",
+    ]):
+        return "environment"
+
+    return "unknown"
 
 # ── IntegrationAgent ───────────────────────────────────────────────────────────
 
@@ -366,7 +399,7 @@ class IntegrationAgent:
             proc = subprocess.run(
                 ["python", str(path.resolve())],  # absolute path — tránh resolve sai khi cwd thay đổi
                 capture_output=True,
-                timeout=5,
+                timeout=20,
                 text=True,
                 cwd=str(safe_dir),       # isolate working directory
                 env={"PYTHONPATH": ""},  # restricted env
@@ -381,12 +414,17 @@ class IntegrationAgent:
             return {"valid": False, "error": f"Exit {proc.returncode}: {stderr}"}
 
         # Step 3: parse __RESULT__=<json> from stdout
-        match = _re.search(r"__RESULT__=(\{.*?\})", proc.stdout, _re.DOTALL)
-        if not match:
+        result_line = None
+        for line in proc.stdout.splitlines():
+            if line.startswith("__RESULT__="):
+                result_line = line[len("__RESULT__="):]
+                break
+
+        if result_line is None:
             return {"valid": False, "error": "Missing __RESULT__ marker in stdout"}
 
         try:
-            result = json.loads(match.group(1))
+            result = json.loads(result_line)
         except json.JSONDecodeError as e:
             return {"valid": False, "error": f"Invalid JSON in __RESULT__: {e}"}
 
@@ -418,65 +456,91 @@ class IntegrationAgent:
         return fixed
 
     # ── Runtime fix loop ───────────────────────────────────────────────────────
-
-    def _runtime_fix_loop(
-        self,
-        path:         Path,
-        module_codes: Dict[str, str],
-    ) -> bool:
-        """
-        Max 1 fix attempt — only for technical errors (JSON, syntax, crash).
-        Timeout = network behavior → PASS.
-        Logic/warning issues → skip fix, treat as PASS.
-        """
-        # Attempt 1: validate
-        print(f"  ▶ Runtime validation attempt 1/2")
+    def _runtime_fix_loop(self, path: Path, module_codes: Dict[str, str]) -> Dict[str, Any]:
+        print("  ▶ Runtime validation attempt 1/2")
         res = self._runtime_validate(path)
 
         if res["valid"]:
             print("  ✅ Runtime validation passed")
-            return True
+            return {
+                "artifact_valid": True,
+                "json_valid": True,
+                "runtime_executed": True,
+                "environment_ready": True,
+                "error": None,
+            }
 
-        if "Timeout" in res["error"]:
-            print("  ⚠️  Timeout (network/blocking behavior) — treating as PASS")
-            return True
+        category = _classify_runtime_error(res.get("error", ""))
+        print(f"  ❌ Runtime error: {res['error']} [{category}]")
 
-        print(f"  ❌ Runtime error: {res['error']}")
+        # 🟡 Environment issue → không fail artifact
+        if category == "environment":
+            return {
+                "artifact_valid": True,
+                "json_valid": False,
+                "runtime_executed": False,
+                "environment_ready": False,
+                "error": res["error"],
+            }
 
-        # Only fix technical errors — JSON parse, SyntaxError, crash
-        fixable = any(k in res["error"] for k in [
-            "Invalid JSON", "SyntaxError", "NameError",
-            "ImportError", "AttributeError", "Exit 1"
-        ])
-        if not fixable:
-            print("  ⚠️  Non-technical error — skipping fix, treating as PASS")
-            return True
+        # ❓ Unknown → fail cho chắc
+        if category == "unknown":
+            return {
+                "artifact_valid": False,
+                "json_valid": False,
+                "runtime_executed": False,
+                "environment_ready": None,
+                "error": res["error"],
+            }
 
-        # Attempt fix (1 time only)
-        print(f"  ↻ Attempting runtime fix (1/1)...")
-        code  = path.read_text(encoding="utf-8")
+        # 🔴 Artifact error → fix 1 lần
+        print("  ↻ Attempting runtime fix (1/1)...")
+        code = path.read_text(encoding="utf-8")
         fixed = self._runtime_fix(code, res["error"])
 
         if not _syntax_ok(fixed):
-            print("  ⚠️  Fix syntax invalid — keeping original")
-            return True  # don't block pipeline
+            return {
+                "artifact_valid": False,
+                "json_valid": False,
+                "runtime_executed": False,
+                "environment_ready": None,
+                "error": "Auto-fix produced invalid syntax",
+            }
 
         missing = [tid for tid in module_codes if f"def task_{tid}(" not in fixed]
         if missing:
-            print(f"  ⚠️  Fix dropped functions {missing} — keeping original")
-            return True  # don't block pipeline
+            return {
+                "artifact_valid": False,
+                "json_valid": False,
+                "runtime_executed": False,
+                "environment_ready": None,
+                "error": f"Auto-fix dropped functions: {missing}",
+            }
 
         path.write_text(fixed, encoding="utf-8")
 
-        # Attempt 2: validate after fix
-        print(f"  ▶ Runtime validation attempt 2/2")
+        print("  ▶ Runtime validation attempt 2/2")
         res2 = self._runtime_validate(path)
-        if res2["valid"] or "Timeout" in res2.get("error", ""):
-            print("  ✅ Runtime validation passed after fix")
-            return True
 
-        print(f"  ⚠️  Still failing after fix — treating as PASS (sandbox will verify)")
-        return True
+        if res2["valid"]:
+            print("  ✅ Runtime validation passed after fix")
+            return {
+                "artifact_valid": True,
+                "json_valid": True,
+                "runtime_executed": True,
+                "environment_ready": True,
+                "error": None,
+            }
+
+        category2 = _classify_runtime_error(res2.get("error", ""))
+
+        return {
+            "artifact_valid": category2 == "environment",
+            "json_valid": False,
+            "runtime_executed": False,
+            "environment_ready": False if category2 == "environment" else None,
+            "error": res2["error"],
+        }
 
     # ── Main entry ────────────────────────────────────────────────────────────
 
@@ -547,15 +611,24 @@ class IntegrationAgent:
 
         # [5] Runtime validation loop
         print(f"\n  [5/5] Runtime validation...")
-        ok = self._runtime_fix_loop(out_file, module_codes)
+        runtime_status = self._runtime_fix_loop(out_file, module_codes)
 
-        if ok:
-            print("  🎉 Script is runnable")
+        artifact_valid     = runtime_status["artifact_valid"]
+        json_valid         = runtime_status["json_valid"]
+        runtime_executed   = runtime_status["runtime_executed"]
+        environment_ready  = runtime_status["environment_ready"]
+        runtime_error      = runtime_status["error"]
+
+        if artifact_valid and json_valid:
+            print("  🎉 Artifact validated")
+        elif artifact_valid:
+            print("  ⚠️ Artifact valid, but environment not ready")
         else:
-            print("  ❌ Runtime validation failed — script may need manual fix")
+            print(f"  ❌ Artifact validation failed: {runtime_error}")
 
         # Update latest with final (possibly fixed) version
-        latest.write_text(out_file.read_text(encoding="utf-8"), encoding="utf-8")
+        if artifact_valid:
+            latest.write_text(out_file.read_text(encoding="utf-8"), encoding="utf-8")
 
         try:
             out_file.chmod(0o755)
@@ -574,12 +647,12 @@ class IntegrationAgent:
         print(f"  📄 {latest}")
         print(f"  📄 {review_file}")
 
-        if final_severity in ("none", "low"):
-            print(f"\n  🚀 Ready:  python {latest}")
-        elif final_severity == "medium":
-            print(f"\n  ⚠️  Review warnings before running")
+        if artifact_valid and json_valid:
+            print(f"\n  🚀 Ready: python {latest}")
+        elif artifact_valid:
+            print("\n  ⚠️ Artifact valid but environment not ready")
         else:
-            print(f"\n  ❌ Fix critical issues before running")
+            print("\n  ❌ Artifact invalid — do not run")
 
         print(f"{'='*65}\n")
 
@@ -594,14 +667,18 @@ class IntegrationAgent:
         print(f"     cost       : ~${cost:.4f} USD")
 
         return {
-            "agent":            "IntegrationAgent",
-            "mission":          mid,
-            "output":           str(out_file),
-            "latest":           str(latest),
-            "severity":         final_severity,
-            "issues":           len(issues),
-            "runtime_valid":    ok,
-            "timestamp":        datetime.now(timezone.utc).isoformat(),
+            "agent": "IntegrationAgent",
+            "mission": mid,
+            "output": str(out_file),
+            "latest": str(latest),
+            "severity": final_severity,
+            "issues": len(issues),
+            "artifact_valid": artifact_valid,
+            "json_valid": json_valid,
+            "runtime_executed": runtime_executed,
+            "environment_ready": environment_ready,
+            "runtime_error": runtime_error,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
 
