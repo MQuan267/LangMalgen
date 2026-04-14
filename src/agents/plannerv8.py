@@ -1444,6 +1444,16 @@ class PlanValidator:
                     f"defaulting to 'return_partial'"
                 )
                 task.error_contract.on_failure = "return_partial"
+        # Override abort_mission cho non-critical stages
+        NON_ABORT_STAGES = {"discovery", "execution", "persistence", "defense-evasion"}
+        for task in tasks:
+            if (task.error_contract.on_failure == "abort_mission"
+                    and task.stage in NON_ABORT_STAGES):
+                task.error_contract.on_failure = "return_partial"
+                warnings.append(
+                    f"task {task.task_id}: override abort_mission → return_partial "
+                    f"for stage={task.stage}"
+                )
 
         for flow in flows:
             if flow.from_task not in task_by_id:

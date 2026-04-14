@@ -764,11 +764,18 @@ if __name__ == "__main__":
         ])
         expected = _extract_expected_from_intent(intent_text)
         # 1. Exact value check
-        if "url" in expected and expected["url"] not in code:
-            issues.append(f"URL mismatch: must use EXACT URL from intent → {expected['url']}")
+        if "url" in expected and stage in {"exfiltration", "c2-setup"}:
+            if expected["url"] not in code:
+                issues.append(
+                    f"URL mismatch: must use EXACT URL from intent → {expected['url']}"
+                )
 
-        if "xor_key" in expected and expected["xor_key"] not in code:
-            issues.append(f"XOR key mismatch: must use EXACT key from intent → {expected['xor_key']}")
+        # 🔴 XOR key — chỉ cho encryption
+        if "xor_key" in expected and stage == "defense-evasion":
+            if expected["xor_key"] not in code:
+                issues.append(
+                    f"XOR key mismatch: must use EXACT key from intent → {expected['xor_key']}"
+                )
 
         # 2. Execution requirements
         if expected.get("needs_cmd") and "cmd.exe" not in code:
@@ -781,7 +788,7 @@ if __name__ == "__main__":
         MITRE_REQUIRED = {
             "T1218.011": ["rundll32"],
             "T1059.003": ["cmd.exe", "subprocess"],
-            "T1105":     ["requests.get"],
+            "T1105":     ["requests.get","requests.post"],
             "T1547.001": ["winreg"],
             "T1055":     ["VirtualAllocEx", "WriteProcessMemory", "CreateRemoteThread"],
             "T1056.001": ["SetWindowsHookEx"],
@@ -897,9 +904,9 @@ if __name__ == "__main__":
 
                         prev_errors = ["HARD CONSTRAINTS (must follow exactly, no exceptions):"]
 
-                        if "url" in expected:
+                        if "url" in expected and stage in {"exfiltration", "c2-setup"}:
                             prev_errors.append(f"- You MUST use EXACT URL: {expected['url']}")
-                        if "xor_key" in expected:
+                        if "xor_key" in expected and stage == "defense-evasion":
                             prev_errors.append(f"- You MUST use EXACT XOR key: {expected['xor_key']}")
                         if expected.get("needs_rundll32"):
                             prev_errors.append("- You MUST include execution using rundll32.exe")
