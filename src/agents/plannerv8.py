@@ -23,7 +23,11 @@ import os
 import re
 import time
 import uuid
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    # Nếu chạy trên Windows, fcntl không tồn tại, ta dùng portalocker
+    import portalocker 
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -129,6 +133,7 @@ EXAMPLE_INTENT_HINTS: Dict[str, str] = {
     "loader": "download payload decrypt stage execute payload establish persistence",
     "browser_stealer": "locate browser data extract cookies extract credentials encrypt exfiltrate",
     "clipper": "monitor clipboard detect crypto address replace address maintain persistence",
+    "rootkit": "escalate privileges hook system calls hide process kernel manipulation persist stealthily",
     "file_collector": "collect sensitive files local filesystem obfuscate encode payload download transfer tools remote server",
 }
 
@@ -765,6 +770,92 @@ _EXAMPLES: Dict[str, str] = {
   ],
   "dataflow": [
     {"from_task":"T1","to_task":"T2","data_schema":"CollectedFiles","required":true}
+  ]
+}''',
+"screenshotter": '''{
+  "mission_id": "screenshot_exfil",
+  "intent": "Capture screenshots and send to remote server",
+  "malware_type": "screenshotter",
+  "global_constraints": {"target_os_family":"windows","language_target":"python","stealth_level":"medium","execution_model":"modular","forbidden_capabilities":["self_propagation"]},
+  "validation_rules": {"max_execution_time_seconds":60,"max_memory_mb":100,"allowed_modules":["PIL","mss","Crypto.Cipher","requests","base64","os"],"forbidden_patterns":["eval\\\\(","exec\\\\("]},
+  "execution_graph": [
+    {"task_id":"T1","stage":"execution","intent":"Capture Screenshot","behavioral_goal":"Capture current desktop screen as image","input_contract":null,"output_contract":{"schema":"Screenshot","fields":{"image_data":"string","format":"string"}},"error_contract":{"on_failure":"return_partial","required_fields":["image_data"],"fallback_value":null},"mitre_candidates":[{"id":"T1113","reason":"screen capture","score":0.95,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"high","ambiguity_notes":""},
+    {"task_id":"T2","stage":"defense-evasion","intent":"Encrypt Screenshot","behavioral_goal":"Encrypt captured image data before transmission","input_contract":{"sources":[{"task_id":"T1","schema":"Screenshot"}]},"output_contract":{"schema":"EncryptedScreenshot","fields":{"ciphertext":"bytes","iv":"bytes","key":"bytes"}},"error_contract":{"on_failure":"return_partial","required_fields":["ciphertext"],"fallback_value":null},"mitre_candidates":[{"id":"T1027","reason":"encrypted payload","score":0.82,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""},
+    {"task_id":"T3","stage":"exfiltration","intent":"Send Screenshot","behavioral_goal":"Transmit encrypted screenshot to remote server via HTTPS POST","input_contract":{"sources":[{"task_id":"T2","schema":"EncryptedScreenshot"}]},"output_contract":{"schema":"TransmissionStatus","fields":{"success":"boolean"}},"error_contract":{"on_failure":"retry","required_fields":["success"],"fallback_value":{"success":false}},"mitre_candidates":[{"id":"T1041","reason":"data exfiltration","score":0.80,"source":"llm"},{"id":"T1071.001","reason":"web protocol","score":0.78,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""}
+  ],
+  "dataflow": [
+    {"from_task":"T1","to_task":"T2","data_schema":"Screenshot","required":true},
+    {"from_task":"T2","to_task":"T3","data_schema":"EncryptedScreenshot","required":true}
+  ]
+}''',
+
+    "loader": '''{
+  "mission_id": "payload_loader",
+  "intent": "Download and execute a staged payload",
+  "malware_type": "loader",
+  "global_constraints": {"target_os_family":"windows","language_target":"python","stealth_level":"high","execution_model":"modular","forbidden_capabilities":["self_propagation"]},
+  "validation_rules": {"max_execution_time_seconds":60,"max_memory_mb":100,"allowed_modules":["requests","Crypto.Cipher","os","subprocess","base64"],"forbidden_patterns":["eval\\\\(","exec\\\\("]},
+  "execution_graph": [
+    {"task_id":"T1","stage":"exfiltration","intent":"Download Payload","behavioral_goal":"Download encrypted payload from remote server","input_contract":null,"output_contract":{"schema":"EncryptedPayload","fields":{"data":"bytes","url":"string"}},"error_contract":{"on_failure":"retry","required_fields":["data"],"fallback_value":null},"mitre_candidates":[{"id":"T1105","reason":"ingress tool transfer","score":0.92,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"high","ambiguity_notes":""},
+    {"task_id":"T2","stage":"defense-evasion","intent":"Decrypt Payload","behavioral_goal":"Decrypt downloaded payload before execution","input_contract":{"sources":[{"task_id":"T1","schema":"EncryptedPayload"}]},"output_contract":{"schema":"DecryptedPayload","fields":{"executable":"bytes","path":"string"}},"error_contract":{"on_failure":"abort_mission","required_fields":["executable"],"fallback_value":null},"mitre_candidates":[{"id":"T1140","reason":"deobfuscate payload","score":0.88,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"high","ambiguity_notes":""},
+    {"task_id":"T3","stage":"execution","intent":"Execute Payload","behavioral_goal":"Execute decrypted payload on target system","input_contract":{"sources":[{"task_id":"T2","schema":"DecryptedPayload"}]},"output_contract":{"schema":"ExecutionStatus","fields":{"pid":"integer","running":"boolean"}},"error_contract":{"on_failure":"return_partial","required_fields":["running"],"fallback_value":{"running":false}},"mitre_candidates":[{"id":"T1204.002","reason":"user execution malicious file","score":0.75,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""}
+  ],
+  "dataflow": [
+    {"from_task":"T1","to_task":"T2","data_schema":"EncryptedPayload","required":true},
+    {"from_task":"T2","to_task":"T3","data_schema":"DecryptedPayload","required":true}
+  ]
+}''',
+
+    "browser_stealer": '''{
+  "mission_id": "browser_credential_steal",
+  "intent": "Steal browser credentials and cookies and exfiltrate",
+  "malware_type": "browser_stealer",
+  "global_constraints": {"target_os_family":"windows","language_target":"python","stealth_level":"high","execution_model":"modular","forbidden_capabilities":["self_propagation"]},
+  "validation_rules": {"max_execution_time_seconds":60,"max_memory_mb":100,"allowed_modules":["os","pathlib","Crypto.Cipher","requests","json","sqlite3"],"forbidden_patterns":["eval\\\\(","exec\\\\("]},
+  "execution_graph": [
+    {"task_id":"T1","stage":"discovery","intent":"Locate Browser Data","behavioral_goal":"Find browser profile directories containing credentials and cookies","input_contract":null,"output_contract":{"schema":"BrowserPaths","fields":{"paths":"array","browser":"string"}},"error_contract":{"on_failure":"abort_mission","required_fields":["paths"],"fallback_value":null},"mitre_candidates":[{"id":"T1083","reason":"file and directory discovery","score":0.85,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"high","ambiguity_notes":""},
+    {"task_id":"T2","stage":"credential-access","intent":"Extract Credentials","behavioral_goal":"Extract stored credentials and cookies from browser database","input_contract":{"sources":[{"task_id":"T1","schema":"BrowserPaths"}]},"output_contract":{"schema":"StolenData","fields":{"credentials":"array","cookies":"array"}},"error_contract":{"on_failure":"return_partial","required_fields":["credentials"],"fallback_value":{"credentials":[]}},"mitre_candidates":[{"id":"T1552.001","reason":"credentials in files","score":0.88,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"high","ambiguity_notes":""},
+    {"task_id":"T3","stage":"defense-evasion","intent":"Encrypt Stolen Data","behavioral_goal":"Encrypt credentials and cookies before transmission","input_contract":{"sources":[{"task_id":"T2","schema":"StolenData"}]},"output_contract":{"schema":"EncryptedData","fields":{"ciphertext":"bytes","iv":"bytes"}},"error_contract":{"on_failure":"return_partial","required_fields":["ciphertext"],"fallback_value":null},"mitre_candidates":[{"id":"T1027","reason":"encrypted payload","score":0.80,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""},
+    {"task_id":"T4","stage":"exfiltration","intent":"Exfiltrate Stolen Data","behavioral_goal":"Send encrypted credentials to remote server via HTTPS","input_contract":{"sources":[{"task_id":"T3","schema":"EncryptedData"}]},"output_contract":{"schema":"TransmissionStatus","fields":{"success":"boolean"}},"error_contract":{"on_failure":"retry","required_fields":["success"],"fallback_value":{"success":false}},"mitre_candidates":[{"id":"T1041","reason":"data exfiltration","score":0.82,"source":"llm"},{"id":"T1071.001","reason":"web protocol","score":0.79,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""}
+  ],
+  "dataflow": [
+    {"from_task":"T1","to_task":"T2","data_schema":"BrowserPaths","required":true},
+    {"from_task":"T2","to_task":"T3","data_schema":"StolenData","required":true},
+    {"from_task":"T3","to_task":"T4","data_schema":"EncryptedData","required":true}
+  ]
+}''',
+
+    "clipper": '''{
+  "mission_id": "clipboard_clipper",
+  "intent": "Monitor clipboard and replace crypto addresses",
+  "malware_type": "clipper",
+  "global_constraints": {"target_os_family":"windows","language_target":"python","stealth_level":"high","execution_model":"modular","forbidden_capabilities":["self_propagation"]},
+  "validation_rules": {"max_execution_time_seconds":86400,"max_memory_mb":50,"allowed_modules":["ctypes","win32api","winreg","time","re","os"],"forbidden_patterns":["eval\\\\(","exec\\\\("]},
+  "execution_graph": [
+    {"task_id":"T1","stage":"execution","intent":"Monitor Clipboard","behavioral_goal":"Continuously monitor clipboard for cryptocurrency address patterns","input_contract":null,"output_contract":{"schema":"ClipboardContent","fields":{"content":"string","is_crypto":"boolean"}},"error_contract":{"on_failure":"return_partial","required_fields":["content"],"fallback_value":{"content":"","is_crypto":false}},"mitre_candidates":[{"id":"T1115","reason":"clipboard data collection","score":0.90,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"high","ambiguity_notes":""},
+    {"task_id":"T2","stage":"defense-evasion","intent":"Replace Crypto Address","behavioral_goal":"Replace detected cryptocurrency address with attacker-controlled address","input_contract":{"sources":[{"task_id":"T1","schema":"ClipboardContent"}]},"output_contract":{"schema":"ReplacementStatus","fields":{"replaced":"boolean","original":"string","replacement":"string"}},"error_contract":{"on_failure":"return_partial","required_fields":["replaced"],"fallback_value":{"replaced":false}},"mitre_candidates":[{"id":"T1036.005","reason":"masquerading address","score":0.72,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""},
+    {"task_id":"T3","stage":"persistence","intent":"Registry Persistence","behavioral_goal":"Write to registry Run key for automatic execution on logon","input_contract":null,"output_contract":{"schema":"PersistenceStatus","fields":{"persisted":"boolean"}},"error_contract":{"on_failure":"return_partial","required_fields":[],"fallback_value":{"persisted":false}},"mitre_candidates":[{"id":"T1547.001","reason":"registry autorun","score":0.90,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"high","ambiguity_notes":""}
+  ],
+  "dataflow": [
+    {"from_task":"T1","to_task":"T2","data_schema":"ClipboardContent","required":true}
+  ]
+}''',
+
+    "rootkit": '''{
+  "mission_id": "rootkit_hide",
+  "intent": "Escalate privileges, hook system calls and hide presence",
+  "malware_type": "rootkit",
+  "global_constraints": {"target_os_family":"windows","language_target":"python","stealth_level":"high","execution_model":"modular","forbidden_capabilities":["self_propagation"]},
+  "validation_rules": {"max_execution_time_seconds":60,"max_memory_mb":150,"allowed_modules":["ctypes","win32api","win32security","win32process","os"],"forbidden_patterns":["eval\\\\(","exec\\\\("]},
+  "execution_graph": [
+    {"task_id":"T1","stage":"privilege-escalation","intent":"Escalate Privileges","behavioral_goal":"Obtain elevated privileges required for kernel-level operations","input_contract":null,"output_contract":{"schema":"PrivilegeStatus","fields":{"elevated":"boolean","has_debug":"boolean"}},"error_contract":{"on_failure":"abort_mission","required_fields":["elevated"],"fallback_value":null},"mitre_candidates":[{"id":"T1134.001","reason":"token manipulation","score":0.75,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""},
+    {"task_id":"T2","stage":"defense-evasion","intent":"Hook System Calls","behavioral_goal":"Hook kernel-level system calls to intercept and manipulate process visibility","input_contract":{"sources":[{"task_id":"T1","schema":"PrivilegeStatus"}]},"output_contract":{"schema":"HookStatus","fields":{"hooked":"boolean","hook_count":"integer"}},"error_contract":{"on_failure":"return_partial","required_fields":["hooked"],"fallback_value":{"hooked":false}},"mitre_candidates":[{"id":"T1055","reason":"process injection for hooking","score":0.78,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""},
+    {"task_id":"T3","stage":"defense-evasion","intent":"Hide Process","behavioral_goal":"Conceal malicious process from system process listings","input_contract":{"sources":[{"task_id":"T2","schema":"HookStatus"}]},"output_contract":{"schema":"HideStatus","fields":{"hidden":"boolean"}},"error_contract":{"on_failure":"return_partial","required_fields":[],"fallback_value":{"hidden":false}},"mitre_candidates":[{"id":"T1564.001","reason":"hidden files and directories","score":0.80,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""},
+    {"task_id":"T4","stage":"persistence","intent":"Persist Stealthily","behavioral_goal":"Establish persistence without visible registry or scheduled task entries","input_contract":null,"output_contract":{"schema":"PersistenceStatus","fields":{"persisted":"boolean"}},"error_contract":{"on_failure":"return_partial","required_fields":[],"fallback_value":{"persisted":false}},"mitre_candidates":[{"id":"T1547.001","reason":"registry autorun","score":0.75,"source":"llm"}],"mitre_techniques":[],"mitre_status":"needs_verification","mapping_confidence":"medium","ambiguity_notes":""}
+  ],
+  "dataflow": [
+    {"from_task":"T1","to_task":"T2","data_schema":"PrivilegeStatus","required":true},
+    {"from_task":"T2","to_task":"T3","data_schema":"HookStatus","required":true}
   ]
 }''',
 }
@@ -1588,13 +1679,18 @@ class PlanValidator:
         intent_lower = intent.lower()
 
         _EXFIL_SIGNALS   = {"exfil", "send", "upload", "transmit", "remote server", "c2", "https", "http", "post"}
-        _PERSIST_SIGNALS = {"persist", "persistence", "startup", "autorun", "registry", "scheduled task", "logon"}
+        _PERSIST_SIGNALS = {"persist", "persistence", "startup", "autorun", "registry", "scheduled task", "logon","logs in", "log in", "login", "boot", "reboot",
+                            "automatically", "auto-start", "autostart",
+                            "execute automatically", "run automatically",
+                            "survive reboot", "on startup", "on logon",}
         _PROTECT_SIGNALS = {"encrypt", "encrypted", "obfuscate", "protect", "stealth", "hide", "conceal"}
         _CLEANUP_SIGNALS = {"cleanup", "delete", "remove traces", "erase", "wipe artifact", "wipe artifacts"}
         _DISC_SIGNALS    = {"discover", "discovery", "enumerate", "scan", "list files", "list processes",
                             "system information", "process discovery", "file discovery",
-                            "directory discovery", "user discovery", "hostname"}
-
+                            "directory discovery", "user discovery", "hostname",
+                            "collect", "gather", "os info", "user info", "user information",
+                            "os version", "operating system", "host info", "environment info",
+                            "system info", "machine info",}
         def _has(signals: set, text: str) -> bool:
             return any(s in text for s in signals)
 
@@ -1806,11 +1902,17 @@ class PlanPersister:
         tmp_path = fpath.with_suffix(".tmp")
         try:
             with open(tmp_path, "w", encoding="utf-8") as f:
-                fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                if 'fcntl' in globals():
+                    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                else:
+                    portalocker.lock(f, portalocker.LOCK_EX)
                 f.write(content)
                 f.flush()
                 os.fsync(f.fileno())
-                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                if 'fcntl' in globals():
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                else:
+                    portalocker.unlock(f)
             tmp_path.rename(fpath)
         except Exception:
             if tmp_path.exists():

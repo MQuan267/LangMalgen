@@ -5,11 +5,11 @@ import argparse
 import json
 import re
 from pathlib import Path
-
+import time
 
 def run_cmd(cmd: str) -> str:
     print(f"\n🚀 {cmd}")
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding='utf-8', errors='ignore')
 
     if result.stdout:
         print(result.stdout, end="")
@@ -58,6 +58,7 @@ def main():
     intent = args.intent
 
     print("=" * 60)
+    pipeline_start = time.time()
     print("🚀 LangMal Pipeline")
     print(f"Intent: {intent}")
     print("=" * 60)
@@ -107,7 +108,7 @@ def main():
     run_cmd(
         f'python src/agents/verifierv8.py '
         f'--mission "{mission_file}" '
-        f'--datasets tram2.jsonl '
+        f'--datasets src/data/tram2.jsonl '
         f'--cache-dir .verifier_cache'
     )
 
@@ -189,24 +190,25 @@ def main():
 
     if not (result_json.get("artifact_valid") and result_json.get("json_valid")):
         print("\n⛔ Skip push — artifact not fully valid")
-        return
+        #return
 
     print(f"📄 Latest file: {latest_file}")
 
     # ── 5. Git push ────────────────────────────
-    print("\n[5/5] Git push...")
+    #print("\n[5/5] Git push...")
 
-    run_cmd(f'git add "{latest_file}" -f')
-    run_cmd('git commit -m "auto: update latest" || true')
-    run_cmd('git push')
+    #run_cmd(f'git add "{latest_file}" -f')
+    #run_cmd('git commit -m "auto: update latest" || true')
+    #run_cmd('git push')
 
     # ── Summary ─────────────────────────────────
     total_tokens = total_prompt + total_completion
 
+    pipeline_elapsed = time.time() - pipeline_start
     print("\n" + "=" * 60)
     print("🎉 DONE")
     print(f"👉 Latest file: {latest_file}")
-
+    print(f"\n⏱ Pipeline time: {pipeline_elapsed:.1f}s ({pipeline_elapsed/60:.1f} min)")
     print("\n💰 TOKEN USAGE SUMMARY")
     print("-" * 60)
 

