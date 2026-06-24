@@ -36592,3 +36592,73 @@
 {"text": "In accordance with techniques TA0010 and T1041, TrickBot has the ability to exfiltrate information regarding a compromised host to its designated command center by leveraging a predefined C2 channel, where the server's address is hardcoded into the malware.", "technique_id": "T1041"}
 {"text": "According to Technique Tactic IDs TA0010 and T1041, exfiltration over a C2 channel is utilized by TrickBot to convey compromised host information to a remotely located server, whose IP address has been predetermined and embedded within the malware's code.", "technique_id": "T1041"}
 {"text": "TrickBot malware leverages the exfiltration technique outlined in techniques TA0010 and T1041, sending compromised host data to a command center via a hardcoded C2 server address, thereby facilitating information transmission through a predefined channel.", "technique_id": "T1041"}
+{"technique_id":"T1486","text":"Encrypt files on local drives and deny user access to data"}
+{"technique_id":"T1486","text":"Use AES encryption to lock victim documents"}
+{"technique_id":"T1486","text":"Recursively encrypt files across directories"}
+{"technique_id":"T1486","text":"Encrypt user documents and append a custom extension"}
+{"technique_id":"T1486","text":"Mass file encryption performed by ransomware"}
+{"technique_id":"T1486","text":"Generate encryption keys and encrypt sensitive files"}
+{"technique_id":"T1486","text":"Lock data and require decryption for recovery"}
+{"technique_id":"T1486","text":"Encrypt files stored on network shares"}
+{"technique_id":"T1486","text":"Render business documents inaccessible through encryption"}
+{"technique_id":"T1486","text":"Encrypt archives, spreadsheets, and databases"}
+{"technique_id":"T1486","text":"Apply cryptographic transformation to user files"}
+{"technique_id":"T1486","text":"Use symmetric encryption to deny access to information"}
+{"technique_id":"T1486","text":"Encrypt files before displaying ransom instructions"}
+{"technique_id":"T1486","text":"Lock files and prevent normal access by victims"}
+{"technique_id":"T1486","text":"Encrypt filesystem contents for operational disruption"}
+{"technique_id":"T1486","text":"Encrypt data at rest across mounted drives"}
+{"technique_id":"T1486","text":"Modify files by encrypting their contents"}
+{"technique_id":"T1486","text":"Perform ransomware style encryption on endpoint files"}
+{"technique_id":"T1486","text":"Encrypt corporate documents and user data"}
+{"technique_id":"T1486","text":"Apply file encryption to impact availability"}
+{"technique_id":"T1485","text":"Delete critical files from local storage"}
+{"technique_id":"T1485","text":"Destroy user data by overwriting file contents"}
+{"technique_id":"T1485","text":"Permanently erase files to prevent recovery"}
+{"technique_id":"T1485","text":"Corrupt business documents and databases"}
+{"technique_id":"T1485","text":"Overwrite files with random bytes"}
+{"technique_id":"T1485","text":"Remove backups and recovery information"}
+{"technique_id":"T1485","text":"Delete sensitive information from disk"}
+{"technique_id":"T1485","text":"Destroy stored data to disrupt operations"}
+{"technique_id":"T1485","text":"Securely wipe files after execution"}
+{"technique_id":"T1485","text":"Erase filesystem content for destructive impact"}
+{"technique_id":"T1485","text":"Corrupt application data and user documents"}
+{"technique_id":"T1485","text":"Delete records and prevent restoration"}
+{"technique_id":"T1485","text":"Overwrite storage sectors to destroy information"}
+{"technique_id":"T1485","text":"Remove critical files required by the system"}
+{"technique_id":"T1485","text":"Destroy enterprise data through file deletion"}
+{"technique_id":"T1485","text":"Erase operational data from local drives"}
+{"technique_id":"T1485","text":"Perform destructive actions against stored information"}
+{"technique_id":"T1485","text":"Wipe documents and configuration files"}
+{"technique_id":"T1485","text":"Delete files to impact availability"}
+{"technique_id":"T1485","text":"Destroy data rather than encrypting it"}
+{"technique_id":"T1491.001","text":"Display a ransom note on the victim desktop"}
+{"technique_id":"T1491.001","text":"Change desktop wallpaper to show extortion instructions"}
+{"technique_id":"T1491.001","text":"Present payment instructions after file encryption"}
+{"technique_id":"T1491.001","text":"Show an attacker-controlled ransom message to the user"}
+{"technique_id":"T1491.001","text":"Create a visible ransom note in affected directories"}
+{"technique_id":"T1491.001","text":"Modify the user interface to display attacker demands"}
+{"technique_id":"T1491.001","text":"Replace the desktop background with a warning message"}
+{"technique_id":"T1491.001","text":"Display a notice explaining that files were encrypted"}
+{"technique_id":"T1491.001","text":"Show ransom instructions through a visible system message"}
+{"technique_id":"T1491.001","text":"Present an extortion message after ransomware activity"}
+{"technique_id":"T1497.001","text":"Check system memory size to detect virtual machines"}
+{"technique_id":"T1497.001","text":"Inspect CPU core count to identify sandbox environments"}
+{"technique_id":"T1497.001","text":"Detect virtualization artifacts before executing payload"}
+{"technique_id":"T1497.001","text":"Check for VMware or VirtualBox registry keys"}
+{"technique_id":"T1497.001","text":"Query hardware information to identify analysis systems"}
+{"technique_id":"T1497.001","text":"Look for sandbox process names and virtual machine drivers"}
+{"technique_id":"T1497.001","text":"Abort execution when system uptime is too low"}
+{"technique_id":"T1497.001","text":"Check disk size and RAM size to detect sandbox hosts"}
+{"technique_id":"T1497.001","text":"Search for virtualization-related device names"}
+{"technique_id":"T1497.001","text":"Detect analysis environment using system checks"}
+{"technique_id":"T1497.003","text":"Delay execution using sleep to evade sandbox analysis"}
+{"technique_id":"T1497.003","text":"Wait for a long period before running malicious behavior"}
+{"technique_id":"T1497.003","text":"Use time delays to avoid automated malware analysis"}
+{"technique_id":"T1497.003","text":"Check elapsed time to detect accelerated sandbox execution"}
+{"technique_id":"T1497.003","text":"Compare system time before and after sleep to detect emulation"}
+{"technique_id":"T1497.003","text":"Postpone payload execution until after sandbox timeout"}
+{"technique_id":"T1497.003","text":"Use timer-based evasion before launching payload"}
+{"technique_id":"T1497.003","text":"Sleep repeatedly to exceed dynamic analysis window"}
+{"technique_id":"T1497.003","text":"Delay command execution to bypass short sandbox runs"}
+{"technique_id":"T1497.003","text":"Detect time manipulation by measuring sleep duration"}
