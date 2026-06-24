@@ -1,0 +1,1119 @@
+{
+  "aggregate": {
+    "mode": "no_verifier",
+    "n_total": 15,
+    "n_successful": 15,
+    "n_main_set": 13,
+    "ttp_metrics": {
+      "tram2_main": {
+        "macro_precision": 0.6026,
+        "macro_recall": 0.6346,
+        "macro_f1": 0.5991,
+        "n": 13
+      },
+      "full_main": {
+        "macro_precision": 0.6795,
+        "macro_recall": 0.609,
+        "macro_f1": 0.6374,
+        "n": 13
+      },
+      "tram2_all": {
+        "macro_precision": 0.5667,
+        "macro_recall": 0.5945,
+        "macro_f1": 0.5637,
+        "n": 15
+      }
+    },
+    "frequency_tier_f1": {
+      "high_freq": 0.6667,
+      "mid_freq": 0.6818,
+      "low_freq": 0.3333,
+      "note": "High>=1000, Mid=300-999, Low<300 samples in TRAM2"
+    },
+    "code_quality": {
+      "avg_module_success_rate": 1.0,
+      "avg_quality_score_10": 9.0522
+    },
+    "artifact_validity": {
+      "n_valid": 15,
+      "n_total": 15,
+      "valid_rate": 1.0
+    },
+    "verifier_metrics": {
+      "total_tasks": 0,
+      "fallback_tasks": 0,
+      "fallback_rate": 0.0
+    },
+    "cost": {
+      "total_tokens": 0,
+      "total_usd": 0
+    }
+  },
+  "samples": [
+    {
+      "sample_id": 1,
+      "case_id": "case01",
+      "mode": "no_verifier",
+      "intent": "Collect sensitive files with extensions .pdf, .docx, and .xlsx from the local filesystem, compress a...",
+      "ground_truth_stage": "Data Exfiltration + C2",
+      "evaluation_note": "T1560.001 is not in the TRAM2 50-technique index, so compression/encoding is evaluated through T1027.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1005",
+        "T1027",
+        "T1071.001"
+      ],
+      "ground_truth_tram2": [
+        "T1083",
+        "T1027",
+        "T1041",
+        "T1071.001"
+      ],
+      "ground_truth_full": [
+        "T1083",
+        "T1560.001",
+        "T1041",
+        "T1071.001"
+      ],
+      "metrics_tram2": {
+        "precision": 0.6667,
+        "recall": 0.5,
+        "f1": 0.5714,
+        "tp": 2,
+        "fp": 1,
+        "fn": 2
+      },
+      "metrics_full": {
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1": 0.2857,
+        "tp": 1,
+        "fp": 2,
+        "fn": 3
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 8.6667,
+        "avg_loc": 49.3,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 195,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 2,
+      "case_id": "case02",
+      "mode": "no_verifier",
+      "intent": "Acquire SeDebugPrivilege via token manipulation, inject shellcode into a privileged system process u...",
+      "ground_truth_stage": "Privilege Escalation + Injection",
+      "evaluation_note": "T1134.001 and T1055.001 are outside the TRAM2 50-technique index. The supported parent/general injection behavior is evaluated as T1055.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1134.001",
+        "T1055"
+      ],
+      "ground_truth_tram2": [
+        "T1055"
+      ],
+      "ground_truth_full": [
+        "T1134.001",
+        "T1055.001",
+        "T1055"
+      ],
+      "metrics_tram2": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6667,
+        "tp": 1,
+        "fp": 1,
+        "fn": 0
+      },
+      "metrics_full": {
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8,
+        "tp": 2,
+        "fp": 0,
+        "fn": 1
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 8.8333,
+        "avg_loc": 53.7,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 198,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 3,
+      "case_id": "case03",
+      "mode": "no_verifier",
+      "intent": "Enumerate all running processes to locate lsass.exe, open a handle with PROCESS_ALL_ACCESS, dump the...",
+      "ground_truth_stage": "Credential Dumping",
+      "evaluation_note": "Both labels are covered by the TRAM2 50-technique index.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1134.001",
+        "T1003.001"
+      ],
+      "ground_truth_tram2": [
+        "T1057",
+        "T1003.001"
+      ],
+      "ground_truth_full": [
+        "T1057",
+        "T1003.001"
+      ],
+      "metrics_tram2": {
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5,
+        "tp": 1,
+        "fp": 1,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5,
+        "tp": 1,
+        "fp": 1,
+        "fn": 1
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 8.8333,
+        "avg_loc": 59.3,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 218,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 4,
+      "case_id": "case04",
+      "mode": "no_verifier",
+      "intent": "Write a registry Run key under HKCU to ensure execution on logon, create a scheduled task using scht...",
+      "ground_truth_stage": "Persistence + Registry",
+      "evaluation_note": "T1036 is not in the TRAM2 index, so masquerading is evaluated through T1036.005. Hidden directory behavior is covered by T1564.001.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1547.001",
+        "T1053.005"
+      ],
+      "ground_truth_tram2": [
+        "T1547.001",
+        "T1053.005",
+        "T1036.005",
+        "T1564.001"
+      ],
+      "ground_truth_full": [
+        "T1547.001",
+        "T1053.005",
+        "T1036"
+      ],
+      "metrics_tram2": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6667,
+        "tp": 2,
+        "fp": 0,
+        "fn": 2
+      },
+      "metrics_full": {
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8,
+        "tp": 2,
+        "fp": 0,
+        "fn": 1
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 9.0,
+        "avg_loc": 31.0,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 135,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 5,
+      "case_id": "case05",
+      "mode": "no_verifier",
+      "intent": "Enumerate all active network connections and listening ports, scan the local subnet for open ports 4...",
+      "ground_truth_stage": "Network Reconnaissance",
+      "evaluation_note": "T1049 and T1046 are outside the TRAM2 index. Network configuration is evaluated as T1016; raw TCP socket activity can be approximated as T1095.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1049",
+        "T1046",
+        "T1016"
+      ],
+      "ground_truth_tram2": [
+        "T1016",
+        "T1095"
+      ],
+      "ground_truth_full": [
+        "T1049",
+        "T1046",
+        "T1016"
+      ],
+      "metrics_tram2": {
+        "precision": 0.3333,
+        "recall": 0.5,
+        "f1": 0.4,
+        "tp": 1,
+        "fp": 2,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 9.6667,
+        "avg_loc": 38.7,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 159,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 6,
+      "case_id": "case06",
+      "mode": "no_verifier",
+      "intent": "Install a low-level keyboard hook via SetWindowsHookEx with WH_KEYBOARD_LL to capture keystrokes, ta...",
+      "ground_truth_stage": "Keylogging + Screenshot + Exfiltration",
+      "evaluation_note": "All labels are covered by the TRAM2 50-technique index.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1056.001",
+        "T1113",
+        "T1027",
+        "T1041"
+      ],
+      "ground_truth_tram2": [
+        "T1056.001",
+        "T1113",
+        "T1041",
+        "T1071.001"
+      ],
+      "ground_truth_full": [
+        "T1056.001",
+        "T1113",
+        "T1041",
+        "T1071.001"
+      ],
+      "metrics_tram2": {
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "tp": 3,
+        "fp": 1,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "tp": 3,
+        "fp": 1,
+        "fn": 1
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 5,
+        "successful_modules": 5,
+        "success_rate": 1.0,
+        "avg_quality_score": 8.7,
+        "avg_loc": 50.6,
+        "avg_attempts": 1.2
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3",
+          "task_T4",
+          "task_T5"
+        ],
+        "task_fn_count": 5,
+        "loc": 300,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 7,
+      "case_id": "case07",
+      "mode": "no_verifier",
+      "intent": "Copy a malicious DLL to a directory in the system PATH to exploit DLL search order hijacking, encode...",
+      "ground_truth_stage": "DLL Hijacking + Defense Evasion",
+      "evaluation_note": "T1574.001 is outside the TRAM2 index. The closest supported DLL hijacking-related technique is T1574.002.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1574.002",
+        "T1140",
+        "T1070.004"
+      ],
+      "ground_truth_tram2": [
+        "T1574.002",
+        "T1027",
+        "T1070.004"
+      ],
+      "ground_truth_full": [
+        "T1574.001",
+        "T1027",
+        "T1070.004"
+      ],
+      "metrics_tram2": {
+        "precision": 0.6667,
+        "recall": 0.6667,
+        "f1": 0.6667,
+        "tp": 2,
+        "fp": 1,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.3333,
+        "recall": 0.3333,
+        "f1": 0.3333,
+        "tp": 1,
+        "fp": 2,
+        "fn": 2
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 8.6667,
+        "avg_loc": 46.0,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 171,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 8,
+      "case_id": "case08",
+      "mode": "no_verifier",
+      "intent": "Enumerate domain users and shared network drives using Windows API calls, copy the malware payload t...",
+      "ground_truth_stage": "Lateral Movement + Remote Execution",
+      "evaluation_note": "T1087.002, T1135, and T1021.002 are outside the TRAM2 index. Windows API usage is evaluated through T1106 and remote scheduled task execution through T1053.005.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1087.002",
+        "T1135",
+        "T1570",
+        "T1053.005"
+      ],
+      "ground_truth_tram2": [
+        "T1106",
+        "T1053.005"
+      ],
+      "ground_truth_full": [
+        "T1087.002",
+        "T1135",
+        "T1021.002",
+        "T1053.005"
+      ],
+      "metrics_tram2": {
+        "precision": 0.25,
+        "recall": 0.5,
+        "f1": 0.3333,
+        "tp": 1,
+        "fp": 3,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "tp": 3,
+        "fp": 1,
+        "fn": 1
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 4,
+        "successful_modules": 4,
+        "success_rate": 1.0,
+        "avg_quality_score": 9.75,
+        "avg_loc": 39.8,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3",
+          "task_T4"
+        ],
+        "task_fn_count": 4,
+        "loc": 202,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 9,
+      "case_id": "case09",
+      "mode": "no_verifier",
+      "intent": "Enumerate all user files on the local filesystem, encrypt each file using AES-256 in CBC mode with a...",
+      "ground_truth_stage": "Ransomware Behavior",
+      "evaluation_note": "T1491 is outside the TRAM2 50-technique index and is excluded from the main verifier score.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1083",
+        "T1486",
+        "T1070.004"
+      ],
+      "ground_truth_tram2": [
+        "T1083",
+        "T1486",
+        "T1485"
+      ],
+      "ground_truth_full": [
+        "T1083",
+        "T1486",
+        "T1485",
+        "T1491"
+      ],
+      "metrics_tram2": {
+        "precision": 0.6667,
+        "recall": 0.6667,
+        "f1": 0.6667,
+        "tp": 2,
+        "fp": 1,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.6667,
+        "recall": 0.5,
+        "f1": 0.5714,
+        "tp": 2,
+        "fp": 1,
+        "fn": 2
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 4,
+        "successful_modules": 4,
+        "success_rate": 1.0,
+        "avg_quality_score": 8.375,
+        "avg_loc": 45.8,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3",
+          "task_T4"
+        ],
+        "task_fn_count": 4,
+        "loc": 219,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 10,
+      "case_id": "case10",
+      "mode": "no_verifier",
+      "intent": "Download an encrypted second-stage payload from a remote server, decrypt it using AES with a hardcod...",
+      "ground_truth_stage": "Multi-stage Loader",
+      "evaluation_note": "All labels are covered by the TRAM2 50-technique index.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1105",
+        "T1543.003",
+        "T1140",
+        "T1055"
+      ],
+      "ground_truth_tram2": [
+        "T1105",
+        "T1140",
+        "T1055",
+        "T1543.003"
+      ],
+      "ground_truth_full": [
+        "T1105",
+        "T1140",
+        "T1055",
+        "T1543.003"
+      ],
+      "metrics_tram2": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0
+      },
+      "metrics_full": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 4,
+        "successful_modules": 4,
+        "success_rate": 1.0,
+        "avg_quality_score": 9.5,
+        "avg_loc": 46.0,
+        "avg_attempts": 1.25
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3",
+          "task_T4"
+        ],
+        "task_fn_count": 4,
+        "loc": 193,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 11,
+      "case_id": "case11",
+      "mode": "no_verifier",
+      "intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifact...",
+      "ground_truth_stage": "Anti-Analysis + Sandbox Evasion",
+      "evaluation_note": "The anti-sandbox TTPs are outside the TRAM2 index. This case should be used as an out-of-coverage stress test, not as part of the main verifier score.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1012"
+      ],
+      "ground_truth_tram2": [
+        "T1027"
+      ],
+      "ground_truth_full": [
+        "T1497.001",
+        "T1497.003",
+        "T1027.002"
+      ],
+      "metrics_tram2": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 1,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "tp": 0,
+        "fp": 1,
+        "fn": 3
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 1,
+        "successful_modules": 1,
+        "success_rate": 1.0,
+        "avg_quality_score": 9.0,
+        "avg_loc": 90.0,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1"
+        ],
+        "task_fn_count": 1,
+        "loc": 125,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 12,
+      "case_id": "case12",
+      "mode": "no_verifier",
+      "intent": "Enumerate running processes to find a token belonging to a high-integrity process, duplicate the tok...",
+      "ground_truth_stage": "Token Impersonation + UAC Bypass",
+      "evaluation_note": "T1134.002 and T1078.003 are outside the TRAM2 index. Process enumeration is evaluated as T1057, UAC bypass as T1548.002, and account abuse generally as T1078.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1057",
+        "T1134.001",
+        "T1548.002"
+      ],
+      "ground_truth_tram2": [
+        "T1057",
+        "T1548.002",
+        "T1078"
+      ],
+      "ground_truth_full": [
+        "T1134.002",
+        "T1548.002",
+        "T1078.003"
+      ],
+      "metrics_tram2": {
+        "precision": 0.6667,
+        "recall": 0.6667,
+        "f1": 0.6667,
+        "tp": 2,
+        "fp": 1,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.3333,
+        "recall": 0.3333,
+        "f1": 0.3333,
+        "tp": 1,
+        "fp": 2,
+        "fn": 2
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 9.5,
+        "avg_loc": 49.7,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 185,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 13,
+      "case_id": "case13",
+      "mode": "no_verifier",
+      "intent": "Continuously monitor the Windows clipboard using OpenClipboard and GetClipboardData, detect cryptocu...",
+      "ground_truth_stage": "Clipboard Hijacking + Crypto Theft",
+      "evaluation_note": "T1115 is outside the TRAM2 50-technique index. Input capture and exfiltration are evaluated as T1056.001 and T1041.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1115",
+        "T1036.005",
+        "T1041"
+      ],
+      "ground_truth_tram2": [
+        "T1056.001",
+        "T1041"
+      ],
+      "ground_truth_full": [
+        "T1115",
+        "T1056.001",
+        "T1041"
+      ],
+      "metrics_tram2": {
+        "precision": 0.3333,
+        "recall": 0.5,
+        "f1": 0.4,
+        "tp": 1,
+        "fp": 2,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.6667,
+        "recall": 0.6667,
+        "f1": 0.6667,
+        "tp": 2,
+        "fp": 1,
+        "fn": 1
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 4,
+        "successful_modules": 4,
+        "success_rate": 1.0,
+        "avg_quality_score": 8.625,
+        "avg_loc": 44.8,
+        "avg_attempts": 1.5
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3",
+          "task_T4"
+        ],
+        "task_fn_count": 4,
+        "loc": 225,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 14,
+      "case_id": "case14",
+      "mode": "no_verifier",
+      "intent": "Register a WMI event subscription that triggers on system startup, execute an obfuscated PowerShell ...",
+      "ground_truth_stage": "Boot/Logon Persistence via WMI",
+      "evaluation_note": "T1546.003 and T1059.001 are outside the TRAM2 index. WMI behavior is evaluated as T1047, obfuscation as T1027, and masquerading as T1036.005.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1027",
+        "T1546.003",
+        "T1036.005"
+      ],
+      "ground_truth_tram2": [
+        "T1047",
+        "T1027",
+        "T1036.005"
+      ],
+      "ground_truth_full": [
+        "T1546.003",
+        "T1059.001",
+        "T1036.005"
+      ],
+      "metrics_tram2": {
+        "precision": 0.6667,
+        "recall": 0.6667,
+        "f1": 0.6667,
+        "tp": 2,
+        "fp": 1,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.6667,
+        "recall": 0.6667,
+        "f1": 0.6667,
+        "tp": 2,
+        "fp": 1,
+        "fn": 1
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 9.0,
+        "avg_loc": 36.7,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 146,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    },
+    {
+      "sample_id": 15,
+      "case_id": "case15",
+      "mode": "no_verifier",
+      "intent": "Reflectively load a PE payload directly into memory without writing to disk using manual PE mapping,...",
+      "ground_truth_stage": "Memory-only Execution + Log Tampering",
+      "evaluation_note": "T1620, T1055.002, and T1070.001 are outside the TRAM2 index. The nearest supported labels are T1055 for process injection/memory execution and T1070.004 for artifact deletion/cleanup.",
+      "status": "success",
+      "errors": [],
+      "predicted_ttps": [
+        "T1055",
+        "T1070.001"
+      ],
+      "ground_truth_tram2": [
+        "T1055",
+        "T1070.004"
+      ],
+      "ground_truth_full": [
+        "T1620",
+        "T1055.002",
+        "T1070.001"
+      ],
+      "metrics_tram2": {
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5,
+        "tp": 1,
+        "fp": 1,
+        "fn": 1
+      },
+      "metrics_full": {
+        "precision": 0.5,
+        "recall": 0.3333,
+        "f1": 0.4,
+        "tp": 1,
+        "fp": 1,
+        "fn": 2
+      },
+      "verifier_fallback": {},
+      "task_summary": [],
+      "code_quality": {
+        "total_modules": 3,
+        "successful_modules": 3,
+        "success_rate": 1.0,
+        "avg_quality_score": 9.6667,
+        "avg_loc": 44.0,
+        "avg_attempts": 1.0
+      },
+      "artifact_validity": {
+        "artifact_valid": true,
+        "syntax_valid": true,
+        "has_main": true,
+        "task_functions": [
+          "task_T1",
+          "task_T2",
+          "task_T3"
+        ],
+        "task_fn_count": 3,
+        "loc": 168,
+        "reason": null
+      },
+      "token_usage": {
+        "prompt": 0,
+        "completion": 0,
+        "total": 0,
+        "cost_usd": 0,
+        "by_stage": {}
+      }
+    }
+  ]
+}

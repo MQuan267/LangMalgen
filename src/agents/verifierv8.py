@@ -40,7 +40,7 @@ import json
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -213,6 +213,39 @@ class HybridVerifierV9:
         frozenset({"T1218.011", "T1059.003"}),   # rundll32 + cmd shell (NEW)
         frozenset({"T1027",     "T1140"}),       # obfuscate + deobfuscate (loader, NEW)
         frozenset({"T1055",     "T1106"}),       # injection + native API (NEW)
+    }
+
+    # High-frequency TTPs in TRAM2 (skewed distribution → SciBERT bias)
+    # These need higher threshold to avoid false positives
+    HIGH_FREQ_TTPS: set = {
+        "T1027",     # 4955 samples — obfuscation pulled in by many unrelated tasks
+        "T1140",     # 3438 samples — decoding pulled in by any crypto/encode context
+        "T1059.003", # 2604 samples — cmd shell pulled in by execution contexts
+        "T1055",     # 2096 samples — injection too broad
+        "T1105",     # 1783 samples — tool transfer pulled in by any download
+        "T1106",     # 1452 samples — native API too generic
+        "T1071.001", # 1171 samples — web protocol pulled in by any HTTPS mention
+    }
+
+    # Trigger word guards — TTP only accepted if task text contains at least one trigger
+    # Applied ONLY to non-planner candidates (extra TTPs added by fallback)
+    TRIGGER_WORDS: Dict[str, List[str]] = {
+        "T1027":     ["obfuscat", "encod", "encrypt payload", "pack", "xor", "base64",
+                      "compress", "cipher", "scramble"],
+        "T1140":     ["decod", "decrypt", "unpack", "deobfuscat", "decompress",
+                      "reverse", "restore payload"],
+        "T1105":     ["download", "fetch", "retrieve", "payload from remote",
+                      "pull from", "ingress", "transfer tool", "drop tool"],
+        "T1041":     ["exfiltrat", "upload", "send data", "transmit", "send to c2",
+                      "post data", "send result"],
+        "T1059.003": ["cmd.exe", "command shell", "batch", "run command",
+                      "windows command", "shell execute"],
+        "T1106":     ["native api", "win32api", "ctypes", "winapi",
+                      "windows api", "system call"],
+        "T1071.001": ["https", "http", "web protocol", "beacon", "callback",
+                      "post request", "c2 channel"],
+        "T1055":     ["inject", "shellcode", "remote thread", "writeprocessmemory",
+                      "dll inject", "reflective"],
     }
 
     SPECIFIC_OVER_GENERIC = {
@@ -408,13 +441,17 @@ class HybridVerifierV9:
                 notes.append("strong penalty: no user discovery evidence for T1033")
 
         # ── T1106 Native API ──────────────────────────────────────────────────
-        # FP when intent mentions injection but not explicit win32 API usage
+        # Boost explicit Windows API usage, but penalize generic cases.
         if tid == "T1106":
             has_api_signal = any(x in text for x in [
                 "native api", "win32api", "ctypes", "winapi",
-                "system call", "win32", "windows api"
+                "system call", "win32", "windows api", "api calls",
+                "windows api calls"
             ])
-            if not has_api_signal:
+            if has_api_signal:
+                bonus += 0.30
+                notes.append("explicit Windows/native API boost for T1106")
+            else:
                 bonus -= 0.20
                 notes.append("native API penalized: no explicit API wording in intent")
 
@@ -548,6 +585,29 @@ class HybridVerifierV9:
                 bonus -= 0.15
                 notes.append("registry modify penalized: no explicit modify signal")
 
+        # ── WMI Event Subscription disambiguation ─────────────────────────────
+        # WMI event subscription persistence is closer to T1546.003 than
+        # generic Run Key (T1547.001) or Windows Service (T1543.003).
+        has_wmi_event_subscription = any(x in text for x in [
+            "wmi event subscription",
+            "event subscription",
+            "wmi repository",
+            "wmi permanent event",
+            "__eventfilter",
+            "commandlineeventconsumer",
+            "active script event consumer",
+        ])
+
+        if tid == "T1546.003":
+            if has_wmi_event_subscription:
+                bonus += 0.35
+                notes.append("WMI event subscription boost for T1546.003")
+
+        if tid in {"T1547.001", "T1543.003"}:
+            if has_wmi_event_subscription:
+                bonus -= 0.30
+                notes.append("persistence technique penalized: WMI event subscription context")
+
         # ── T1547.001 vs T1053.005 persistence disambiguation ─────────────────
         if tid == "T1547.001":
             if any(x in text for x in [
@@ -561,6 +621,19 @@ class HybridVerifierV9:
             ]):
                 bonus += 0.08
                 notes.append("scheduled task boost for T1053.005")
+
+        # ── High-frequency TTP bias penalty ───────────────────────────────────
+        # TRAM2 dataset bị lệch mạnh: T1027 có 4955/36594 samples (13.5%)
+        # SciBERT embedding bị kéo về các TTPs phổ biến → cần penalty bổ sung
+        # để tránh FP trên các task không liên quan
+        if tid in self.HIGH_FREQ_TTPS:
+            trigger_list = self.TRIGGER_WORDS.get(tid, [])
+            has_trigger  = any(kw in text for kw in trigger_list)
+            if not has_trigger:
+                bonus -= 0.08
+                notes.append(
+                    f"high-freq TTP penalty ({tid}): no trigger word found in task text"
+                )
 
         # ── Stage compatibility penalty (generic) ─────────────────────────────
         stage_fit = self._stage_fit_score(tid, stage)
@@ -673,7 +746,16 @@ class HybridVerifierV9:
     def _decide(
         self,
         scored: List[CandidateScore],
+        task: Optional[Dict[str, Any]] = None,
+        planner_candidate_ids: Optional[List[str]] = None,
     ) -> Tuple[List[str], str, str, str, List[Dict]]:
+        """
+        Conservative decision logic:
+        1. Planner candidates accepted at normal threshold (accept_threshold)
+        2. Non-planner (extra) candidates accepted only at HIGH threshold (0.85)
+        3. Trigger word guard for high-freq TTPs not in planner candidates
+        4. Adaptive cap: max(2, len(planner_candidates)) TTPs per task
+        """
         if not scored:
             return [], "unmapped", "low", "no candidates to verify", []
 
@@ -706,42 +788,80 @@ class HybridVerifierV9:
             return [], "unmapped", "low", \
                 "top candidate after ontology cleanup below threshold", debug_scores
 
-        final_tids = [top1.technique_id]
-        note = f"verified via hybrid scoring; top={top1.technique_id}"
+        # ── Conservative selection ─────────────────────────────────────────────
+        planner_ids  = set(planner_candidate_ids or [])
+        task_text    = ""
+        if task:
+            task_text = _task_text(task, mission_intent="", use_stage=True).lower()
 
-        # Multi-label — source no longer required to match
-        if top2:
-            pair        = frozenset({top1.technique_id, top2.technique_id})
-            close_scores = abs(top1.score - top2.score) <= self.ambiguity_gap
-            both_strong  = top2.score >= self.accept_threshold
+        # Threshold constants
+        EXTRA_THRESHOLD          = 0.85  # non-planner TTPs
+        EXTRA_HIGH_FREQ          = 0.90  # non-planner + high-freq
+        PLANNER_HIGH_FREQ_STRICT = 0.75  # planner + high-freq nhưng không có trigger word
 
-            if both_strong and (pair in self.KNOWN_OVERLAP_PAIRS or close_scores):
-                candidate_pair = self._resolve_specific_over_generic(
-                    [top1.technique_id, top2.technique_id]
-                )
-                if len(candidate_pair) == 2:
-                    final_tids = candidate_pair
-                    note = (
-                        f"multi-label verified via hybrid scoring; "
-                        f"both supported ({candidate_pair[0]}, {candidate_pair[1]})"
-                    )
+        selected = []  # planner candidates that pass threshold
+        extra    = []  # non-planner candidates that pass strict threshold
 
-        # Confidence — multi-label not auto-capped at medium
+        for c in scored:
+            tid         = c.technique_id
+            in_planner  = tid in planner_ids
+            is_hf       = tid in self.HIGH_FREQ_TTPS
+            triggers    = self.TRIGGER_WORDS.get(tid, [])
+            has_trigger = any(kw in task_text for kw in triggers) if triggers else True
+
+            if in_planner:
+                if c.score < self.accept_threshold:
+                    continue
+                # Planner + high-freq + no trigger: cần score cao hơn bình thường
+                if is_hf and not has_trigger and c.score < PLANNER_HIGH_FREQ_STRICT:
+                    continue
+                selected.append(c)
+            else:
+                # Non-planner: threshold nghiêm ngặt
+                req = EXTRA_HIGH_FREQ if is_hf else EXTRA_THRESHOLD
+                if c.score < req:
+                    continue
+                # Trigger word bắt buộc cho non-planner
+                if triggers and not has_trigger:
+                    continue
+                extra.append(c)
+
+        # HARD CAP: tối đa 2 TTPs per task — tránh over-prediction tuyệt đối
+        # selected (planner) ưu tiên hơn extra (fallback)
+        candidates = (selected + extra)[:2]
+
+        if not candidates:
+            # Safety net: giữ top1 nếu là planner candidate đạt threshold
+            if top1.technique_id in planner_ids and top1.score >= self.accept_threshold:
+                candidates = [top1]
+            else:
+                return [], "unmapped", "low", \
+                    "no candidates passed conservative thresholds", debug_scores
+
+        final_tids = [c.technique_id for c in candidates]
+
+        # ── Note ──────────────────────────────────────────────────────────────
+        n_extra = sum(1 for c in candidates if c.technique_id not in planner_ids)
+        note = (
+            f"conservative verified: {len(selected)} planner + {n_extra} extra; "
+            f"top={final_tids[0]}"
+        )
+
+        # ── Confidence ────────────────────────────────────────────────────────
+        top_c = candidates[0]
         if len(final_tids) == 1:
-            if top1.score >= 0.82 and top1.scibert_score >= 0.68:
+            if top_c.score >= 0.82 and top_c.scibert_score >= 0.68:
                 confidence = "high"
-            elif top1.score >= 0.68:
+            elif top_c.score >= 0.68:
                 confidence = "medium"
             else:
                 confidence = "low"
         else:
-            if top2 and top1.score >= 0.82 and top2.score >= 0.78:
+            top2_c = candidates[1] if len(candidates) > 1 else None
+            if top2_c and top_c.score >= 0.82 and top2_c.score >= 0.78:
                 confidence = "high"
             else:
                 confidence = "medium"
-
-        if len(final_tids) == 2 and top2 and abs(top1.score - top2.score) <= self.ambiguity_gap:
-            note += " | scores are close and both retained"
 
         return final_tids, "verified", confidence, note, debug_scores
 
@@ -822,11 +942,11 @@ class HybridVerifierV9:
                 planner_prior_map=planner_prior_map,
             )
 
-            # Step 2: smarter fallback trigger
+            # Step 2: fallback trigger — chỉ fallback khi score thực sự yếu,
+            # không fallback chỉ vì planner có 1 candidate
             need_fallback = (
                 not scored
                 or scored[0].score < self.weak_candidate_threshold
-                or len(planner_candidate_ids) < 2
             )
             if scored and len(scored) >= 2:
                 if abs(scored[0].score - scored[1].score) <= 0.03 and scored[0].score < 0.68:
@@ -850,7 +970,11 @@ class HybridVerifierV9:
                     reverse=True,
                 )
 
-            final_tids, mitre_status, confidence, note, debug_scores = self._decide(scored)
+            final_tids, mitre_status, confidence, note, debug_scores = self._decide(
+                scored,
+                task=task,
+                planner_candidate_ids=planner_candidate_ids,
+            )
 
             task["mitre_techniques"]   = final_tids
             task["mitre_status"]       = mitre_status

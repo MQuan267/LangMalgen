@@ -1,0 +1,42 @@
+
+=================================================================
+  BATCH SUMMARY  [no_verifier]
+=================================================================
+  Total   : 15  |  OK: 15  |  Main set: 13
+
+  TTP Metrics (TRAM2, main set):
+    Macro-P  : 0.6026
+    Macro-R  : 0.6346
+    Macro-F1 : 0.5991
+
+  F1 by Frequency Tier:
+    High-freq (>=1000) : 0.625
+    Mid-freq  (300-999): 0.6361
+    Low-freq  (<300)   : 0.5
+
+  Code & Artifact:
+    Artifact valid   : 100% (15/15)
+    Module success   : 100%
+    Avg quality (/10): 9.05
+
+  Cost:
+    Tokens : 0
+    USD    : $0.0000
+
+  Per-sample F1 (TRAM2):
+    ✅ # 1  F1=0.571  Data Exfiltration + C2
+    ✅ # 2  F1=0.667  Privilege Escalation + Injection
+    ✅ # 3  F1=0.500  Credential Dumping
+    ✅ # 4  F1=0.667  Persistence + Registry
+    ✅ # 5  F1=0.400  Network Reconnaissance
+    ✅ # 6  F1=0.750  Keylogging + Screenshot + Exfiltration
+    ✅ # 7  F1=0.667  DLL Hijacking + Defense Evasion
+    ✅ # 8  F1=0.333  Lateral Movement + Remote Execution
+    ✅ # 9  F1=0.667  Ransomware Behavior [oor]
+    ✅ #10  F1=1.000  Multi-stage Loader
+    ✅ #11  F1=0.000  Anti-Analysis + Sandbox Evasion [oor]
+    ✅ #12  F1=0.667  Token Impersonation + UAC Bypass
+    ✅ #13  F1=0.400  Clipboard Hijacking + Crypto Theft
+    ✅ #14  F1=0.667  Boot/Logon Persistence via WMI
+    ✅ #15  F1=0.500  Memory-only Execution + Log Tampering
+=================================================================

@@ -1,0 +1,182 @@
+{
+  "mission_id": "fallback_0fcedc22",
+  "intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",
+  "malware_type": "generic",
+  "global_constraints": {
+    "target_os_family": "windows",
+    "language_target": "python",
+    "stealth_level": "high",
+    "execution_model": "modular",
+    "forbidden_capabilities": [
+      "self_propagation"
+    ]
+  },
+  "validation_rules": {
+    "max_execution_time_seconds": 60,
+    "max_memory_mb": 150,
+    "allowed_modules": [
+      "os",
+      "platform",
+      "ctypes",
+      "winreg",
+      "subprocess",
+      "win32api",
+      "win32security",
+      "win32process",
+      "win32con",
+      "wmi",
+      "psutil",
+      "Crypto.Cipher",
+      "cryptography",
+      "hashlib",
+      "requests",
+      "socket",
+      "json",
+      "base64",
+      "time",
+      "datetime"
+    ],
+    "forbidden_patterns": [
+      "eval\\(",
+      "exec\\(",
+      "__import__\\("
+    ]
+  },
+  "execution_graph": [
+    {
+      "task_id": "T1",
+      "stage": "execution",
+      "intent": "Core Objective",
+      "behavioral_goal": "Execute primary objective: Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox",
+      "output_contract": {
+        "schema": "ExecutionResult",
+        "fields": {
+          "status": "string",
+          "result": "string_json"
+        }
+      },
+      "input_contract": null,
+      "error_contract": {
+        "on_failure": "abort_mission",
+        "required_fields": [
+          "status"
+        ],
+        "fallback_value": null
+      },
+      "mitre_candidates": [
+        {
+          "id": "T1012",
+          "reason": "Query Registry",
+          "score": 0.9,
+          "source": "fallback"
+        },
+        {
+          "id": "T1057",
+          "reason": "Process Discovery",
+          "score": 0.58,
+          "source": "fallback"
+        }
+      ],
+      "mitre_techniques": [
+        "T1012"
+      ],
+      "mitre_status": "verified",
+      "mapping_confidence": "high",
+      "ambiguity_notes": "fallback plan — verifier must refine | verified via hybrid scoring; top=T1012"
+    }
+  ],
+  "dataflow": [],
+  "planner_summary": {
+    "selected_examples": [
+      "fallback"
+    ],
+    "selection_mode": "fallback",
+    "planner_temperature": 0.0,
+    "mitre_selection_mode": "retrieval_constrained_candidate_generation",
+    "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution to evade analysis, and terminate if a debugger is detected.",
+    "token_usage": {
+      "prompt_tokens": 6886,
+      "completion_tokens": 3826,
+      "total_tokens": 10712,
+      "attempts": 3
+    },
+    "fallback_errors": [
+      "Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis",
+      "Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis",
+      "Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis"
+    ]
+  },
+  "planner_warnings": [
+    "fallback plan used after repeated generation failures",
+    "generation errors: ['Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis', 'Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis', 'Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis']"
+  ],
+  "ts_utc": "2026-06-23T07:30:00.583963+00:00",
+  "model_used": "gpt-4o",
+  "task_count": 1,
+  "original_intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",
+  "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution to evade analysis, and terminate if a debugger is detected.",
+  "verifier_summary": {
+    "backend": "HybridVerifierV9",
+    "dataset_example_count": 36592,
+    "technique_count": 50,
+    "mode": "hybrid_planner_prior_rules_scibert_with_fallback",
+    "rep_per_technique": 200
+  },
+  "verifier_task_reports": [
+    {
+      "task_id": "T1",
+      "stage": "execution",
+      "intent": "Core Objective",
+      "behavioral_goal": "Execute primary objective: Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox",
+      "planner_candidate_ids": [
+        "T1012",
+        "T1057"
+      ],
+      "final_mitre_techniques": [
+        "T1012"
+      ],
+      "mitre_status": "verified",
+      "mapping_confidence": "high",
+      "decision_trace": {
+        "fallback_used": false,
+        "planner_candidate_count": 2,
+        "top_candidate_after_hybrid": "T1012",
+        "top_candidate_score": 0.9258
+      },
+      "candidate_scores": [
+        {
+          "technique_id": "T1012",
+          "final_score": 0.9258,
+          "scibert_score": 0.8232,
+          "planner_prior": 0.9,
+          "stage_fit": 1.0,
+          "support_bonus": 1.0,
+          "support_count": 165,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: The hardcoded registry key names in every FOCUSFJORD sample serve as a prerequisite for the malware's execution, allowing it to locate, read",
+            "tram2: Each FOCUSFJORD sample has registry key names embedded within its code, and these hardcoded names are crucial for the malware to locate, rea",
+            "tram2: Proper execution of FOCUSFJORD samples relies on the malware's ability to read and decrypt specific registry key values, whose names are emb"
+          ]
+        },
+        {
+          "technique_id": "T1057",
+          "final_score": 0.837,
+          "scibert_score": 0.8519,
+          "planner_prior": 0.58,
+          "stage_fit": 1.0,
+          "support_bonus": 1.0,
+          "support_count": 581,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: Techniques documented under [T1057], which include [D3-SCA] User Behavior Analysis and [D3-UBA] Process Discovery, reveal that Chinese state",
+            "tram2: Chinese state-sponsored cyber actors' methods, as seen in [T1057], which include [D3-SCA] User Behavior Analysis and [D3-UBA] Process Discov",
+            "tram2: Chinese state-sponsored cyber actors observed in [T1057], which utilizes techniques including [D3-SCA] User Behavior Analysis and [D3-UBA] P"
+          ]
+        }
+      ]
+    }
+  ]
+}

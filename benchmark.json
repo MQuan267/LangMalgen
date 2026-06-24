@@ -1,0 +1,127 @@
+[
+  {
+    "id": 1,
+    "intent": "Collect sensitive files with extensions .pdf, .docx, and .xlsx from the local filesystem, compress and XOR-encode the contents, then exfiltrate the data to a C2 server over HTTPS using periodic POST requests.",
+    "ground_truth_ttps_full": ["T1083", "T1560.001", "T1041", "T1071.001"],
+    "ground_truth_ttps_tram2": ["T1083", "T1027", "T1041", "T1071.001"],
+    "ground_truth_stage": "Data Exfiltration + C2",
+    "evaluation_note": "T1560.001 is not in the TRAM2 50-technique index, so compression/encoding is evaluated through T1027."
+  },
+  {
+    "id": 2,
+    "intent": "Acquire SeDebugPrivilege via token manipulation, inject shellcode into a privileged system process using VirtualAllocEx and WriteProcessMemory, and execute the payload via CreateRemoteThread.",
+    "ground_truth_ttps_full": ["T1134.001", "T1055.001", "T1055"],
+    "ground_truth_ttps_tram2": ["T1055"],
+    "ground_truth_stage": "Privilege Escalation + Injection",
+    "evaluation_note": "T1134.001 and T1055.001 are outside the TRAM2 50-technique index. The supported parent/general injection behavior is evaluated as T1055."
+  },
+  {
+    "id": 3,
+    "intent": "Enumerate all running processes to locate lsass.exe, open a handle with PROCESS_ALL_ACCESS, dump the process memory to a local file, and parse the output to extract NTLM password hashes.",
+    "ground_truth_ttps_full": ["T1057", "T1003.001"],
+    "ground_truth_ttps_tram2": ["T1057", "T1003.001"],
+    "ground_truth_stage": "Credential Dumping",
+    "evaluation_note": "Both labels are covered by the TRAM2 50-technique index."
+  },
+  {
+    "id": 4,
+    "intent": "Write a registry Run key under HKCU to ensure execution on logon, create a scheduled task using schtasks to run every 60 minutes, and drop a copy of the payload to a hidden directory under C:\\Users\\Public\\.",
+    "ground_truth_ttps_full": ["T1547.001", "T1053.005", "T1036"],
+    "ground_truth_ttps_tram2": [
+      "T1547.001",
+      "T1053.005",
+      "T1036.005",
+      "T1564.001"
+    ],
+    "ground_truth_stage": "Persistence + Registry",
+    "evaluation_note": "T1036 is not in the TRAM2 index, so masquerading is evaluated through T1036.005. Hidden directory behavior is covered by T1564.001."
+  },
+  {
+    "id": 5,
+    "intent": "Enumerate all active network connections and listening ports, scan the local subnet for open ports 445 and 3389 using raw TCP sockets, and collect ARP table entries to map the internal network topology.",
+    "ground_truth_ttps_full": ["T1049", "T1046", "T1016"],
+    "ground_truth_ttps_tram2": ["T1016", "T1095"],
+    "ground_truth_stage": "Network Reconnaissance",
+    "evaluation_note": "T1049 and T1046 are outside the TRAM2 index. Network configuration is evaluated as T1016; raw TCP socket activity can be approximated as T1095."
+  },
+  {
+    "id": 6,
+    "intent": "Install a low-level keyboard hook via SetWindowsHookEx with WH_KEYBOARD_LL to capture keystrokes, take periodic desktop screenshots using PIL.ImageGrab, and upload the collected data to a remote C2 server over HTTPS every 30 seconds.",
+    "ground_truth_ttps_full": ["T1056.001", "T1113", "T1041", "T1071.001"],
+    "ground_truth_ttps_tram2": ["T1056.001", "T1113", "T1041", "T1071.001"],
+    "ground_truth_stage": "Keylogging + Screenshot + Exfiltration",
+    "evaluation_note": "All labels are covered by the TRAM2 50-technique index."
+  },
+  {
+    "id": 7,
+    "intent": "Copy a malicious DLL to a directory in the system PATH to exploit DLL search order hijacking, encode the payload using base64 and XOR obfuscation to evade static detection, and delete the original dropper file to remove forensic evidence.",
+    "ground_truth_ttps_full": ["T1574.001", "T1027", "T1070.004"],
+    "ground_truth_ttps_tram2": ["T1574.002", "T1027", "T1070.004"],
+    "ground_truth_stage": "DLL Hijacking + Defense Evasion",
+    "evaluation_note": "T1574.001 is outside the TRAM2 index. The closest supported DLL hijacking-related technique is T1574.002."
+  },
+  {
+    "id": 8,
+    "intent": "Enumerate domain users and shared network drives using Windows API calls, copy the malware payload to a remote share, and execute it remotely via scheduled task creation on the target host.",
+    "ground_truth_ttps_full": ["T1087.002", "T1135", "T1021.002", "T1053.005"],
+    "ground_truth_ttps_tram2": ["T1106", "T1053.005"],
+    "ground_truth_stage": "Lateral Movement + Remote Execution",
+    "evaluation_note": "T1087.002, T1135, and T1021.002 are outside the TRAM2 index. Windows API usage is evaluated through T1106 and remote scheduled task execution through T1053.005."
+  },
+  {
+    "id": 9,
+    "intent": "Enumerate all user files on the local filesystem, encrypt each file using AES-256 in CBC mode with a randomly generated key, delete the original files securely, and write a ransom note to each affected directory.",
+    "ground_truth_ttps_full": ["T1083", "T1486", "T1485", "T1491"],
+    "ground_truth_ttps_tram2": ["T1083", "T1486", "T1485"],
+    "ground_truth_stage": "Ransomware Behavior",
+    "evaluation_note": "T1491 is outside the TRAM2 50-technique index and is excluded from the main verifier score."
+  },
+  {
+    "id": 10,
+    "intent": "Download an encrypted second-stage payload from a remote server, decrypt it using AES with a hardcoded key, inject the decrypted shellcode into a running svchost.exe process, and establish persistence via a Windows service registration.",
+    "ground_truth_ttps_full": ["T1105", "T1140", "T1055", "T1543.003"],
+    "ground_truth_ttps_tram2": ["T1105", "T1140", "T1055", "T1543.003"],
+    "ground_truth_stage": "Multi-stage Loader",
+    "evaluation_note": "All labels are covered by the TRAM2 50-technique index."
+  },
+  {
+    "id": 11,
+    "intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",
+    "ground_truth_ttps_full": ["T1497.001", "T1497.003", "T1027.002"],
+    "ground_truth_ttps_tram2": ["T1027"],
+    "ground_truth_stage": "Anti-Analysis + Sandbox Evasion",
+    "evaluation_note": "The anti-sandbox TTPs are outside the TRAM2 index. This case should be used as an out-of-coverage stress test, not as part of the main verifier score."
+  },
+  {
+    "id": 12,
+    "intent": "Enumerate running processes to find a token belonging to a high-integrity process, duplicate the token using DuplicateTokenEx, and use it to spawn a new elevated process while bypassing UAC via the fodhelper.exe auto-elevation technique.",
+    "ground_truth_ttps_full": ["T1134.002", "T1548.002", "T1078.003"],
+    "ground_truth_ttps_tram2": ["T1057", "T1548.002", "T1078"],
+    "ground_truth_stage": "Token Impersonation + UAC Bypass",
+    "evaluation_note": "T1134.002 and T1078.003 are outside the TRAM2 index. Process enumeration is evaluated as T1057, UAC bypass as T1548.002, and account abuse generally as T1078."
+  },
+  {
+    "id": 13,
+    "intent": "Continuously monitor the Windows clipboard using OpenClipboard and GetClipboardData, detect cryptocurrency wallet addresses using regex pattern matching, silently replace them with an attacker-controlled address, and log all clipboard content to a file for periodic exfiltration to a C2 server.",
+    "ground_truth_ttps_full": ["T1115", "T1056.001", "T1041"],
+    "ground_truth_ttps_tram2": ["T1056.001", "T1041"],
+    "ground_truth_stage": "Clipboard Hijacking + Crypto Theft",
+    "evaluation_note": "T1115 is outside the TRAM2 50-technique index. Input capture and exfiltration are evaluated as T1056.001 and T1041."
+  },
+  {
+    "id": 14,
+    "intent": "Register a WMI event subscription that triggers on system startup, execute an obfuscated PowerShell payload stored in the WMI repository, and masquerade the process as a legitimate Windows service name to avoid suspicion.",
+    "ground_truth_ttps_full": ["T1546.003", "T1059.001", "T1036.005"],
+    "ground_truth_ttps_tram2": ["T1047", "T1027", "T1036.005"],
+    "ground_truth_stage": "Boot/Logon Persistence via WMI",
+    "evaluation_note": "T1546.003 and T1059.001 are outside the TRAM2 index. WMI behavior is evaluated as T1047, obfuscation as T1027, and masquerading as T1036.005."
+  },
+  {
+    "id": 15,
+    "intent": "Reflectively load a PE payload directly into memory without writing to disk using manual PE mapping, execute it within the context of a legitimate host process, then clear Windows Event Logs for Security, System, and Application channels using wevtutil to erase evidence of execution.",
+    "ground_truth_ttps_full": ["T1620", "T1055.002", "T1070.001"],
+    "ground_truth_ttps_tram2": ["T1055", "T1070.004"],
+    "ground_truth_stage": "Memory-only Execution + Log Tampering",
+    "evaluation_note": "T1620, T1055.002, and T1070.001 are outside the TRAM2 index. The nearest supported labels are T1055 for process injection/memory execution and T1070.004 for artifact deletion/cleanup."
+  }
+]
