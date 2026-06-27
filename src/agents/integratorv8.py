@@ -102,7 +102,10 @@ class IntegrationAgent:
     def __init__(self) -> None:
         load_dotenv()
         self.model     = os.getenv("OPENAI_MODEL", "gpt-4o")
-        self.client    = OpenAI()
+        self.client    = OpenAI(
+            api_key  = os.getenv("OPENAI_API_KEY"),
+            base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        )
         self.max_retry = 3
         self.out_dir   = Path("artifacts/integration")
         self.out_dir.mkdir(parents=True, exist_ok=True)

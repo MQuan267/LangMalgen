@@ -29,6 +29,7 @@ import argparse
 import ast
 import csv
 import json
+import os
 import re
 import shutil
 import time
@@ -134,24 +135,40 @@ LOW_FREQ_EXPLICIT: Set[str] = {
 # T1070.001, T1497.001, T1497.003, T1027.002
 # → Bất kỳ GT label nào thuộc nhóm này đều không thể được verify đúng
 
-OUT_OF_COVERAGE: Set[int] = {9, 11}   # #9: T1486/T1485 absent from TRAM2; #11: T1497.* absent
+OUT_OF_COVERAGE: Set[int] = {}   # #9: T1486/T1485 absent from TRAM2; #11: T1497.* absent
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _run(cmd: str, timeout: int = 600) -> Tuple[int, str, str]:
+def _run(cmd: str, timeout: int = 1800) -> Tuple[int, str, str]:
     import subprocess
     print(f"    $ {cmd[:120]}")
-    r = subprocess.run(
-        cmd, shell=True, capture_output=True,
-        text=True, encoding="utf-8", errors="ignore",
-        timeout=timeout,
-    )
-    if r.stdout:
-        print(r.stdout[:500], end="")
-    return r.returncode, r.stdout, r.stderr
+    try:
+        r = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="ignore",
+            timeout=timeout,
+        )
+        if r.stdout:
+            print(r.stdout[:500], end="")
+        return r.returncode, r.stdout, r.stderr
+
+    except subprocess.TimeoutExpired as e:
+        stdout = e.stdout or ""
+        stderr = e.stderr or ""
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode("utf-8", errors="ignore")
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode("utf-8", errors="ignore")
+        msg = f"\n[TIMEOUT] Command timed out after {timeout}s:\n{cmd}\n"
+        print(msg)
+        return 124, stdout, stderr + msg
 
 
 def _latest_file(directory: Path, pattern: str) -> Optional[Path]:
@@ -295,12 +312,24 @@ def _run_planner(intent: str, case_id: str, per_case_dir: Path,
                  stage_tokens: Dict, errors: List[str]) -> Optional[Path]:
     """Chạy Planner, trả về path mission JSON hoặc None nếu fail."""
     print(f"\n  [1] Planner...")
+
+    # Đảm bảo folder tồn tại trước khi ghi intent file
+    per_case_dir.mkdir(parents=True, exist_ok=True)
+
+    # Ghi intent ra file tạm để tránh PowerShell truncate argument dài
+    intent_file = per_case_dir / f"{case_id}_intent.txt"
+    intent_file.write_text(intent, encoding="utf-8")
+
     rc, stdout, stderr = _run(
-        f'python {PLANNER_SCRIPT} --intent "{intent}" --out-dir {MISSIONS_DIR}'
+        f'python {PLANNER_SCRIPT} --intent-file "{intent_file}" --out-dir {MISSIONS_DIR}'
     )
     if rc != 0:
-        errors.append(f"Planner failed: {stderr[:200]}")
-        print(f"  ❌ Planner failed")
+        # Ghi full error ra file để debug
+        error_log = per_case_dir / f"{case_id}_planner_error.txt"
+        error_log.write_text(stderr, encoding="utf-8", errors="ignore")
+        print(f"  ❌ Planner failed (full error → {error_log})")
+        print(f"  ERROR: {stderr[:500]}")
+        errors.append(f"Planner failed: {stderr[:500]}")
         return None
 
     mission_file = _latest_file(MISSIONS_DIR, "*.json")
@@ -330,8 +359,11 @@ def _run_verifier(mission_file: Path, case_id: str, per_case_dir: Path,
         f'--cache-dir {VERIFIER_CACHE}'
     )
     if rc != 0:
-        errors.append(f"Verifier failed: {stderr[:200]}")
-        print(f"  ❌ Verifier failed")
+        error_log = per_case_dir / f"{case_id}_verifier_error.txt"
+        error_log.write_text(stderr, encoding="utf-8", errors="ignore")
+        print(f"  ❌ Verifier failed (full error → {error_log})")
+        print(f"  ERROR: {stderr[:800]}")
+        errors.append(f"Verifier failed: {stderr[:300]}")
         return None
 
     verified_file = _latest_file(VERIFIED_DIR, "*_verified.json")
@@ -452,18 +484,65 @@ def run_one(
     errors:       List  = []
     total_prompt        = 0
     total_completion    = 0
+    case_start          = time.time()  # ← bắt đầu tính thời gian
 
     # ── Skip pipeline: load kết quả cũ và chỉ rescore ───────────────────────
     if skip_pipeline:
-        # no_verifier mode dùng mission JSON gốc (không có verified)
-        src = verified_dst if mode == "with_verifier" else (
-            per_case_dir / f"{case_id}_mission.json"
-        )
-        if not src.exists():
-            print(f"  ⚠ Không tìm thấy {src.name} — chạy lại với --skip-pipeline=False")
-            return _build_result(sid, sample, None, None, None,
-                                 stage_tokens, errors, 0, 0, mode)
-        print(f"  ✅ Rescore từ: {src.name}")
+        if mode == "with_verifier":
+            # with_verifier: load verified JSON, không chạy lại gì
+            src = verified_dst
+            if not src.exists():
+                print(f"  ⚠ Không tìm thấy {src.name}")
+                return _build_result(sid, sample, None, None, None,
+                                     stage_tokens, errors, 0, 0, mode)
+            print(f"  ✅ Rescore từ: {src.name}")
+
+        else:
+            # no_verifier: có mission JSON rồi → chạy Developer + Integrator
+            mission_src = per_case_dir / f"{case_id}_mission.json"
+            if not mission_src.exists():
+                print(f"  ⚠ Không tìm thấy {mission_src.name}")
+                return _build_result(sid, sample, None, None, None,
+                                     stage_tokens, errors, 0, 0, mode)
+
+            # Manifest và artifact đã có chưa?
+            if manifest_dst.exists() and artifact_dst.exists():
+                print(f"  ✅ Rescore từ: {mission_src.name} (dev+int đã có)")
+            else:
+                print(f"  ✅ Mission sẵn có: {mission_src.name} → chạy Developer + Integrator")
+
+                # Copy mission sang artifacts/missions để agents tìm được
+                import shutil as _sh
+                tmp_mission = MISSIONS_DIR / f"{case_id}_noverifier_tmp.json"
+                MISSIONS_DIR.mkdir(parents=True, exist_ok=True)
+                _sh.copy(mission_src, tmp_mission)
+
+                # Developer
+                manifest_file = _run_developer(
+                    tmp_mission, case_id, per_case_dir, stage_tokens, errors
+                )
+                p, c = stage_tokens.get("developer", {}).get("prompt", 0), \
+                       stage_tokens.get("developer", {}).get("completion", 0)
+                total_prompt += p; total_completion += c
+
+                # Integrator — dùng tmp_mission làm dev_input
+                if manifest_file:
+                    _run_integrator(tmp_mission, manifest_file,
+                                    case_id, per_case_dir,
+                                    stage_tokens, errors)
+                    p, c = stage_tokens.get("integrator", {}).get("prompt", 0), \
+                           stage_tokens.get("integrator", {}).get("completion", 0)
+                    total_prompt += p; total_completion += c
+                    print(f"  ✅ Developer + Integrator done")
+                else:
+                    errors.append("Integrator skipped: no manifest")
+                    print(f"  ⚠ Integrator skipped")
+
+                # Cleanup tmp file
+                try:
+                    tmp_mission.unlink()
+                except Exception:
+                    pass
 
     else:
         # ── 1. Planner (chạy cả 2 mode) ─────────────────────────────────────
@@ -519,11 +598,14 @@ def run_one(
     manifest_path = manifest_dst  if manifest_dst.exists()  else None
     artifact_path = artifact_dst  if artifact_dst.exists()  else None
 
+    elapsed_sec = round(time.time() - case_start, 1)
+
     # ── Scoring ───────────────────────────────────────────────────────────────
-    print(f"\n  [Score]")
+    print(f"\n  [Score]  ⏱ {elapsed_sec}s")
     return _build_result(
         sid, sample, mission_data, manifest_path, artifact_path,
         stage_tokens, errors, total_prompt, total_completion, mode,
+        elapsed_sec=elapsed_sec,
     )
 
 
@@ -542,6 +624,7 @@ def _build_result(
     total_prompt:    int,
     total_completion: int,
     mode:            str,
+    elapsed_sec:     float = 0.0,
 ) -> Dict[str, Any]:
 
     gt_tram2 = sample.get("ground_truth_ttps_tram2", [])
@@ -588,7 +671,7 @@ def _build_result(
         print(f"  Code : {cq.get('successful_modules')}/{cq.get('total_modules')} modules"
               f"  avgQ={cq.get('avg_quality_score')}/10")
     print(f"  Art  : {'✅' if av.get('artifact_valid') else '❌'}  LOC={av.get('loc',0)}")
-    print(f"  Cost : ${total_cost:.4f}  tokens={total_prompt+total_completion:,}")
+    print(f"  Cost : ${total_cost:.4f}  tokens={total_prompt+total_completion:,}  ⏱ {elapsed_sec}s")
     if errors:
         for e in errors:
             print(f"  ⚠  {e}")
@@ -622,6 +705,8 @@ def _build_result(
             "cost_usd":   round(total_cost, 4),
             "by_stage":   stage_tokens,
         },
+        "elapsed_sec": elapsed_sec,
+        "model":       os.environ.get("OPENAI_MODEL", "unknown"),
     }
 
 
@@ -717,6 +802,12 @@ def aggregate(results: List[Dict]) -> Dict[str, Any]:
         "cost": {
             "total_tokens": sum(r["token_usage"]["total"]   for r in results),
             "total_usd":    round(sum(r["token_usage"]["cost_usd"] for r in results), 4),
+        },
+        "timing": {
+            "total_sec":   round(sum(r.get("elapsed_sec", 0) for r in results), 1),
+            "avg_sec":     round(sum(r.get("elapsed_sec", 0) for r in results) / len(results), 1) if results else 0,
+            "min_sec":     round(min((r.get("elapsed_sec", 0) for r in results), default=0), 1),
+            "max_sec":     round(max((r.get("elapsed_sec", 0) for r in results), default=0), 1),
         },
     }
 
@@ -878,9 +969,10 @@ def export_csv(results: List[Dict], path: Path) -> None:
 
 def print_summary(results: List[Dict], agg: Dict) -> str:
     mode = agg.get("mode", "unknown")
+    model = results[0].get("model", "unknown") if results else "unknown"
     lines = [
         f"\n{'='*65}",
-        f"  BATCH SUMMARY  [{mode}]",
+        f"  BATCH SUMMARY  [{mode}]  model={model}",
         f"{'='*65}",
         f"  Total   : {agg['n_total']}  |  OK: {agg['n_successful']}  |  Main set: {agg['n_main_set']}",
         "",
@@ -917,18 +1009,24 @@ def print_summary(results: List[Dict], agg: Dict) -> str:
             "",
         ]
     cost = agg["cost"]
+    tm   = agg.get("timing", {})
     lines += [
-        "  Cost:",
-        f"    Tokens : {cost['total_tokens']:,}",
-        f"    USD    : ${cost['total_usd']:.4f}",
+        "  Cost & Timing:",
+        f"    Tokens     : {cost['total_tokens']:,}",
+        f"    USD        : ${cost['total_usd']:.4f}",
+        f"    Total time : {tm.get('total_sec', 0)}s ({tm.get('total_sec', 0)/60:.1f} min)",
+        f"    Avg/case   : {tm.get('avg_sec', 0)}s",
+        f"    Min/Max    : {tm.get('min_sec', 0)}s / {tm.get('max_sec', 0)}s",
         "",
         "  Per-sample F1 (TRAM2):",
     ]
     for r in sorted(results, key=lambda x: x["sample_id"]):
-        f1  = r.get("metrics_tram2", {}).get("f1", 0)
-        st  = "✅" if r["status"] == "success" else "❌"
-        oor = " [oor]" if r["sample_id"] in OUT_OF_COVERAGE else ""
-        lines.append(f"    {st} #{r['sample_id']:2d}  F1={f1:.3f}  {r['ground_truth_stage']}{oor}")
+        f1   = r.get("metrics_tram2", {}).get("f1", 0)
+        st   = "✅" if r["status"] == "success" else "❌"
+        oor  = " [oor]" if r["sample_id"] in OUT_OF_COVERAGE else ""
+        bar_filled = int(f1 * 10)
+        bar  = "█" * bar_filled + "░" * (10 - bar_filled)
+        lines.append(f"    {st} #{r['sample_id']:2d}  [{bar}] {f1:.3f}  {r['ground_truth_stage']}{oor}")
     lines.append("=" * 65)
     text = "\n".join(lines)
     print(text)
@@ -985,11 +1083,23 @@ def main() -> None:
         print(f"{'#'*65}")
 
         mode_results: List[Dict] = []
+        n_total = len(target_ids)
 
         for i, sid in enumerate(target_ids):
             if sid not in samples:
                 print(f"\n⚠ Sample {sid} not in benchmark, skipping")
                 continue
+
+            # ── Progress header ──────────────────────────────────────────────
+            pct      = (i + 1) / n_total * 100
+            oor_tag  = " [out-of-coverage]" if sid in OUT_OF_COVERAGE else ""
+            elapsed_so_far = time.time() - batch_start
+            eta_str  = ""
+            if i > 0:
+                avg_per_case = elapsed_so_far / i
+                eta_sec      = avg_per_case * (n_total - i)
+                eta_str      = f"  ETA ≈ {eta_sec/60:.1f} min"
+            print(f"\n  ── Progress: {i+1}/{n_total} ({pct:.0f}%){oor_tag}{eta_str}")
 
             result = run_one(
                 sample        = samples[sid],

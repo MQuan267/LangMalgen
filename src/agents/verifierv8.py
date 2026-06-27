@@ -37,6 +37,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -277,9 +278,106 @@ class HybridVerifierV9:
         self.weak_candidate_threshold   = weak_candidate_threshold
         self.fallback_top_k_techniques  = fallback_top_k_techniques
 
+        # OpenAI client — reuse từ env (cùng key với Planner/Developer)
+        try:
+            from openai import OpenAI
+            import os
+            self._openai_client = OpenAI(
+                api_key  = os.environ.get("OPENAI_API_KEY", ""),
+                base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+            )
+            self._llm_model     = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+        except Exception:
+            self._openai_client = None
+            self._llm_model     = None
+
     # ------------------------------------------------------------------
-    # Planner candidate helpers
+    # LLM Judge — chỉ gọi khi Verifier không chắc
     # ------------------------------------------------------------------
+
+    def _llm_judge(
+        self,
+        task:              Dict[str, Any],
+        planner_ids:       List[str],
+        verifier_tids:     List[str],
+        mission_intent:    str = "",
+    ) -> Optional[List[str]]:
+        """
+        LLM Judge: trọng tài cuối khi Verifier không chắc.
+        Chỉ chọn TTP từ allowed_techniques (index + planner candidates).
+        Trả về list TTP hoặc None nếu LLM fail.
+        """
+        if not self._openai_client:
+            return None
+
+        # TTPs ngoài TRAM2 index mà LLM Judge được phép chọn
+        LLM_EXTRA_TTPS = [
+            "T1486",     # Data Encrypted for Impact (ransomware)
+            "T1485",     # Data Destruction
+            "T1491.001", # Defacement: Internal
+            "T1497.001", # Virtualization/Sandbox Evasion: System Checks
+            "T1497.003", # Virtualization/Sandbox Evasion: Time Based Evasion
+            "T1115",     # Clipboard Data
+            "T1546.003", # Event Triggered Execution: WMI Event Subscription
+            "T1047",     # Windows Management Instrumentation
+        ]
+
+        # Allowed list = index techniques + planner candidates + extra TTPs
+        allowed = sorted(set(self.index.technique_ids) | set(planner_ids) | set(LLM_EXTRA_TTPS))
+
+        task_text = _task_text(task, mission_intent=mission_intent, use_stage=True)
+        stage     = task.get("stage", "")
+        goal      = task.get("behavioral_goal", "")
+
+        prompt = f"""You are a MITRE ATT&CK mapping judge for malware behavior analysis.
+
+Task information:
+- Stage: {stage}
+- Intent: {task.get('intent', '')}
+- Behavioral goal: {goal}
+- Full context: {task_text}
+
+Planner suggested: {planner_ids or 'none'}
+Verifier suggested: {verifier_tids or 'none'}
+
+Allowed technique IDs (you MUST only pick from this list):
+{', '.join(allowed)}
+
+Instructions:
+1. Return 1-2 ATT&CK technique IDs that best match the behavioral description.
+2. Only use IDs from the allowed list above.
+3. Prefer specific techniques over generic ones.
+4. If the task is clearly out-of-coverage (no good match exists), return your best guess anyway.
+5. Do NOT invent technique IDs not in the allowed list.
+
+Respond ONLY with valid JSON, no markdown, no explanation:
+{{"final_ttps": ["T1234"], "reason": "brief justification under 15 words"}}"""
+
+        try:
+            resp = self._openai_client.chat.completions.create(
+                model       = self._llm_model,
+                messages    = [{"role": "user", "content": prompt}],
+                max_tokens  = 80,
+                temperature = 0.0,
+            )
+            raw = resp.choices[0].message.content.strip()
+            # Strip markdown fences nếu có
+            raw = re.sub(r"```(?:json)?|```", "", raw).strip()
+            parsed = json.loads(raw)
+            ttps   = parsed.get("final_ttps", [])
+            reason = parsed.get("reason", "")
+
+            # Validate: chỉ giữ TTPs trong allowed list
+            valid = [t for t in ttps if t in set(allowed)]
+            if not valid:
+                return None
+
+            print(f"    [LLM Judge] {valid}  ← {reason}")
+            return valid[:2]  # hard cap 2
+
+        except Exception as e:
+            print(f"    [LLM Judge] failed: {e}")
+            return None
 
     def _planner_candidate_ids(self, task: Dict[str, Any]) -> List[str]:
         out = []
@@ -439,6 +537,30 @@ class HybridVerifierV9:
             if not has_user_signal:
                 bonus -= 0.35
                 notes.append("strong penalty: no user discovery evidence for T1033")
+
+        # ── T1497 Virtualization/Sandbox Evasion ─────────────────────────────
+        has_sandbox_signal = any(x in text for x in [
+            "sandbox", "virtual machine", "vmware", "virtualbox",
+            "analysis environment", "uptime", "ram size",
+            "small ram", "low uptime", "vm artifact", "virtualization"
+        ])
+
+        has_time_evasion_signal = any(x in text for x in [
+            "sleep", "delay execution", "wait", "timeout",
+            "time delay", "elapsed time", "sandbox timeout"
+        ])
+
+        if tid == "T1497.001" and has_sandbox_signal:
+            bonus += 0.35
+            notes.append("sandbox/VM system-check boost for T1497.001")
+
+        if tid == "T1497.003" and has_time_evasion_signal:
+            bonus += 0.35
+            notes.append("time-based evasion boost for T1497.003")
+
+        if tid in {"T1012", "T1057", "T1082"} and has_sandbox_signal:
+            bonus -= 0.15
+            notes.append("generic discovery penalized: sandbox-evasion context")
 
         # ── T1106 Native API ──────────────────────────────────────────────────
         # Boost explicit Windows API usage, but penalize generic cases.
@@ -840,11 +962,53 @@ class HybridVerifierV9:
 
         final_tids = [c.technique_id for c in candidates]
 
+        # ── LLM Judge trigger ─────────────────────────────────────────────────
+        # Gọi LLM Judge khi Verifier không chắc chắn:
+        #   1. Score thấp (top1 < 0.65) — Verifier yếu
+        #   2. Unmapped / empty — Verifier không tìm được
+        #   3. Planner có TTP ngoài index — cần LLM biết ATT&CK rộng hơn
+        #   4. Task text có dấu hiệu out-of-coverage rõ ràng
+        mission_intent = task.get("_mission_intent", "") if task else ""
+        top_score      = top1.score if scored else 0.0
+        planner_oov    = [
+            tid for tid in list(planner_ids)
+            if tid not in self.index.technique_ids
+        ]
+
+        # Keyword signals trong task text chỉ ra out-of-coverage behavior
+        _task_lower = task_text.lower() if task_text else ""
+        _oov_keywords = any(kw in _task_lower for kw in [
+            "sandbox", "vm", "virtual machine", "uptime", "ram size",
+            "vmware", "virtualbox", "hypervisor", "debugger",
+        ])
+
+        need_llm = (
+            top_score < 0.75        # verifier không chắc
+            or len(final_tids) > 3  # over-prediction
+            or _oov_keywords        # task có dấu hiệu out-of-coverage rõ ràng
+        )
+
+        if need_llm and self._openai_client:
+            llm_result = self._llm_judge(
+                task           = task or {},
+                planner_ids    = list(planner_ids),
+                verifier_tids  = final_tids,
+                mission_intent = mission_intent,
+            )
+            if llm_result:
+                final_tids = llm_result
+                note_prefix = "llm_judge overrides verifier; "
+            else:
+                note_prefix = "llm_judge failed, using verifier; "
+        else:
+            note_prefix = ""
+
         # ── Note ──────────────────────────────────────────────────────────────
         n_extra = sum(1 for c in candidates if c.technique_id not in planner_ids)
         note = (
+            note_prefix +
             f"conservative verified: {len(selected)} planner + {n_extra} extra; "
-            f"top={final_tids[0]}"
+            f"top={final_tids[0] if final_tids else 'none'}"
         )
 
         # ── Confidence ────────────────────────────────────────────────────────
@@ -906,6 +1070,18 @@ class HybridVerifierV9:
             task_text_str     = _task_text(task, mission_intent=mission_intent)
             task_emb          = self.encoder.encode([task_text_str], batch_size=1, max_length=128)
             planner_candidate_ids = self._planner_candidate_ids(task)
+
+            # Sandbox/VM evasion signal → inject T1497.* vào planner candidates
+            # để _rule_adjustments và _decide có thể score đúng
+            task_text_lower = _task_text(task, mission_intent=mission_intent).lower()
+            if any(x in task_text_lower for x in [
+                "sandbox", "virtual machine", "vmware", "virtualbox",
+                "analysis environment", "uptime", "ram size",
+                "small ram", "low uptime", "vm artifact", "virtualization"
+            ]):
+                for tid in ["T1497.001", "T1497.003"]:
+                    if tid not in planner_candidate_ids:
+                        planner_candidate_ids.append(tid)
             planner_prior_map     = self._planner_candidate_map(task)
 
             # Check if all planner candidates have no examples → skip fallback, keep planner result
@@ -969,6 +1145,9 @@ class HybridVerifierV9:
                     key=lambda x: (x.score, x.scibert_score, x.support_count),
                     reverse=True,
                 )
+
+            # Inject mission_intent vào task để _decide → _llm_judge có thể dùng
+            task["_mission_intent"] = mission_intent
 
             final_tids, mitre_status, confidence, note, debug_scores = self._decide(
                 scored,

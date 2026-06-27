@@ -1919,7 +1919,7 @@ class PlanPersister:
                 tmp_path.unlink()
             raise
 
-        print(f"✓ Mission saved → {fpath}")
+        print(f"Mission saved -> {fpath}")
         return fpath
 
 
@@ -1934,7 +1934,10 @@ class WindowsPythonPlanner:
         load_dotenv(override=True)
         self.policy = policy or PolicyFlags()
         self.model = os.getenv("OPENAI_MODEL", "gpt-4o")
-        self.client = OpenAI()
+        self.client = OpenAI(
+            api_key  = os.getenv("OPENAI_API_KEY"),
+            base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        )
         self.stack = stack_name
 
         self.normalizer = IntentNormalizer(self.client, self.model)
@@ -2162,7 +2165,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Windows Python Mission Planner v9")
-    parser.add_argument("--intent", required=True)
+    parser.add_argument("--intent", default="")
+    parser.add_argument("--intent-file", default="",
+                        help="Path to file containing intent (avoids shell truncation)")
     parser.add_argument("--policy-network", default="allowed",
                         choices=["blocked", "localhost-only", "allowed", "full"])
     parser.add_argument("--out-dir", default="artifacts/missions")
@@ -2170,11 +2175,19 @@ if __name__ == "__main__":
     parser.add_argument("--min-tasks", type=int, default=2)
     args = parser.parse_args()
 
+    # --intent-file takes priority over --intent
+    if args.intent_file:
+        intent_text = Path(args.intent_file).read_text(encoding="utf-8").strip()
+    elif args.intent:
+        intent_text = args.intent
+    else:
+        raise ValueError("Must provide --intent or --intent-file")
+
     policy = PolicyFlags(
         network=args.policy_network,
         max_tasks=args.max_tasks,
         min_tasks=args.min_tasks,
     )
     planner = WindowsPythonPlanner(policy=policy, out_dir=args.out_dir)
-    result = planner.plan(args.intent)
+    result = planner.plan(intent_text)
     print(json.dumps(result, indent=2, ensure_ascii=False))
