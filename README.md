@@ -115,9 +115,7 @@ python analyze_verifier_deepseek.py      # verifier ablation analysis (DeepSeek 
 
 ```
 ├─ src/agents/            # plannerv8.py, verifierv8.py, developerv8.py, integratorv8.py, builderv1.py
-├─ src/adapters/          # mock data providers & local sink used by generated artifacts
 ├─ src/data/              # tram2.jsonl and TRAM2-derived benchmark files used by the Verifier
-├─ configs/               # policy.yaml (safety denylist)
 ├─ run_pipeline.py        # single-intent end-to-end run
 ├─ run_batch.py           # benchmark runner with with/no-verifier ablation
 ├─ build_artifacts.py     # PyInstaller packaging of per-case artifacts
