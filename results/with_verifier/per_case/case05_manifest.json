@@ -1,7 +1,7 @@
 {
   "agent": "DeveloperAgent",
   "mission_id": "network_topology_mapping",
-  "timestamp": "2026-06-23T07:10:56.056702+00:00",
+  "timestamp": "2026-06-24T12:59:25.021412+00:00",
   "model": "gpt-4o",
   "total": 3,
   "successful": 3,
@@ -15,10 +15,10 @@
         "T1016"
       ],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_071039_396887\\01_T1_discovery.py",
+      "path": "artifacts\\modules\\runtime_20260624_125901_298199\\01_T1_discovery.py",
       "metrics": {
         "syntax_valid": true,
-        "lines": 46,
+        "lines": 60,
         "has_main": true,
         "has_typing": true,
         "has_timeout": true,
@@ -28,7 +28,7 @@
       },
       "warnings": [],
       "generation_attempt": 1,
-      "code_preview": "#!/usr/bin/env python3\n\"\"\"Identify Active Network Connections and Listening Ports\"\"\"\nimport sys, json, time\nimport subprocess\nfrom typing import Dict, Any\n"
+      "code_preview": "#!/usr/bin/env python3\n\"\"\"Identify Active Network Connections\"\"\"\nimport sys, json, time\nfrom typing import Dict, Any\nimport subprocess\n\ndef run(input_data: Dict[str, Any] = None) -> Dict[str, Any]:"
     },
     {
       "task_id": "T2",
@@ -38,10 +38,10 @@
         "T1016"
       ],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_071039_396887\\02_T2_discovery.py",
+      "path": "artifacts\\modules\\runtime_20260624_125901_298199\\02_T2_discovery.py",
       "metrics": {
         "syntax_valid": true,
-        "lines": 56,
+        "lines": 51,
         "has_main": true,
         "has_typing": true,
         "has_timeout": true,
@@ -51,7 +51,7 @@
       },
       "warnings": [],
       "generation_attempt": 1,
-      "code_preview": "#!/usr/bin/env python3\n\"\"\"Scan the local subnet for open ports 445 and 3389\"\"\"\nimport sys, json, time, subprocess\nfrom typing import Dict, Any\n"
+      "code_preview": "#!/usr/bin/env python3\n\"\"\"Scan the local subnet for open ports 445 and 3389\"\"\"\nimport sys, json, time, subprocess, re\nfrom typing import Dict, Any\n"
     },
     {
       "task_id": "T3",
@@ -62,10 +62,10 @@
         "T1016"
       ],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_071039_396887\\03_T3_discovery.py",
+      "path": "artifacts\\modules\\runtime_20260624_125901_298199\\03_T3_discovery.py",
       "metrics": {
         "syntax_valid": true,
-        "lines": 33,
+        "lines": 36,
         "has_main": true,
         "has_typing": true,
         "has_timeout": true,
@@ -75,12 +75,12 @@
       },
       "warnings": [],
       "generation_attempt": 1,
-      "code_preview": "#!/usr/bin/env python3\n\"\"\"Gather ARP Table Entries to map the internal network topology\"\"\"\nimport sys, json, time\nfrom typing import Dict, Any\nimport subprocess\n"
+      "code_preview": "#!/usr/bin/env python3\n\"\"\"Gather ARP Table Entries to map internal network topology\"\"\"\nimport sys, json, time\nimport subprocess\nfrom typing import Dict, Any\n"
     }
   ],
   "module_paths": [
-    "artifacts\\modules\\runtime_20260623_071039_396887\\01_T1_discovery.py",
-    "artifacts\\modules\\runtime_20260623_071039_396887\\02_T2_discovery.py",
-    "artifacts\\modules\\runtime_20260623_071039_396887\\03_T3_discovery.py"
+    "artifacts\\modules\\runtime_20260624_125901_298199\\01_T1_discovery.py",
+    "artifacts\\modules\\runtime_20260624_125901_298199\\02_T2_discovery.py",
+    "artifacts\\modules\\runtime_20260624_125901_298199\\03_T3_discovery.py"
   ]
 }

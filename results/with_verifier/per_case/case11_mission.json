@@ -1,5 +1,5 @@
 {
-  "mission_id": "fallback_0fcedc22",
+  "mission_id": "fallback_dd2371f3",
   "intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",
   "malware_type": "generic",
   "global_constraints": {
@@ -91,11 +91,11 @@
     "selection_mode": "fallback",
     "planner_temperature": 0.0,
     "mitre_selection_mode": "retrieval_constrained_candidate_generation",
-    "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution to evade analysis, and terminate if a debugger is detected.",
+    "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution with sleep loops to evade timeout analysis, and terminate if a debugger is detected using IsDebuggerPresent or CheckRemoteDebuggerPresent.",
     "token_usage": {
-      "prompt_tokens": 6886,
-      "completion_tokens": 3826,
-      "total_tokens": 10712,
+      "prompt_tokens": 6925,
+      "completion_tokens": 3737,
+      "total_tokens": 10662,
       "attempts": 3
     },
     "fallback_errors": [
@@ -108,9 +108,9 @@
     "fallback plan used after repeated generation failures",
     "generation errors: ['Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis', 'Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis', 'Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis']"
   ],
-  "ts_utc": "2026-06-23T07:30:00.583963+00:00",
+  "ts_utc": "2026-06-24T13:09:12.009087+00:00",
   "model_used": "gpt-4o",
   "task_count": 1,
   "original_intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",
-  "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution to evade analysis, and terminate if a debugger is detected."
+  "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution with sleep loops to evade timeout analysis, and terminate if a debugger is detected using IsDebuggerPresent or CheckRemoteDebuggerPresent."
 }

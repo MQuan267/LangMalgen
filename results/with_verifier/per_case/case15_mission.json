@@ -1,12 +1,12 @@
 {
-  "mission_id": "reflective_pe_loader_and_log_clear",
-  "intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels using wevtutil.",
+  "mission_id": "reflective_pe_loader",
+  "intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels with wevtutil to erase execution evidence.",
   "malware_type": "loader",
   "global_constraints": {
     "target_os_family": "windows",
     "language_target": "python",
     "stealth_level": "high",
-    "execution_model": "modular",
+    "execution_model": "reflective",
     "forbidden_capabilities": [
       "self_propagation"
     ]
@@ -15,8 +15,9 @@
     "max_execution_time_seconds": 120,
     "max_memory_mb": 200,
     "allowed_modules": [
-      "windows.h",
-      "psapi.h"
+      "kernel32.dll",
+      "psapi.dll",
+      "advapi32.dll"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -27,12 +28,12 @@
     {
       "task_id": "T1",
       "stage": "execution",
-      "intent": "Load PE Payload",
-      "behavioral_goal": "Reflectively load a PE payload into memory using manual PE mapping",
+      "intent": "Reflectively load PE payload",
+      "behavioral_goal": "Load a PE payload into memory using manual PE mapping",
       "output_contract": {
         "schema": "LoadedPE",
         "fields": {
-          "memory_address": "integer",
+          "base_address": "integer",
           "size": "integer"
         }
       },
@@ -40,14 +41,14 @@
       "error_contract": {
         "on_failure": "return_partial",
         "required_fields": [
-          "memory_address"
+          "base_address"
         ],
         "fallback_value": null
       },
       "mitre_candidates": [
         {
           "id": "T1055",
-          "reason": "process injection | retrieval match: Process Injection",
+          "reason": "process injection via manual PE mapping | retrieval match: Process Injection",
           "score": 0.85,
           "source": "llm+retrieval"
         }
@@ -87,7 +88,7 @@
       "mitre_candidates": [
         {
           "id": "T1070.001",
-          "reason": "indicator removal on host",
+          "reason": "clear Windows Event Logs to erase execution evidence",
           "score": 0.95,
           "source": "llm"
         },
@@ -106,7 +107,7 @@
     {
       "task_id": "T2",
       "stage": "execution",
-      "intent": "Execute PE Payload",
+      "intent": "Execute payload in host process",
       "behavioral_goal": "Execute the loaded PE payload within a legitimate host process",
       "output_contract": {
         "schema": "ExecutionStatus",
@@ -134,22 +135,22 @@
       },
       "mitre_candidates": [
         {
-          "id": "T1055",
-          "reason": "process injection | retrieval match: Process Injection",
-          "score": 0.9,
-          "source": "llm+retrieval"
-        },
-        {
           "id": "T1204.002",
           "reason": "retrieval match: User Execution: Malicious File",
-          "score": 0.45,
+          "score": 0.95,
           "source": "retrieval"
+        },
+        {
+          "id": "T1055",
+          "reason": "execute code in another process | retrieval match: Process Injection",
+          "score": 0.9,
+          "source": "llm+retrieval"
         }
       ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
-      "mapping_confidence": "high",
-      "ambiguity_notes": ""
+      "mapping_confidence": "low",
+      "ambiguity_notes": "close scores: T1204.002 vs T1055"
     }
   ],
   "dataflow": [
@@ -184,6 +185,12 @@
         "score": 0.4
       },
       {
+        "id": "T1204.002",
+        "stage": "execution",
+        "name": "User Execution: Malicious File",
+        "score": 0.3
+      },
+      {
         "id": "T1140",
         "stage": "defense-evasion",
         "name": "Deobfuscate/Decode Files",
@@ -203,17 +210,17 @@
       }
     ],
     "token_usage": {
-      "prompt_tokens": 2200,
-      "completion_tokens": 976,
-      "total_tokens": 3176,
+      "prompt_tokens": 2226,
+      "completion_tokens": 997,
+      "total_tokens": 3223,
       "attempts": 1
     },
-    "normalized_intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels using wevtutil.",
+    "normalized_intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels with wevtutil to erase execution evidence.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:34:35.942350+00:00",
+  "ts_utc": "2026-06-24T13:13:41.317221+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Reflectively load a PE payload directly into memory without writing to disk using manual PE mapping, execute it within the context of a legitimate host process, then clear Windows Event Logs for Security, System, and Application channels using wevtutil to erase evidence of execution.",
-  "normalized_intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels using wevtutil."
+  "normalized_intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels with wevtutil to erase execution evidence."
 }

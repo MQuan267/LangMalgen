@@ -1,6 +1,6 @@
 {
-  "mission_id": "ransomware_encrypt_delete_note",
-  "intent": "Encrypt all user files, securely delete originals, and place a ransom note",
+  "mission_id": "encrypt_and_ransom_note",
+  "intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory.",
   "malware_type": "ransomware",
   "global_constraints": {
     "target_os_family": "windows",
@@ -130,7 +130,7 @@
       "task_id": "T3",
       "stage": "defense-evasion",
       "intent": "Securely Delete Original Files",
-      "behavioral_goal": "Overwrite and delete original files to prevent recovery",
+      "behavioral_goal": "Securely delete the original files after encryption",
       "output_contract": {
         "schema": "DeletionStatus",
         "fields": {
@@ -157,7 +157,7 @@
       "mitre_candidates": [
         {
           "id": "T1070.004",
-          "reason": "file deletion to evade detection | retrieval match: File Deletion",
+          "reason": "file deletion to cover tracks | retrieval match: File Deletion",
           "score": 1.0,
           "source": "llm+retrieval"
         }
@@ -171,7 +171,7 @@
       "task_id": "T4",
       "stage": "execution",
       "intent": "Drop Ransom Note",
-      "behavioral_goal": "Place a ransom note in each affected directory",
+      "behavioral_goal": "Place a ransom note in each directory containing encrypted files",
       "output_contract": {
         "schema": "RansomNoteStatus",
         "fields": {
@@ -197,21 +197,21 @@
       },
       "mitre_candidates": [
         {
+          "id": "T1486",
+          "reason": "retrieval match: Data Encrypted for Impact",
+          "score": 0.72,
+          "source": "retrieval"
+        },
+        {
           "id": "T1491.001",
           "reason": "note-dropping visible to user",
           "score": 0.61,
           "source": "llm"
-        },
-        {
-          "id": "T1486",
-          "reason": "retrieval match: Data Encrypted for Impact",
-          "score": 0.53,
-          "source": "retrieval"
         }
       ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
-      "mapping_confidence": "low",
+      "mapping_confidence": "medium",
       "ambiguity_notes": "ransom note may map differently depending on ontology"
     }
   ],
@@ -288,17 +288,17 @@
       }
     ],
     "token_usage": {
-      "prompt_tokens": 2641,
-      "completion_tokens": 1259,
-      "total_tokens": 3900,
+      "prompt_tokens": 2636,
+      "completion_tokens": 1276,
+      "total_tokens": 3912,
       "attempts": 1
     },
-    "normalized_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode with a randomly generated key, securely delete the originals, and place a ransom note in each affected directory.",
+    "normalized_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T09:56:51.275171+00:00",
+  "ts_utc": "2026-06-24T13:05:42.797604+00:00",
   "model_used": "gpt-4o",
   "task_count": 4,
   "original_intent": "Enumerate all user files on the local filesystem, encrypt each file using AES-256 in CBC mode with a randomly generated key, delete the original files securely, and write a ransom note to each affected directory.",
-  "normalized_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode with a randomly generated key, securely delete the originals, and place a ransom note in each affected directory."
+  "normalized_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory."
 }

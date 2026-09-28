@@ -1,7 +1,7 @@
 {
-  "mission_id": "token_injection_execution",
-  "intent": "Gain SeDebugPrivilege through token manipulation, inject shellcode into a privileged system process using VirtualAllocEx and WriteProcessMemory, and execute it with CreateRemoteThread.",
-  "malware_type": "privilege_injection_executor",
+  "mission_id": "privileged_shellcode_injection",
+  "intent": "Gain SeDebugPrivilege, inject shellcode into a privileged process, and execute it",
+  "malware_type": "injector",
   "global_constraints": {
     "target_os_family": "windows",
     "language_target": "python",
@@ -16,8 +16,7 @@
     "max_memory_mb": 150,
     "allowed_modules": [
       "kernel32",
-      "advapi32",
-      "ntdll"
+      "advapi32"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -29,7 +28,7 @@
       "task_id": "T1",
       "stage": "privilege-escalation",
       "intent": "Acquire Debug Privileges",
-      "behavioral_goal": "Obtain SeDebugPrivilege required for cross-process memory operations",
+      "behavioral_goal": "Obtain SeDebugPrivilege to allow manipulation of system process tokens",
       "output_contract": {
         "schema": "PrivilegeStatus",
         "fields": {
@@ -61,7 +60,7 @@
       "task_id": "T2",
       "stage": "execution",
       "intent": "Inject Shellcode",
-      "behavioral_goal": "Allocate memory and write shellcode into target process using VirtualAllocEx and WriteProcessMemory",
+      "behavioral_goal": "Allocate memory and write shellcode into a privileged process using VirtualAllocEx and WriteProcessMemory",
       "output_contract": {
         "schema": "InjectionResult",
         "fields": {
@@ -100,8 +99,8 @@
     {
       "task_id": "T3",
       "stage": "execution",
-      "intent": "Execute Injected Code",
-      "behavioral_goal": "Execute shellcode in the target process via CreateRemoteThread",
+      "intent": "Execute Injected Shellcode",
+      "behavioral_goal": "Execute the shellcode in the target process using CreateRemoteThread",
       "output_contract": {
         "schema": "ExecutionStatus",
         "fields": {
@@ -194,14 +193,14 @@
     ],
     "token_usage": {
       "prompt_tokens": 2199,
-      "completion_tokens": 964,
-      "total_tokens": 3163,
+      "completion_tokens": 947,
+      "total_tokens": 3146,
       "attempts": 1
     },
     "normalized_intent": "Gain SeDebugPrivilege through token manipulation, inject shellcode into a privileged system process using VirtualAllocEx and WriteProcessMemory, and execute it with CreateRemoteThread.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:50:47.309267+00:00",
+  "ts_utc": "2026-06-24T13:15:43.192511+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Acquire SeDebugPrivilege via token manipulation, inject shellcode into a privileged system process using VirtualAllocEx and WriteProcessMemory, and execute the payload via CreateRemoteThread.",

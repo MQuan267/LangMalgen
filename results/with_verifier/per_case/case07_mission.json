@@ -1,6 +1,6 @@
 {
   "mission_id": "dll_hijacking_and_cleanup",
-  "intent": "Place a malicious DLL in a system PATH directory to exploit DLL search order hijacking, encode the payload with base64 and XOR to evade detection, and delete the original dropper file to eliminate forensic evidence.",
+  "intent": "Place a malicious DLL in a system PATH directory to exploit DLL search order hijacking, encode the payload with base64 and XOR to evade detection, and delete the dropper file to eliminate forensic evidence.",
   "malware_type": "dll_hijacker",
   "global_constraints": {
     "target_os_family": "windows",
@@ -13,7 +13,7 @@
   },
   "validation_rules": {
     "max_execution_time_seconds": 120,
-    "max_memory_mb": 150,
+    "max_memory_mb": 100,
     "allowed_modules": [
       "os",
       "base64",
@@ -33,15 +33,14 @@
       "output_contract": {
         "schema": "DLLPlacement",
         "fields": {
-          "path": "string",
-          "dll_name": "string"
+          "dll_path": "string"
         }
       },
       "input_contract": null,
       "error_contract": {
         "on_failure": "return_partial",
         "required_fields": [
-          "path"
+          "dll_path"
         ],
         "fallback_value": null
       },
@@ -59,46 +58,6 @@
       "ambiguity_notes": ""
     },
     {
-      "task_id": "T3",
-      "stage": "defense-evasion",
-      "intent": "Delete Original Dropper",
-      "behavioral_goal": "Delete the original dropper file to eliminate forensic evidence",
-      "output_contract": {
-        "schema": "DeletionStatus",
-        "fields": {
-          "success": "boolean"
-        }
-      },
-      "input_contract": null,
-      "error_contract": {
-        "on_failure": "return_partial",
-        "required_fields": [
-          "success"
-        ],
-        "fallback_value": {
-          "success": false
-        }
-      },
-      "mitre_candidates": [
-        {
-          "id": "T1070.004",
-          "reason": "File Deletion | retrieval match: File Deletion",
-          "score": 0.65,
-          "source": "llm+retrieval"
-        },
-        {
-          "id": "T1564.001",
-          "reason": "retrieval match: Hidden Files and Directories",
-          "score": 0.55,
-          "source": "retrieval"
-        }
-      ],
-      "mitre_techniques": [],
-      "mitre_status": "needs_verification",
-      "mapping_confidence": "medium",
-      "ambiguity_notes": ""
-    },
-    {
       "task_id": "T2",
       "stage": "defense-evasion",
       "intent": "Encode Payload",
@@ -106,7 +65,7 @@
       "output_contract": {
         "schema": "EncodedPayload",
         "fields": {
-          "encoded_data": "string"
+          "encoded_data": "bytes"
         }
       },
       "input_contract": {
@@ -142,12 +101,66 @@
       "mitre_status": "needs_verification",
       "mapping_confidence": "low",
       "ambiguity_notes": "close scores: T1140 vs T1027"
+    },
+    {
+      "task_id": "T3",
+      "stage": "defense-evasion",
+      "intent": "Delete Dropper File",
+      "behavioral_goal": "Delete the dropper file to eliminate forensic evidence",
+      "output_contract": {
+        "schema": "DeletionStatus",
+        "fields": {
+          "success": "boolean"
+        }
+      },
+      "input_contract": {
+        "sources": [
+          {
+            "task_id": "T1",
+            "schema": "DLLPlacement"
+          }
+        ]
+      },
+      "error_contract": {
+        "on_failure": "return_partial",
+        "required_fields": [
+          "success"
+        ],
+        "fallback_value": {
+          "success": false
+        }
+      },
+      "mitre_candidates": [
+        {
+          "id": "T1070.004",
+          "reason": "File Deletion | retrieval match: File Deletion",
+          "score": 0.65,
+          "source": "llm+retrieval"
+        },
+        {
+          "id": "T1564.001",
+          "reason": "retrieval match: Hidden Files and Directories",
+          "score": 0.55,
+          "source": "retrieval"
+        }
+      ],
+      "mitre_techniques": [],
+      "mitre_status": "needs_verification",
+      "mapping_confidence": "medium",
+      "ambiguity_notes": ""
     }
   ],
   "dataflow": [
     {
       "from_task": "T1",
       "to_task": "T2",
+      "data_schema": "DLLPlacement",
+      "required": true,
+      "transform": null
+    },
+    {
+      "from_task": "T1",
+      "to_task": "T3",
       "data_schema": "DLLPlacement",
       "required": true,
       "transform": null
@@ -201,17 +214,17 @@
       }
     ],
     "token_usage": {
-      "prompt_tokens": 4521,
-      "completion_tokens": 1805,
-      "total_tokens": 6326,
+      "prompt_tokens": 4519,
+      "completion_tokens": 1931,
+      "total_tokens": 6450,
       "attempts": 2
     },
-    "normalized_intent": "Place a malicious DLL in a system PATH directory to exploit DLL search order hijacking, encode the payload with base64 and XOR to evade detection, and delete the original dropper file to eliminate forensic evidence.",
+    "normalized_intent": "Place a malicious DLL in a system PATH directory to exploit DLL search order hijacking, encode the payload with base64 and XOR to evade detection, and delete the dropper file to eliminate forensic evidence.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:12:51.969983+00:00",
+  "ts_utc": "2026-06-24T13:02:35.316849+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Copy a malicious DLL to a directory in the system PATH to exploit DLL search order hijacking, encode the payload using base64 and XOR obfuscation to evade static detection, and delete the original dropper file to remove forensic evidence.",
-  "normalized_intent": "Place a malicious DLL in a system PATH directory to exploit DLL search order hijacking, encode the payload with base64 and XOR to evade detection, and delete the original dropper file to eliminate forensic evidence."
+  "normalized_intent": "Place a malicious DLL in a system PATH directory to exploit DLL search order hijacking, encode the payload with base64 and XOR to evade detection, and delete the dropper file to eliminate forensic evidence."
 }

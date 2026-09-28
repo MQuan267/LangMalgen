@@ -1,7 +1,7 @@
 {
-  "mission_id": "encrypted_payload_injection_persistence",
-  "intent": "Download an encrypted payload, decrypt it with a hardcoded AES key, inject the shellcode into svchost.exe, and establish persistence through Windows service registration.",
-  "malware_type": "loader_injector",
+  "mission_id": "encrypted_payload_injection",
+  "intent": "Download an encrypted second-stage payload, decrypt it, inject the decrypted shellcode, and establish persistence.",
+  "malware_type": "multi-stage",
   "global_constraints": {
     "target_os_family": "windows",
     "language_target": "python",
@@ -13,11 +13,11 @@
   },
   "validation_rules": {
     "max_execution_time_seconds": 120,
-    "max_memory_mb": 200,
+    "max_memory_mb": 150,
     "allowed_modules": [
-      "WinAPI",
+      "WinHTTP",
       "Crypto++",
-      "Networking"
+      "Windows API"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -28,8 +28,8 @@
     {
       "task_id": "T1",
       "stage": "exfiltration",
-      "intent": "Download Payload",
-      "behavioral_goal": "Download encrypted payload from remote server",
+      "intent": "Download Encrypted Payload",
+      "behavioral_goal": "Download encrypted second-stage payload from a remote server",
       "output_contract": {
         "schema": "EncryptedPayload",
         "fields": {
@@ -62,28 +62,28 @@
       "task_id": "T4",
       "stage": "persistence",
       "intent": "Establish Persistence",
-      "behavioral_goal": "Register a new Windows service for persistence",
+      "behavioral_goal": "Register a Windows service to ensure persistence",
       "output_contract": {
         "schema": "PersistenceStatus",
         "fields": {
           "service_name": "string",
-          "registered": "boolean"
+          "success": "boolean"
         }
       },
       "input_contract": null,
       "error_contract": {
         "on_failure": "return_partial",
         "required_fields": [
-          "registered"
+          "success"
         ],
         "fallback_value": {
-          "registered": false
+          "success": false
         }
       },
       "mitre_candidates": [
         {
           "id": "T1543.003",
-          "reason": "windows service persistence | retrieval match: Windows Service",
+          "reason": "Windows service persistence | retrieval match: Windows Service",
           "score": 0.75,
           "source": "llm+retrieval"
         }
@@ -97,7 +97,7 @@
       "task_id": "T2",
       "stage": "defense-evasion",
       "intent": "Decrypt Payload",
-      "behavioral_goal": "Decrypt downloaded payload using a hardcoded AES key",
+      "behavioral_goal": "Decrypt the downloaded payload using AES with a hardcoded key",
       "output_contract": {
         "schema": "DecryptedPayload",
         "fields": {
@@ -142,7 +142,7 @@
       "task_id": "T3",
       "stage": "execution",
       "intent": "Inject Shellcode",
-      "behavioral_goal": "Inject decrypted shellcode into svchost.exe",
+      "behavioral_goal": "Inject the decrypted shellcode into a running svchost.exe process",
       "output_contract": {
         "schema": "InjectionStatus",
         "fields": {
@@ -170,7 +170,7 @@
         {
           "id": "T1055",
           "reason": "process injection | retrieval match: Process Injection",
-          "score": 0.73,
+          "score": 0.83,
           "source": "llm+retrieval"
         }
       ],
@@ -203,7 +203,7 @@
     "selected_examples": [
       "loader",
       "injector",
-      "rat"
+      "file_collector"
     ],
     "selection_mode": "dynamic_few_shot_top3",
     "planner_temperature": 0.3,
@@ -212,7 +212,19 @@
         "id": "T1105",
         "stage": "exfiltration",
         "name": "Ingress Tool Transfer",
-        "score": 0.78
+        "score": 1.0
+      },
+      {
+        "id": "T1057",
+        "stage": "discovery",
+        "name": "Process Discovery",
+        "score": 0.68
+      },
+      {
+        "id": "T1055",
+        "stage": "execution",
+        "name": "Process Injection",
+        "score": 0.68
       },
       {
         "id": "T1569.002",
@@ -231,32 +243,20 @@
         "stage": "defense-evasion",
         "name": "Deobfuscate/Decode Files",
         "score": 0.5
-      },
-      {
-        "id": "T1055",
-        "stage": "execution",
-        "name": "Process Injection",
-        "score": 0.48
-      },
-      {
-        "id": "T1027",
-        "stage": "defense-evasion",
-        "name": "Obfuscated Files or Information",
-        "score": 0.3
       }
     ],
     "token_usage": {
-      "prompt_tokens": 2213,
-      "completion_tokens": 1160,
-      "total_tokens": 3373,
+      "prompt_tokens": 2219,
+      "completion_tokens": 1156,
+      "total_tokens": 3375,
       "attempts": 1
     },
-    "normalized_intent": "Download an encrypted payload, decrypt it with a hardcoded AES key, inject the shellcode into svchost.exe, and establish persistence through Windows service registration.",
+    "normalized_intent": "Download an encrypted second-stage payload from a remote server, decrypt it using AES with a hardcoded key, inject the decrypted shellcode into a running svchost.exe process, and establish persistence through Windows service registration.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T09:58:09.566272+00:00",
+  "ts_utc": "2026-06-24T13:07:08.914324+00:00",
   "model_used": "gpt-4o",
   "task_count": 4,
   "original_intent": "Download an encrypted second-stage payload from a remote server, decrypt it using AES with a hardcoded key, inject the decrypted shellcode into a running svchost.exe process, and establish persistence via a Windows service registration.",
-  "normalized_intent": "Download an encrypted payload, decrypt it with a hardcoded AES key, inject the shellcode into svchost.exe, and establish persistence through Windows service registration."
+  "normalized_intent": "Download an encrypted second-stage payload from a remote server, decrypt it using AES with a hardcoded key, inject the decrypted shellcode into a running svchost.exe process, and establish persistence through Windows service registration."
 }

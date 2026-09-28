@@ -1,5 +1,5 @@
 {
-  "mission_id": "domain_user_network_drive_enumeration_and_remote_execution",
+  "mission_id": "network_enumeration_and_execution",
   "intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host.",
   "malware_type": "multi-stage",
   "global_constraints": {
@@ -15,9 +15,9 @@
     "max_execution_time_seconds": 60,
     "max_memory_mb": 200,
     "allowed_modules": [
-      "advapi32",
-      "netapi32",
-      "kernel32"
+      "win32api",
+      "os",
+      "shutil"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -29,7 +29,7 @@
       "task_id": "T1",
       "stage": "discovery",
       "intent": "Enumerate Domain Users",
-      "behavioral_goal": "Retrieve a list of domain users using Windows API calls",
+      "behavioral_goal": "List all domain users using Windows API calls",
       "output_contract": {
         "schema": "DomainUserList",
         "fields": {
@@ -47,7 +47,7 @@
       "mitre_candidates": [
         {
           "id": "T1087.002",
-          "reason": "Domain account discovery",
+          "reason": "Domain account enumeration",
           "score": 0.7,
           "source": "llm"
         },
@@ -63,7 +63,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "verified via hybrid scoring; top=T1083"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1083",
+      "_mission_intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host."
     },
     {
       "task_id": "T2",
@@ -86,16 +87,16 @@
       },
       "mitre_candidates": [
         {
+          "id": "T1135",
+          "reason": "Network share discovery",
+          "score": 0.65,
+          "source": "llm"
+        },
+        {
           "id": "T1016",
           "reason": "retrieval match: System Network Configuration Discovery",
           "score": 0.62,
           "source": "retrieval"
-        },
-        {
-          "id": "T1135",
-          "reason": "Network share discovery",
-          "score": 0.6,
-          "source": "llm"
         }
       ],
       "mitre_techniques": [
@@ -103,7 +104,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "close scores: T1016 vs T1135 | verified via hybrid scoring; top=T1016"
+      "ambiguity_notes": "close scores: T1135 vs T1016 | conservative verified: 1 planner + 0 extra; top=T1016",
+      "_mission_intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host."
     },
     {
       "task_id": "T3",
@@ -131,19 +133,26 @@
         ],
         "fallback_value": false
       },
-      "mitre_candidates": [],
+      "mitre_candidates": [
+        {
+          "id": "T1105",
+          "reason": "Ingress tool transfer",
+          "score": 0.6,
+          "source": "llm"
+        }
+      ],
       "mitre_techniques": [
-        "T1053.005",
-        "T1574.002"
+        "T1105"
       ],
       "mitre_status": "verified",
       "mapping_confidence": "medium",
-      "ambiguity_notes": "multi-label verified via hybrid scoring; both supported (T1053.005, T1574.002) | scores are close and both retained"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1105",
+      "_mission_intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host."
     },
     {
       "task_id": "T4",
       "stage": "persistence",
-      "intent": "Create Scheduled Task for Payload Execution",
+      "intent": "Create Scheduled Task to Execute Payload",
       "behavioral_goal": "Set up a scheduled task on the target host to execute the malware payload",
       "output_contract": {
         "schema": "ScheduledTaskStatus",
@@ -169,7 +178,7 @@
       "mitre_candidates": [
         {
           "id": "T1053.005",
-          "reason": "Scheduled task creation | retrieval match: Scheduled Task",
+          "reason": "Scheduled task creation for persistence | retrieval match: Scheduled Task",
           "score": 1.0,
           "source": "llm+retrieval"
         },
@@ -181,11 +190,13 @@
         }
       ],
       "mitre_techniques": [
-        "T1053.005"
+        "T1053.005",
+        "T1543.003"
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "verified via hybrid scoring; top=T1053.005"
+      "ambiguity_notes": "conservative verified: 2 planner + 0 extra; top=T1053.005",
+      "_mission_intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host."
     }
   ],
   "dataflow": [
@@ -253,22 +264,22 @@
     ],
     "token_usage": {
       "prompt_tokens": 2224,
-      "completion_tokens": 1158,
-      "total_tokens": 3382,
+      "completion_tokens": 1152,
+      "total_tokens": 3376,
       "attempts": 1
     },
     "normalized_intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:13:56.496920+00:00",
+  "ts_utc": "2026-06-24T13:03:52.149888+00:00",
   "model_used": "gpt-4o",
   "task_count": 4,
   "original_intent": "Enumerate domain users and shared network drives using Windows API calls, copy the malware payload to a remote share, and execute it remotely via scheduled task creation on the target host.",
   "normalized_intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host.",
   "verifier_summary": {
     "backend": "HybridVerifierV9",
-    "dataset_example_count": 36592,
-    "technique_count": 50,
+    "dataset_example_count": 36662,
+    "technique_count": 55,
     "mode": "hybrid_planner_prior_rules_scibert_with_fallback",
     "rep_per_technique": 200
   },
@@ -277,7 +288,7 @@
       "task_id": "T1",
       "stage": "discovery",
       "intent": "Enumerate Domain Users",
-      "behavioral_goal": "Retrieve a list of domain users using Windows API calls",
+      "behavioral_goal": "List all domain users using Windows API calls",
       "planner_candidate_ids": [
         "T1087.002",
         "T1083"
@@ -291,13 +302,13 @@
         "fallback_used": false,
         "planner_candidate_count": 2,
         "top_candidate_after_hybrid": "T1083",
-        "top_candidate_score": 0.8989
+        "top_candidate_score": 0.8985
       },
       "candidate_scores": [
         {
           "technique_id": "T1083",
-          "final_score": 0.8989,
-          "scibert_score": 0.8554,
+          "final_score": 0.8985,
+          "scibert_score": 0.854,
           "planner_prior": 0.45,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -308,7 +319,7 @@
           ],
           "top_reasons": [
             "tram2: The system performs a comprehensive scan to identify currently running processes, obtain IDs specifically linked to the Steam application, e",
-            "tram2: The operation entails capturing a snapshot of running processes, extracting relevant identifiers from the Steam application, documenting fil",
+            "tram2: With the use of Python scripts, automation can enable these scans to pinpoint specific files, paths, or vulnerabilities.",
             "tram2: It undertakes a thorough examination to catalog all executing processes, gather Steam application-specific identifiers, conduct an inventory"
           ]
         }
@@ -320,8 +331,8 @@
       "intent": "Enumerate Shared Network Drives",
       "behavioral_goal": "Identify shared network drives accessible from the host",
       "planner_candidate_ids": [
-        "T1016",
-        "T1135"
+        "T1135",
+        "T1016"
       ],
       "final_mitre_techniques": [
         "T1016"
@@ -358,766 +369,37 @@
       "stage": "execution",
       "intent": "Copy Malware Payload to Remote Share",
       "behavioral_goal": "Transfer the malware payload to a discovered network share",
-      "planner_candidate_ids": [],
+      "planner_candidate_ids": [
+        "T1105"
+      ],
       "final_mitre_techniques": [
-        "T1053.005",
-        "T1574.002"
+        "T1105"
       ],
       "mitre_status": "verified",
       "mapping_confidence": "medium",
       "decision_trace": {
-        "fallback_used": true,
-        "planner_candidate_count": 0,
-        "top_candidate_after_hybrid": "T1574.002",
-        "top_candidate_score": 0.7157
+        "fallback_used": false,
+        "planner_candidate_count": 1,
+        "top_candidate_after_hybrid": "T1105",
+        "top_candidate_score": 0.7616
       },
       "candidate_scores": [
         {
-          "technique_id": "T1574.002",
-          "final_score": 0.7157,
-          "scibert_score": 0.8628,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 542,
-          "source": "fallback_retrieval",
-          "rule_notes": [
-            "slight boost to survive stage filter"
-          ],
-          "top_reasons": [
-            "tram2: To ensure its persistence and evade detection on infected systems, Windows Service Winnti implements a multifaceted approach, involving the ",
-            "tram2: Through an array of complex mechanisms, Windows Service Winnti ensures its sustained presence on infected systems, incorporating techniques ",
-            "tram2: The persistence of Windows Service Winnti on infected machines is facilitated by its ability to create new services through scheduled tasks,"
-          ]
-        },
-        {
-          "technique_id": "T1053.005",
-          "final_score": 0.6704,
-          "scibert_score": 0.8816,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 828,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: As part of their ransomware deployment within a victim's network infrastructure, BlackCat affiliates exploit group policies, resulting in th",
-            "tram2: BlackCat affiliates' ransomware deployment tactics in a victim's network infrastructure involve exploiting group policies to create schedule",
-            "tram2: Script 34fDFkfSD32.js exhibits divergence from the sample described in our Higaisa report in terms of its operational behavior, wherein it r"
-          ]
-        },
-        {
-          "technique_id": "T1036.005",
-          "final_score": 0.6695,
-          "scibert_score": 0.8779,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 536,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The sophisticated evasion methods incorporated into the Crypter are illustrated by Figure 5's low detection rate on VT, indicating that when",
-            "tram2: Figure 5 highlights the low detection rate on VT, exemplifying the Crypter's advanced evasion techniques, wherein the malicious installer, u",
-            "tram2: The Crypter's use of complex evasion techniques is evident in Figure 5, demonstrating a low detection rate on VT, and when the malicious ins"
-          ]
-        },
-        {
-          "technique_id": "T1547.001",
-          "final_score": 0.6694,
-          "scibert_score": 0.8777,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 462,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: In order to establish persistence, the crypter, when so configured, utilizes its loader DLL to spawn a new thread, loading an additional DLL",
-            "tram2: To achieve persistence, if configured, the crypter's loader DLL initiates a new thread which loads an additional DLL from the compressed fil",
-            "tram2: If persistence is set up, the loader DLL of the crypter initiates a new thread that loads another DLL from the compressed data, which can th"
-          ]
-        },
-        {
-          "technique_id": "T1074.001",
-          "final_score": 0.6683,
-          "scibert_score": 0.8732,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 175,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Employing techniques including Detect: Network Traffic Analysis Remote Terminal Session Detection, Isolate: Network Isolation, as well as In",
-            "tram2: Chinese state-sponsored cyber actors have been identified using techniques that include Network Traffic Analysis Remote Terminal Session Det",
-            "tram2: In efforts to detect and isolate malicious activity, techniques such as Network Traffic Analysis Remote Terminal Session Detection, Network "
-          ]
-        },
-        {
-          "technique_id": "T1047",
-          "final_score": 0.6663,
-          "scibert_score": 0.8652,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 595,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Execution of commands and lateral movement across the network can be achieved by utilizing the wmiexec module from Impacket, while the Black",
-            "tram2: The propagation of the BlackCat ransomware for Windows in local area networks involves creating temporary system services via the PsExec uti",
-            "tram2: To carry out reconnaissance, attackers employed an array of tools: ADRecon was used for domain trust discovery, SoftPerfect Network Scanner "
-          ]
-        },
-        {
-          "technique_id": "T1570",
-          "final_score": 0.6662,
-          "scibert_score": 0.8648,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 365,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: As part of the attack, adversaries evaded security controls to run a PowerShell script named p.ps1, sourced from \\[IPADDRESS]\\share$, on var",
-            "tram2: To execute the PowerShell script p.ps1, stored at \\[IPADDRESS]\\share$, on several systems across the network, attackers bypassed security co",
-            "tram2: The attacker's efforts included attempting to launch PowerShell scripts on various remote systems as part of their system-to-system movement"
-          ]
-        },
-        {
-          "technique_id": "T1140",
-          "final_score": 0.6643,
-          "scibert_score": 0.8572,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 3438,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The technique Deobfuscate/Decode Files or Information, referred to as [T1140], involves methods such as those used by Chinese state-sponsore",
-            "tram2: A backdoor payload is fetched from a server controlled by attackers, decrypted locally, and ultimately executed on the affected machine.",
-            "tram2: Figure 18 displays the extraction process for injection and correction stages, with the Loader kicking off initialization by retaining the d"
-          ]
-        },
-        {
-          "technique_id": "T1564.001",
-          "final_score": 0.6642,
-          "scibert_score": 0.8569,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 117,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The interaction with the lnk file, be it through double-clicking or opening, precipitates the unintentional launch of a hidden DLL file, des",
-            "tram2: Double-clicking or opening the lnk file results in the user unintentionally launching a dormant DLL file, named namr.dll, that resides in th",
-            "tram2: By interacting with the lnk file through either a double click or an open action, the user unwittingly sets off the execution of namr.dll, a"
-          ]
-        },
-        {
-          "technique_id": "T1012",
-          "final_score": 0.6641,
-          "scibert_score": 0.8564,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 165,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The hardcoded registry key names in every FOCUSFJORD sample serve as a prerequisite for the malware's execution, allowing it to locate, read",
-            "tram2: Proper execution of FOCUSFJORD samples relies on the malware's ability to read and decrypt specific registry key values, whose names are emb",
-            "tram2: Each FOCUSFJORD sample has registry key names embedded within its code, and these hardcoded names are crucial for the malware to locate, rea"
-          ]
-        },
-        {
-          "technique_id": "T1557.001",
-          "final_score": 0.6634,
-          "scibert_score": 0.8536,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 63,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Through the execution of DFSCoerce.py, a Python script also referred to as DFSCoerce, they prompted DC authentication to leverage the NTLM h",
-            "tram2: They executed the python script named DFSCoerce.py, thereby initiating a DC authentication process to the SharePoint server that utilized th",
-            "tram2: The DFSCoerce.py script, a python tool, was utilized by them to prompt an authentication request from DC authentication to the SharePoint se"
-          ]
-        },
-        {
-          "technique_id": "T1190",
-          "final_score": 0.6632,
-          "scibert_score": 0.8528,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 469,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The Microsoft SharePoint vulnerability CVE-2019-0604 was leveraged by these intrusions to deploy web shells and FOCUSFJORD payloads against ",
-            "tram2: Exploiting the Microsoft SharePoint vulnerability CVE-2019-0604, these intrusions resulted in the installation of web shells and FOCUSFJORD ",
-            "tram2: In the Middle East and Central Asia, targets were breached via the Microsoft SharePoint vulnerability CVE-2019-0604, which allowed these int"
-          ]
-        },
-        {
-          "technique_id": "T1082",
-          "final_score": 0.6631,
-          "scibert_score": 0.8524,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 890,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Our demonstration infrastructure comprised a target host at 192.168.88.179, an internal DNS server at 192.168.88.2, and the Cobalt Strike C2",
-            "tram2: A notable observation from our previous reports on similar incidents is that both the victim's hostname and the source IP address, which is ",
-            "tram2: A significant finding in our review of comparable cases is that the victim's hostname and source IP address, which is 127.0.0.1, are concurr"
-          ]
-        },
-        {
-          "technique_id": "T1518.001",
-          "final_score": 0.663,
-          "scibert_score": 0.8519,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 233,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The BlackMatter and BlackCat ransomware variants employ a discovery-oriented approach to identify potential vulnerabilities, which involves ",
-            "tram2: By leveraging discovery tactics, BlackMatter and BlackCat ransomware variants can identify potential targets through the inspection of runni",
-            "tram2: In order to uncover vulnerabilities, BlackMatter and BlackCat ransomware variants leverage techniques such as enumerating running processes "
-          ]
-        },
-        {
-          "technique_id": "T1057",
-          "final_score": 0.663,
-          "scibert_score": 0.8518,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 581,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Observations of Chinese state-sponsored cyber actors' tactics, as outlined in [T1057], have shown that they employ commands like tasklist, j",
-            "tram2: Techniques documented under [T1057], which include [D3-SCA] User Behavior Analysis and [D3-UBA] Process Discovery, reveal that Chinese state",
-            "tram2: Chinese state-sponsored cyber actors' methods, as seen in [T1057], which include [D3-SCA] User Behavior Analysis and [D3-UBA] Process Discov"
-          ]
-        },
-        {
-          "technique_id": "T1021.001",
-          "final_score": 0.663,
-          "scibert_score": 0.8518,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 612,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: According to Figure 2, operators managed to infiltrate their primary target by setting up RDP connections from a trusted third-party source ",
-            "tram2: Figure 2 illustrates that operators compromised their primary target by leveraging stolen credentials to authenticate RDP connections origin",
-            "tram2: By exploiting stolen credentials, operators established RDP connections from a trusted third-party source to reach their primary target, as "
-          ]
-        },
-        {
-          "technique_id": "T1059.003",
-          "final_score": 0.6626,
-          "scibert_score": 0.8505,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 2603,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Chinese state-sponsored cyber actors have adopted a methodology that involves leveraging tools such as Cobalt Strike, webshells, and command",
-            "tram2: The reload of PowerShell with its full command line argument is likely motivated by the need for a 32-bit process, which is a prerequisite f",
-            "tram2: To fetch specific attributes including objectSID, sAMAccountName, displayName, mail, and memberOf, and subsequently execute commands that ch"
-          ]
-        },
-        {
-          "technique_id": "T1095",
-          "final_score": 0.6625,
-          "scibert_score": 0.85,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 483,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Once a system is compromised, the attackers upload any valid credentials they find to their command-and-control server, which typically comm",
-            "tram2: The first employs Telegram as a means to transmit payloads, issue commands, and collect payload heartbeat signals.",
-            "tram2: Upon breaching a system, any valid login credentials that are uncovered are then sent to the C&C server on port 5028/TCP, which is shown in "
-          ]
-        },
-        {
-          "technique_id": "T1068",
-          "final_score": 0.6622,
-          "scibert_score": 0.8488,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 80,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The attacker's tactics include exploiting an Intel driver vulnerability, namely CVE-2015-2291, in order to load a malicious driver that serv",
-            "tram2: The attacker's strategy also involves utilizing the Intel driver vulnerability known as CVE-2015-2291 to deploy a malicious driver, whose pu",
-            "tram2: The attacker further leverages a vulnerability in an Intel driver, identified as CVE-2015-2291, to install a malicious driver that compromis"
-          ]
-        },
-        {
           "technique_id": "T1105",
-          "final_score": 0.6616,
+          "final_score": 0.7616,
           "scibert_score": 0.8465,
-          "planner_prior": 0.0,
+          "planner_prior": 0.6,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
           "support_count": 1783,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
+          "source": "candidate_rerank",
+          "rule_notes": [
+            "high-freq TTP penalty (T1105): no trigger word found in task text"
+          ],
           "top_reasons": [
             "tram2: A backdoor payload is retrieved from a server controlled by an attacker, decrypted, and then launched on the target system.",
             "tram2: Ransomware can deploy additional tools and further spread the attack once it gains credential access.",
             "tram2: The sample's loading process is handled by a Delphi-coded loader, which employs HTTPS protocol to fetch the subsequent stage from a public o"
-          ]
-        },
-        {
-          "technique_id": "T1543.003",
-          "final_score": 0.6615,
-          "scibert_score": 0.8461,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 336,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Chinese state-sponsored cyber actors have employed a tactic categorized as T1543, specifically the T1543.003 sub-technique, involving the ex",
-            "tram2: Chinese state-sponsored cyber actors have been known to leverage the creation of new Windows services through the execution of malware shell",
-            "tram2: Chinese state-sponsored cyber actors were found establishing persistence by executing malware shellcode and batch files that set up new serv"
-          ]
-        },
-        {
-          "technique_id": "T1055",
-          "final_score": 0.6614,
-          "scibert_score": 0.8457,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 2096,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The Loader shellcode's role is to deploy the decrypted payload internally within its current execution context.",
-            "tram2: File infectors ordinarily arrange for their malicious code to be executed at the earliest opportunity, which may involve techniques such as ",
-            "tram2: The Loader shellcode's functionality entails integrating the decrypted payload into the process where it itself is presently being executed."
-          ]
-        },
-        {
-          "technique_id": "T1569.002",
-          "final_score": 0.6612,
-          "scibert_score": 0.845,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 177,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The attacker's ability to remain persistent in the environment was facilitated through the execution of PowerShell via exploitation of a Win",
-            "tram2: The adversary's persistence in the environment was facilitated by their use of a Windows Service as a means to execute PowerShell.",
-            "tram2: Persistence in the environment was achieved by the adversary through exploitation of a Windows Service to run PowerShell."
-          ]
-        },
-        {
-          "technique_id": "T1003.001",
-          "final_score": 0.6609,
-          "scibert_score": 0.8438,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 747,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: It has been observed that Chinese state-sponsored cyber actors employ a tactic of injecting code into certain processes, notably using rundl",
-            "tram2: The credentials extraction attempt by the actor involved a twofold approach, comprising accessing the ntds.dit file within the active direct",
-            "tram2: The execution of comsvcs.dll by rundll32.exe gives an adversary the ability to dump the memory of any running process."
-          ]
-        },
-        {
-          "technique_id": "T1210",
-          "final_score": 0.6604,
-          "scibert_score": 0.8416,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 108,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: In a recent ransomware attack, Cisco Talos Incident Response discovered that yet another threat actor is capitalizing on the PrintNightmare ",
-            "tram2: According to findings from Cisco Talos Incident Response, a ransomware attack has recently been discovered to involve an additional threat a",
-            "tram2: As part of a recent ransomware attack, Cisco Talos Incident Response has observed another threat actor exploiting the PrintNightmare vulnera"
-          ]
-        },
-        {
-          "technique_id": "T1016",
-          "final_score": 0.6602,
-          "scibert_score": 0.8406,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 383,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: By infiltrating a victim's network, cyber actors can uncover crucial details about the organization, including its resource allocation, full",
-            "tram2: Valuable information regarding a victim network, including allocated resources, an organization's fully qualified domain name, its IP addres",
-            "tram2: The victim's username, computer name, and IP address are compiled into a dataset that is subsequently forwarded to the MuddyWater group."
-          ]
-        },
-        {
-          "technique_id": "T1218.011",
-          "final_score": 0.6601,
-          "scibert_score": 0.8406,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 448,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The final action performed by the malware, as visualized in Figure 23, is to launch the \"Entry\" export function from UpdateTask.dll using th",
-            "tram2: The final step in the malware's execution, as captured in Figure 23, entails the launch of the \"Entry\" export function within UpdateTask.dll",
-            "tram2: As illustrated in Figure 23, the malware's final step involves running the \"Entry\" export function from UpdateTask.dll using rundll32.exe."
-          ]
-        },
-        {
-          "technique_id": "T1027",
-          "final_score": 0.6598,
-          "scibert_score": 0.8392,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 4955,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The malware's configuration contains encrypted pointers to the loader shellcode and final payload, which are divided within the XML file, an",
-            "tram2: By analyzing the recorded package capture with Wireshark and incorporating the SSL/TLS keys that were obtained through the analysis platform",
-            "tram2: Here, the user is led to acquire a corrupted downloadable file whose purpose is to discreetly integrate the Crypter along with embedding its"
-          ]
-        },
-        {
-          "technique_id": "T1083",
-          "final_score": 0.6597,
-          "scibert_score": 0.8389,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 666,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The system performs a comprehensive scan to identify currently running processes, obtain IDs specifically linked to the Steam application, e",
-            "tram2: With the use of Python scripts, automation can enable these scans to pinpoint specific files, paths, or vulnerabilities.",
-            "tram2: The operation entails capturing a snapshot of running processes, extracting relevant identifiers from the Steam application, documenting fil"
-          ]
-        },
-        {
-          "technique_id": "T1041",
-          "final_score": 0.6597,
-          "scibert_score": 0.8386,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 576,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Upon breaching a system, any valid login credentials that are uncovered are then sent to the C&C server on port 5028/TCP, which is shown in ",
-            "tram2: The completion of the task and transmission of data back to the Cobalt Strike Server required 148 packets, comprising DNS requests and respo",
-            "tram2: The SMB Beacon's communication with the main beacon, as noted previously, utilizes port 445 for data exchange, and upon receipt, the main be"
-          ]
-        },
-        {
-          "technique_id": "T1562.001",
-          "final_score": 0.6594,
-          "scibert_score": 0.8375,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 537,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: To further their goals, the adversary made use of remote modifications to the Windows Registry on compromised systems, successfully circumve",
-            "tram2: The adversary's tactics included remotely editing the Windows Registry of compromised systems to remove barriers to remote administration, u",
-            "tram2: The decoded PowerShell code listed beneath this description is configured to undertake multiple operations, including the termination of Pow"
-          ]
-        },
-        {
-          "technique_id": "T1219",
-          "final_score": 0.6593,
-          "scibert_score": 0.8373,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 358,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: MuddyWater is known to leverage DNS for interactions with its C2 servers, and their tactical arsenal includes tools like PowerShell, a speci",
-            "tram2: MuddyWater's approach to interacting with command and control servers is marked by a reliance on DNS for communication purposes, and they fr",
-            "tram2: MuddyWater's operations characteristically involve the use of DNS for communication with command and control servers, alongside an arsenal o"
-          ]
-        },
-        {
-          "technique_id": "T1204.002",
-          "final_score": 0.6585,
-          "scibert_score": 0.8342,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 670,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The process then involves directing the user to a malicious download, which disguises the Crypter and its payload within a seemingly legitim",
-            "tram2: At this location, the user will encounter a prompt to download an installer that has been tampered with to include the Crypter along with it",
-            "tram2: Cyber actors can gain access to a victim's device if the user opens a malicious attachment or clicks on a link embedded in one of these pote"
-          ]
-        },
-        {
-          "technique_id": "T1072",
-          "final_score": 0.6578,
-          "scibert_score": 0.8314,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 90,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Our research on Trojanized applications that infect in user mode revealed that a significant number of legitimate apps were found to have Fi",
-            "tram2: In the course of examining Trojanized applications that operate in user mode, our findings indicated that FinSpy had been used to compromise",
-            "tram2: As part of our in-depth examination of user mode infections facilitated by Trojanized applications, we detected that a considerable amount o"
-          ]
-        },
-        {
-          "technique_id": "T1552.001",
-          "final_score": 0.6578,
-          "scibert_score": 0.8312,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 147,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: For the purpose of T1552 Unsecured Credentials, attackers can exploit registry and file-based authentication data by leveraging the capabili",
-            "tram2: The T1552 Unsecured Credentials technique enables attackers to use NirSoft utilities for accessing authentication data that is stored in the",
-            "tram2: T1552 Unsecured Credentials describes how attackers exploit NirSoft utilities to gain access to authentication data, which is often stored i"
-          ]
-        },
-        {
-          "technique_id": "T1071.001",
-          "final_score": 0.6578,
-          "scibert_score": 0.831,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 1171,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The loading of the sample is facilitated by a Delphi-written loader, which then leverages HTTPS to retrieve the next stage from a publicly a",
-            "tram2: The HTTP-POST block for server communication can have its properties tailored, including the URI path and request method, which can be confi",
-            "tram2: The HTTP-POST block, utilized in server communication contexts, possesses customizable attributes that encompass the designation of a specif"
-          ]
-        },
-        {
-          "technique_id": "T1005",
-          "final_score": 0.6573,
-          "scibert_score": 0.8292,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 378,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Stealerium, the basis of Enigma Stealer, is characterized by its open-source nature and C# composition, touting a robust suite of functional",
-            "tram2: Stealerium, from which Enigma Stealer derives, is an open-source C# project that boasts a range of functionalities, specifically as an infor",
-            "tram2: A recently uncovered campaign is actively exploiting Eastern Europeans in the cryptocurrency industry by posing as a legitimate employer, wi"
-          ]
-        },
-        {
-          "technique_id": "T1056.001",
-          "final_score": 0.6558,
-          "scibert_score": 0.8233,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 417,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The initial stages of an intrusion by UNC215 typically involve the use of FOCUSFJORD, which is later supplemented by the deployment of HYPER",
-            "tram2: UNC215's modus operandi in the initial phases of a cyber attack involves leveraging FOCUSFJORD, subsequently augmenting its toolkit with HYP",
-            "tram2: With its robust set of features, including keylogging, screenshot capture, and audio recording, the tool is well-suited for threat actors lo"
-          ]
-        },
-        {
-          "technique_id": "T1110",
-          "final_score": 0.6548,
-          "scibert_score": 0.8192,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 375,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Security researchers identified the StealthWorker botnet in 2021 as the source of brute-force attacks targeting Synology NAS devices.",
-            "tram2: Further analysis suggested possible links between the ransomware and other malicious entities, including the BlueSky ransomware group and ac",
-            "tram2: In 2021, security researchers uncovered brute-force attacks targeting Synology NAS devices, which were originating from the StealthWorker bo"
-          ]
-        },
-        {
-          "technique_id": "T1484.001",
-          "final_score": 0.654,
-          "scibert_score": 0.8158,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 90,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: Chinese state-sponsored cyber actors are observed to have made modifications to group policies, thereby enabling the exploitation of passwor",
-            "tram2: Chinese state-sponsored cyber actors have further been found to manipulate group policies in order to facilitate the exploitation of passwor",
-            "tram2: Chinese state-sponsored cyber actors have likewise been detected making changes to group policies with the goal of exploiting passwords."
-          ]
-        },
-        {
-          "technique_id": "T1113",
-          "final_score": 0.6525,
-          "scibert_score": 0.81,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 341,
-          "source": "fallback_retrieval",
-          "rule_notes": [],
-          "top_reasons": [
-            "tram2: The initial stages of an intrusion by UNC215 typically involve the use of FOCUSFJORD, which is later supplemented by the deployment of HYPER",
-            "tram2: In the early phases of a breach, FOCUSFJORD is commonly employed by UNC215 as a precursor to the deployment of HYPERBRO, a tool that boasts ",
-            "tram2: The attractiveness of the tool to threat actors can be attributed to its diverse feature set, which comprises remote access and surveillance"
-          ]
-        },
-        {
-          "technique_id": "T1112",
-          "final_score": 0.5124,
-          "scibert_score": 0.8496,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 768,
-          "source": "fallback_retrieval",
-          "rule_notes": [
-            "registry modify penalized: no explicit modify signal"
-          ],
-          "top_reasons": [
-            "tram2: The adversary's remote modification of the Windows Registry on compromised systems had the effect of disabling restrictions related to remot",
-            "tram2: On the systems they compromised, the attacker employed a tactic of modifying the Windows Registry to disable the functionality of Windows De",
-            "tram2: By modifying the Windows Registry on remote systems, the adversary effectively eliminated restrictions related to remote administration, the"
-          ]
-        },
-        {
-          "technique_id": "T1106",
-          "final_score": 0.465,
-          "scibert_score": 0.8601,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 1452,
-          "source": "fallback_retrieval",
-          "rule_notes": [
-            "native API penalized: no explicit API wording in intent"
-          ],
-          "top_reasons": [
-            "tram2: The payload is deployed using three separate mechanisms, including code 0x1 which entails copying it into the current process's allocated me",
-            "tram2: To proceed, the malware constructs a distinctive system identifier and establishes a mutex, then utilizes the GetTokenInformation API to asc",
-            "tram2: The malware proceeds by building a specialized system identifier and configuring a mutex, whereupon it invokes the GetTokenInformation API t"
-          ]
-        },
-        {
-          "technique_id": "T1078",
-          "final_score": 0.3619,
-          "scibert_score": 0.8475,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 868,
-          "source": "fallback_retrieval",
-          "rule_notes": [
-            "valid accounts penalized: no credential reuse signal"
-          ],
-          "top_reasons": [
-            "tram2: Figure 2 demonstrates how operators exploited stolen credentials to gain access to their primary target through trusted third-party RDP conn",
-            "tram2: As shown in Figure 2, the primary target was compromised by operators who utilized RDP connections from a trusted third party, authenticated",
-            "tram2: BlackCat can use these credentials to gain lateral movement within the victim's system and/or network, usually granting them administrative-"
-          ]
-        },
-        {
-          "technique_id": "T1548.002",
-          "final_score": 0.3202,
-          "scibert_score": 0.8808,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 215,
-          "source": "fallback_retrieval",
-          "rule_notes": [
-            "strong penalty: no privilege escalation evidence for T1548.002"
-          ],
-          "top_reasons": [
-            "tram2: Deobfuscation and decompression of the payload occurs prior to its execution, during which time the malware also endeavors to elevate its pr",
-            "tram2: The malware begins by deobfuscating and decompressing its payload, subsequently utilizing the mw_UAC_bypass function, sourced from an open-s",
-            "tram2: The malware's payload is initially deobfuscated and decompressed, at which point the program endeavors to increase its privileges through ex"
-          ]
-        },
-        {
-          "technique_id": "T1033",
-          "final_score": 0.3137,
-          "scibert_score": 0.8549,
-          "planner_prior": 0.0,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 318,
-          "source": "fallback_retrieval",
-          "rule_notes": [
-            "strong penalty: no user discovery evidence for T1033"
-          ],
-          "top_reasons": [
-            "tram2: The malware's next step involves generating a unique system identifier and setting up a mutex, after which it leverages the GetTokenInformat",
-            "tram2: The malware generates a unique identifier for the system and initializes a mutex, thereafter invoking the GetTokenInformation API to discern",
-            "tram2: The malware creates a one-of-a-kind system identifier and configures a mutex, then uses the GetTokenInformation API to identify whether it i"
           ]
         }
       ]
@@ -1125,14 +407,15 @@
     {
       "task_id": "T4",
       "stage": "persistence",
-      "intent": "Create Scheduled Task for Payload Execution",
+      "intent": "Create Scheduled Task to Execute Payload",
       "behavioral_goal": "Set up a scheduled task on the target host to execute the malware payload",
       "planner_candidate_ids": [
         "T1053.005",
         "T1543.003"
       ],
       "final_mitre_techniques": [
-        "T1053.005"
+        "T1053.005",
+        "T1543.003"
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
@@ -1140,13 +423,13 @@
         "fallback_used": false,
         "planner_candidate_count": 2,
         "top_candidate_after_hybrid": "T1053.005",
-        "top_candidate_score": 1.0509
+        "top_candidate_score": 1.0493
       },
       "candidate_scores": [
         {
           "technique_id": "T1053.005",
-          "final_score": 1.0509,
-          "scibert_score": 0.8838,
+          "final_score": 1.0493,
+          "scibert_score": 0.8772,
           "planner_prior": 1.0,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -1163,8 +446,8 @@
         },
         {
           "technique_id": "T1543.003",
-          "final_score": 0.7954,
-          "scibert_score": 0.8416,
+          "final_score": 0.7937,
+          "scibert_score": 0.8349,
           "planner_prior": 0.45,
           "stage_fit": 1.0,
           "support_bonus": 1.0,

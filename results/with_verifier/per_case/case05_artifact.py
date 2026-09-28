@@ -3,6 +3,7 @@ import sys
 import json
 import time
 import subprocess
+import re
 from typing import Dict, Any
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -14,83 +15,94 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
             "listening_ports": []
         }
 
-        netstat_command = ['netstat', '-ano']
-        netstat_result = subprocess.run(netstat_command, capture_output=True, text=True, timeout=10)
+        try:
+            netstat_output = subprocess.run(
+                ['netstat', '-ano'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            ).stdout
 
-        if netstat_result.returncode == 0:
-            for line in netstat_result.stdout.splitlines():
+            for line in netstat_output.splitlines():
                 if 'TCP' in line or 'UDP' in line:
                     parts = line.split()
                     if len(parts) >= 5:
                         local_address = parts[1]
-                        state_or_pid = parts[3] if 'UDP' in line else parts[4]
-                        if 'LISTENING' in state_or_pid:
-                            result["listening_ports"].append(local_address)
+                        state = parts[3] if 'TCP' in line else 'LISTENING'
+                        pid = parts[4]
+                        if state == 'LISTENING':
+                            result['listening_ports'].append({
+                                'local_address': local_address,
+                                'pid': pid
+                            })
                         else:
-                            result["connections"].append(local_address)
+                            result['connections'].append({
+                                'local_address': local_address,
+                                'foreign_address': parts[2],
+                                'state': state,
+                                'pid': pid
+                            })
+        except Exception:
+            pass
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'connections': None, 'listening_ports': None},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
+    open_ports = []
+    
     try:
         result = subprocess.run(['ipconfig', '/all'], capture_output=True, text=True, timeout=10)
         ipconfig_output = result.stdout
-
-        ip_address = None
-        subnet_mask = None
-        for line in ipconfig_output.splitlines():
-            if "IPv4 Address" in line:
-                ip_address = line.split(":")[-1].strip().split('%')[0]
-            elif "Subnet Mask" in line:
-                subnet_mask = line.split(":")[-1].strip()
-
-        if not ip_address or not subnet_mask:
-            return {'success': True, 'data': {'open_ports': []},
-                    'metadata': {'task_id': 'T2', 'execution_time': time.time() - start}}
-
-        ip_parts = list(map(int, ip_address.split('.')))
-        subnet_parts = list(map(int, subnet_mask.split('.')))
-        network_address = '.'.join(str(ip_parts[i] & subnet_parts[i]) for i in range(4))
-
-        open_ports = []
-        for i in range(1, 255):
-            target_ip = f"{network_address}.{i}"
-            for port in [445, 3389]:
-                try:
-                    result = subprocess.run(['nc', '-zv', target_ip, str(port)], capture_output=True, text=True, timeout=2)
-                    if "succeeded" in result.stderr:
-                        open_ports.append((target_ip, port))
-                except subprocess.TimeoutExpired:
-                    continue
-
+        
+        ip_match = re.search(r'IPv4 Address[. ]*: ([\d.]+)', ipconfig_output)
+        subnet_match = re.search(r'Subnet Mask[. ]*: ([\d.]+)', ipconfig_output)
+        
+        if ip_match and subnet_match:
+            local_ip = ip_match.group(1)
+            subnet_mask = subnet_match.group(1)
+            
+            ip_parts = list(map(int, local_ip.split('.')))
+            subnet_parts = list(map(int, subnet_mask.split('.')))
+            network_address = '.'.join(str(ip_parts[i] & subnet_parts[i]) for i in range(4))
+            
+            for last_octet in range(1, 255):
+                target_ip = f"{network_address}.{last_octet}"
+                for port in [445, 3389]:
+                    try:
+                        result = subprocess.run(['nc', '-zv', target_ip, str(port)], capture_output=True, text=True, timeout=1)
+                        if "succeeded" in result.stderr:
+                            open_ports.append({'ip': target_ip, 'port': port})
+                    except subprocess.TimeoutExpired:
+                        continue
+        
         return {'success': True, 'data': {'open_ports': open_ports},
-                'metadata': {'task_id': 'T2', 'execution_time': time.time() - start}}
+                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'data': {'open_ports': None},
                 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T2', 'execution_time': time.time() - start}}
+                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        arp_result = subprocess.run(['arp', '-a'], capture_output=True, text=True, timeout=10)
-        
         arp_entries = []
-        if arp_result.returncode == 0:
-            for line in arp_result.stdout.splitlines():
-                if line.strip() and not line.startswith('Interface:'):
+        result = subprocess.run(['arp', '-a'], capture_output=True, text=True, timeout=10)
+        
+        if result.returncode == 0:
+            for line in result.stdout.splitlines():
+                if 'dynamic' in line or 'static' in line:
                     arp_entries.append(line.strip())
         
-        result = {'arp_entries': arp_entries}
-        return {'success': True, 'data': result,
+        result_data = {'arp_entries': arp_entries}
+        
+        return {'success': True, 'data': result_data,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'data': {'arp_entries': None},

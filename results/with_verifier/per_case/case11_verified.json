@@ -1,5 +1,5 @@
 {
-  "mission_id": "fallback_0fcedc22",
+  "mission_id": "fallback_dd2371f3",
   "intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",
   "malware_type": "generic",
   "global_constraints": {
@@ -78,11 +78,13 @@
         }
       ],
       "mitre_techniques": [
+        "T1497.001",
         "T1012"
       ],
       "mitre_status": "verified",
-      "mapping_confidence": "high",
-      "ambiguity_notes": "fallback plan — verifier must refine | verified via hybrid scoring; top=T1012"
+      "mapping_confidence": "medium",
+      "ambiguity_notes": "fallback plan — verifier must refine | llm_judge overrides verifier; conservative verified: 3 planner + 0 extra; top=T1497.001",
+      "_mission_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution with sleep loops to evade timeout analysis, and terminate if a debugger is detected using IsDebuggerPresent or CheckRemoteDebuggerPresent."
     }
   ],
   "dataflow": [],
@@ -93,11 +95,11 @@
     "selection_mode": "fallback",
     "planner_temperature": 0.0,
     "mitre_selection_mode": "retrieval_constrained_candidate_generation",
-    "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution to evade analysis, and terminate if a debugger is detected.",
+    "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution with sleep loops to evade timeout analysis, and terminate if a debugger is detected using IsDebuggerPresent or CheckRemoteDebuggerPresent.",
     "token_usage": {
-      "prompt_tokens": 6886,
-      "completion_tokens": 3826,
-      "total_tokens": 10712,
+      "prompt_tokens": 6925,
+      "completion_tokens": 3737,
+      "total_tokens": 10662,
       "attempts": 3
     },
     "fallback_errors": [
@@ -110,15 +112,15 @@
     "fallback plan used after repeated generation failures",
     "generation errors: ['Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis', 'Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis', 'Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis']"
   ],
-  "ts_utc": "2026-06-23T07:30:00.583963+00:00",
+  "ts_utc": "2026-06-24T13:09:12.009087+00:00",
   "model_used": "gpt-4o",
   "task_count": 1,
   "original_intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",
-  "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution to evade analysis, and terminate if a debugger is detected.",
+  "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution with sleep loops to evade timeout analysis, and terminate if a debugger is detected using IsDebuggerPresent or CheckRemoteDebuggerPresent.",
   "verifier_summary": {
     "backend": "HybridVerifierV9",
-    "dataset_example_count": 36592,
-    "technique_count": 50,
+    "dataset_example_count": 36662,
+    "technique_count": 55,
     "mode": "hybrid_planner_prior_rules_scibert_with_fallback",
     "rep_per_technique": 200
   },
@@ -130,30 +132,53 @@
       "behavioral_goal": "Execute primary objective: Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox",
       "planner_candidate_ids": [
         "T1012",
-        "T1057"
+        "T1057",
+        "T1497.001",
+        "T1497.003"
       ],
       "final_mitre_techniques": [
+        "T1497.001",
         "T1012"
       ],
       "mitre_status": "verified",
-      "mapping_confidence": "high",
+      "mapping_confidence": "medium",
       "decision_trace": {
         "fallback_used": false,
-        "planner_candidate_count": 2,
-        "top_candidate_after_hybrid": "T1012",
-        "top_candidate_score": 0.9258
+        "planner_candidate_count": 4,
+        "top_candidate_after_hybrid": "T1497.001",
+        "top_candidate_score": 0.9027
       },
       "candidate_scores": [
         {
+          "technique_id": "T1497.001",
+          "final_score": 0.9027,
+          "scibert_score": 0.7707,
+          "planner_prior": 0.0,
+          "stage_fit": 0.7,
+          "support_bonus": 1.0,
+          "support_count": 10,
+          "source": "candidate_rerank",
+          "rule_notes": [
+            "sandbox/VM system-check boost for T1497.001"
+          ],
+          "top_reasons": [
+            "tram2: Check disk size and RAM size to detect sandbox hosts",
+            "tram2: Check system memory size to detect virtual machines",
+            "tram2: Inspect CPU core count to identify sandbox environments"
+          ]
+        },
+        {
           "technique_id": "T1012",
-          "final_score": 0.9258,
-          "scibert_score": 0.8232,
+          "final_score": 0.7782,
+          "scibert_score": 0.8327,
           "planner_prior": 0.9,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
           "support_count": 165,
           "source": "candidate_rerank",
-          "rule_notes": [],
+          "rule_notes": [
+            "generic discovery penalized: sandbox-evasion context"
+          ],
           "top_reasons": [
             "tram2: The hardcoded registry key names in every FOCUSFJORD sample serve as a prerequisite for the malware's execution, allowing it to locate, read",
             "tram2: Each FOCUSFJORD sample has registry key names embedded within its code, and these hardcoded names are crucial for the malware to locate, rea",
@@ -162,18 +187,36 @@
         },
         {
           "technique_id": "T1057",
-          "final_score": 0.837,
-          "scibert_score": 0.8519,
+          "final_score": 0.6897,
+          "scibert_score": 0.863,
           "planner_prior": 0.58,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
           "support_count": 581,
           "source": "candidate_rerank",
-          "rule_notes": [],
+          "rule_notes": [
+            "generic discovery penalized: sandbox-evasion context"
+          ],
           "top_reasons": [
             "tram2: Techniques documented under [T1057], which include [D3-SCA] User Behavior Analysis and [D3-UBA] Process Discovery, reveal that Chinese state",
-            "tram2: Chinese state-sponsored cyber actors' methods, as seen in [T1057], which include [D3-SCA] User Behavior Analysis and [D3-UBA] Process Discov",
-            "tram2: Chinese state-sponsored cyber actors observed in [T1057], which utilizes techniques including [D3-SCA] User Behavior Analysis and [D3-UBA] P"
+            "tram2: Chinese state-sponsored cyber actors observed in [T1057], which utilizes techniques including [D3-SCA] User Behavior Analysis and [D3-UBA] P",
+            "tram2: Chinese state-sponsored cyber actors' methods, as seen in [T1057], which include [D3-SCA] User Behavior Analysis and [D3-UBA] Process Discov"
+          ]
+        },
+        {
+          "technique_id": "T1497.003",
+          "final_score": 0.5063,
+          "scibert_score": 0.765,
+          "planner_prior": 0.0,
+          "stage_fit": 0.55,
+          "support_bonus": 1.0,
+          "support_count": 10,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: Check elapsed time to detect accelerated sandbox execution",
+            "tram2: Compare system time before and after sleep to detect emulation",
+            "tram2: Postpone payload execution until after sandbox timeout"
           ]
         }
       ]

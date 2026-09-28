@@ -12,7 +12,7 @@
     ]
   },
   "validation_rules": {
-    "max_execution_time_seconds": 300,
+    "max_execution_time_seconds": 180,
     "max_memory_mb": 200,
     "allowed_modules": [
       "os",
@@ -67,18 +67,18 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "medium",
-      "ambiguity_notes": "verified via hybrid scoring; top=T1005"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1005",
+      "_mission_intent": "Exfiltrate sensitive .pdf, .docx, and .xlsx files from the local filesystem by compressing and XOR-encoding them, then sending the data to a C2 server over HTTPS via periodic POST requests."
     },
     {
       "task_id": "T2",
       "stage": "data-processing",
-      "intent": "Compress and XOR-Encode Files",
-      "behavioral_goal": "Compress and XOR-encode collected files to prepare for exfiltration",
+      "intent": "Compress Files",
+      "behavioral_goal": "Compress collected files to reduce size for transfer",
       "output_contract": {
-        "schema": "EncodedPayload",
+        "schema": "CompressedFiles",
         "fields": {
-          "encoded_data": "bytes",
-          "encoding": "string"
+          "compressed_data": "bytes"
         }
       },
       "input_contract": {
@@ -92,7 +92,7 @@
       "error_contract": {
         "on_failure": "abort_mission",
         "required_fields": [
-          "encoded_data"
+          "compressed_data"
         ],
         "fallback_value": null
       },
@@ -104,20 +104,76 @@
     },
     {
       "task_id": "T3",
-      "stage": "exfiltration",
-      "intent": "Exfiltrate Encoded Data",
-      "behavioral_goal": "Send encoded data to a C2 server over HTTPS via periodic POST requests",
+      "stage": "defense-evasion",
+      "intent": "XOR Encode Payload",
+      "behavioral_goal": "XOR encode compressed file data to evade detection during transfer",
       "output_contract": {
-        "schema": "ExfiltrationStatus",
+        "schema": "EncodedPayload",
         "fields": {
-          "success": "boolean",
-          "attempts": "integer"
+          "encoded_data": "bytes",
+          "encoding": "string"
         }
       },
       "input_contract": {
         "sources": [
           {
             "task_id": "T2",
+            "schema": "CompressedFiles"
+          }
+        ]
+      },
+      "error_contract": {
+        "on_failure": "return_partial",
+        "required_fields": [
+          "encoded_data"
+        ],
+        "fallback_value": null
+      },
+      "mitre_candidates": [
+        {
+          "id": "T1027",
+          "reason": "obfuscated files or information | retrieval match: Obfuscated Files or Information",
+          "score": 0.85,
+          "source": "llm+retrieval"
+        },
+        {
+          "id": "T1564.001",
+          "reason": "retrieval match: Hidden Files and Directories",
+          "score": 0.55,
+          "source": "retrieval"
+        },
+        {
+          "id": "T1070.004",
+          "reason": "retrieval match: File Deletion",
+          "score": 0.45,
+          "source": "retrieval"
+        }
+      ],
+      "mitre_techniques": [
+        "T1027",
+        "T1564.001"
+      ],
+      "mitre_status": "verified",
+      "mapping_confidence": "high",
+      "ambiguity_notes": "conservative verified: 3 planner + 0 extra; top=T1027",
+      "_mission_intent": "Exfiltrate sensitive .pdf, .docx, and .xlsx files from the local filesystem by compressing and XOR-encoding them, then sending the data to a C2 server over HTTPS via periodic POST requests."
+    },
+    {
+      "task_id": "T4",
+      "stage": "exfiltration",
+      "intent": "Exfiltrate Data to C2 Server",
+      "behavioral_goal": "Send encoded data to C2 server over HTTPS via periodic POST requests",
+      "output_contract": {
+        "schema": "ExfiltrationStatus",
+        "fields": {
+          "success": "boolean",
+          "response_code": "integer"
+        }
+      },
+      "input_contract": {
+        "sources": [
+          {
+            "task_id": "T3",
             "schema": "EncodedPayload"
           }
         ]
@@ -157,7 +213,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "close scores: T1071.001 vs T1041 | multi-label verified via hybrid scoring; both supported (T1071.001, T1041)"
+      "ambiguity_notes": "close scores: T1071.001 vs T1041 | conservative verified: 2 planner + 0 extra; top=T1071.001",
+      "_mission_intent": "Exfiltrate sensitive .pdf, .docx, and .xlsx files from the local filesystem by compressing and XOR-encoding them, then sending the data to a C2 server over HTTPS via periodic POST requests."
     }
   ],
   "dataflow": [
@@ -171,12 +228,20 @@
     {
       "from_task": "T2",
       "to_task": "T3",
+      "data_schema": "CompressedFiles",
+      "required": true,
+      "transform": null
+    },
+    {
+      "from_task": "T3",
+      "to_task": "T4",
       "data_schema": "EncodedPayload",
       "required": true,
       "transform": null
     }
   ],
   "planner_warnings": [
+    "task T3: override abort_mission → return_partial for stage=defense-evasion",
     "task T1 may not be atomic"
   ],
   "planner_summary": {
@@ -227,22 +292,22 @@
     ],
     "token_usage": {
       "prompt_tokens": 2248,
-      "completion_tokens": 1011,
-      "total_tokens": 3259,
+      "completion_tokens": 1283,
+      "total_tokens": 3531,
       "attempts": 1
     },
     "normalized_intent": "Exfiltrate sensitive .pdf, .docx, and .xlsx files from the local filesystem by compressing and XOR-encoding them, then sending the data to a C2 server over HTTPS via periodic POST requests.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:05:07.589674+00:00",
+  "ts_utc": "2026-06-24T12:51:54.660394+00:00",
   "model_used": "gpt-4o",
-  "task_count": 3,
+  "task_count": 4,
   "original_intent": "Collect sensitive files with extensions .pdf, .docx, and .xlsx from the local filesystem, compress and XOR-encode the contents, then exfiltrate the data to a C2 server over HTTPS using periodic POST requests.",
   "normalized_intent": "Exfiltrate sensitive .pdf, .docx, and .xlsx files from the local filesystem by compressing and XOR-encoding them, then sending the data to a C2 server over HTTPS via periodic POST requests.",
   "verifier_summary": {
     "backend": "HybridVerifierV9",
-    "dataset_example_count": 36592,
-    "technique_count": 50,
+    "dataset_example_count": 36662,
+    "technique_count": 55,
     "mode": "hybrid_planner_prior_rules_scibert_with_fallback",
     "rep_per_technique": 200
   },
@@ -289,14 +354,16 @@
         },
         {
           "technique_id": "T1105",
-          "final_score": 0.6813,
+          "final_score": 0.6013,
           "scibert_score": 0.8051,
           "planner_prior": 0.4,
           "stage_fit": 0.7,
           "support_bonus": 1.0,
           "support_count": 1783,
           "source": "candidate_rerank",
-          "rule_notes": [],
+          "rule_notes": [
+            "high-freq TTP penalty (T1105): no trigger word found in task text"
+          ],
           "top_reasons": [
             "tram2: The sample's loading process is handled by a Delphi-coded loader, which employs HTTPS protocol to fetch the subsequent stage from a public o",
             "tram2: The execution of GuLoader commences in a manner analogous to the preceding activity, where a user's click on a shortcut file triggers the la",
@@ -308,8 +375,8 @@
     {
       "task_id": "T2",
       "stage": "data-processing",
-      "intent": "Compress and XOR-Encode Files",
-      "behavioral_goal": "Compress and XOR-encode collected files to prepare for exfiltration",
+      "intent": "Compress Files",
+      "behavioral_goal": "Compress collected files to reduce size for transfer",
       "final_mitre_techniques": [],
       "mitre_status": "not_applicable",
       "mapping_confidence": "high",
@@ -320,9 +387,82 @@
     },
     {
       "task_id": "T3",
+      "stage": "defense-evasion",
+      "intent": "XOR Encode Payload",
+      "behavioral_goal": "XOR encode compressed file data to evade detection during transfer",
+      "planner_candidate_ids": [
+        "T1027",
+        "T1564.001",
+        "T1070.004"
+      ],
+      "final_mitre_techniques": [
+        "T1027",
+        "T1564.001"
+      ],
+      "mitre_status": "verified",
+      "mapping_confidence": "high",
+      "decision_trace": {
+        "fallback_used": false,
+        "planner_candidate_count": 3,
+        "top_candidate_after_hybrid": "T1027",
+        "top_candidate_score": 0.9206
+      },
+      "candidate_scores": [
+        {
+          "technique_id": "T1027",
+          "final_score": 0.9206,
+          "scibert_score": 0.8624,
+          "planner_prior": 0.85,
+          "stage_fit": 1.0,
+          "support_bonus": 1.0,
+          "support_count": 4955,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: The malware's configuration contains encrypted pointers to the loader shellcode and final payload, which are divided within the XML file, an",
+            "tram2: By analyzing the recorded package capture with Wireshark and incorporating the SSL/TLS keys that were obtained through the analysis platform",
+            "tram2: The master secret is subjected to a key expansion process, yielding the final keys and initialization vectors required for encrypting and de"
+          ]
+        },
+        {
+          "technique_id": "T1564.001",
+          "final_score": 0.8322,
+          "scibert_score": 0.8689,
+          "planner_prior": 0.55,
+          "stage_fit": 1.0,
+          "support_bonus": 1.0,
+          "support_count": 117,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: The interaction with the lnk file, be it through double-clicking or opening, precipitates the unintentional launch of a hidden DLL file, des",
+            "tram2: By interacting with the lnk file through either a double click or an open action, the user unwittingly sets off the execution of namr.dll, a",
+            "tram2: Double-clicking or opening the lnk file results in the user unintentionally launching a dormant DLL file, named namr.dll, that resides in th"
+          ]
+        },
+        {
+          "technique_id": "T1070.004",
+          "final_score": 0.7846,
+          "scibert_score": 0.7986,
+          "planner_prior": 0.45,
+          "stage_fit": 1.0,
+          "support_bonus": 1.0,
+          "support_count": 564,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: Reconstructing the sequence of events during a security breach can be more challenging for incident responders as a result of actions like t",
+            "tram2: The custom WHEATSCAN scanner, along with other tools used for internal reconnaissance and credential harvesting, was deleted by operators on",
+            "tram2: Tools utilized by the operators for credential harvesting and internal reconnaissance, such as the custom WHEATSCAN scanner, were removed af"
+          ]
+        }
+      ]
+    },
+    {
+      "task_id": "T4",
       "stage": "exfiltration",
-      "intent": "Exfiltrate Encoded Data",
-      "behavioral_goal": "Send encoded data to a C2 server over HTTPS via periodic POST requests",
+      "intent": "Exfiltrate Data to C2 Server",
+      "behavioral_goal": "Send encoded data to C2 server over HTTPS via periodic POST requests",
       "planner_candidate_ids": [
         "T1071.001",
         "T1041",
@@ -338,13 +478,13 @@
         "fallback_used": false,
         "planner_candidate_count": 3,
         "top_candidate_after_hybrid": "T1071.001",
-        "top_candidate_score": 1.0368
+        "top_candidate_score": 1.0377
       },
       "candidate_scores": [
         {
           "technique_id": "T1071.001",
-          "final_score": 1.0368,
-          "scibert_score": 0.8272,
+          "final_score": 1.0377,
+          "scibert_score": 0.8308,
           "planner_prior": 1.0,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -361,8 +501,8 @@
         },
         {
           "technique_id": "T1041",
-          "final_score": 0.917,
-          "scibert_score": 0.8281,
+          "final_score": 0.9184,
+          "scibert_score": 0.8338,
           "planner_prior": 1.0,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -379,18 +519,20 @@
         },
         {
           "technique_id": "T1105",
-          "final_score": 0.8172,
-          "scibert_score": 0.8089,
+          "final_score": 0.7388,
+          "scibert_score": 0.8151,
           "planner_prior": 0.55,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
           "support_count": 1783,
           "source": "candidate_rerank",
-          "rule_notes": [],
+          "rule_notes": [
+            "high-freq TTP penalty (T1105): no trigger word found in task text"
+          ],
           "top_reasons": [
             "tram2: A backdoor payload is retrieved from a server controlled by an attacker, decrypted, and then launched on the target system.",
-            "tram2: The execution of GuLoader commences in a manner analogous to the preceding activity, where a user's click on a shortcut file triggers the la",
-            "tram2: The sample's loading process is handled by a Delphi-coded loader, which employs HTTPS protocol to fetch the subsequent stage from a public o"
+            "tram2: The sample's loading process is handled by a Delphi-coded loader, which employs HTTPS protocol to fetch the subsequent stage from a public o",
+            "tram2: The execution of GuLoader commences in a manner analogous to the preceding activity, where a user's click on a shortcut file triggers the la"
           ]
         }
       ]

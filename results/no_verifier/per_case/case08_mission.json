@@ -1,7 +1,7 @@
 {
   "mission_id": "network_enumeration_and_execution",
-  "intent": "Enumerate domain users and shared network drives, then copy and execute malware on a remote share via scheduled task creation",
-  "malware_type": "multi-stage",
+  "intent": "Enumerate domain users and shared network drives, then copy and execute malware payload on a remote share via scheduled task creation.",
+  "malware_type": "network_exploitation",
   "global_constraints": {
     "target_os_family": "windows",
     "language_target": "python",
@@ -13,7 +13,7 @@
   },
   "validation_rules": {
     "max_execution_time_seconds": 60,
-    "max_memory_mb": 200,
+    "max_memory_mb": 150,
     "allowed_modules": [
       "win32api",
       "win32net",
@@ -29,7 +29,7 @@
       "task_id": "T1",
       "stage": "discovery",
       "intent": "Enumerate Domain Users",
-      "behavioral_goal": "List all users in the domain using Windows API calls",
+      "behavioral_goal": "List all domain users using Windows API calls",
       "output_contract": {
         "schema": "DomainUserList",
         "fields": {
@@ -47,15 +47,9 @@
       "mitre_candidates": [
         {
           "id": "T1087.002",
-          "reason": "Domain account discovery",
-          "score": 0.7,
+          "reason": "Domain account enumeration",
+          "score": 0.75,
           "source": "llm"
-        },
-        {
-          "id": "T1033",
-          "reason": "retrieval match: System Owner/User Discovery",
-          "score": 0.47,
-          "source": "retrieval"
         },
         {
           "id": "T1083",
@@ -73,7 +67,7 @@
       "task_id": "T2",
       "stage": "discovery",
       "intent": "Enumerate Shared Network Drives",
-      "behavioral_goal": "Identify shared network drives accessible from the host",
+      "behavioral_goal": "Identify shared network drives accessible to the host",
       "output_contract": {
         "schema": "NetworkShareList",
         "fields": {
@@ -92,7 +86,7 @@
         {
           "id": "T1135",
           "reason": "Network share discovery",
-          "score": 0.8,
+          "score": 0.7,
           "source": "llm"
         },
         {
@@ -104,16 +98,16 @@
       ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
-      "mapping_confidence": "medium",
-      "ambiguity_notes": ""
+      "mapping_confidence": "low",
+      "ambiguity_notes": "close scores: T1135 vs T1016"
     },
     {
       "task_id": "T3",
       "stage": "lateral-movement",
-      "intent": "Copy Malware to Remote Share",
+      "intent": "Copy Malware Payload to Remote Share",
       "behavioral_goal": "Transfer the malware payload to a discovered shared network drive",
       "output_contract": {
-        "schema": "TransferStatus",
+        "schema": "PayloadTransferStatus",
         "fields": {
           "success": "boolean",
           "destination_path": "string"
@@ -138,7 +132,7 @@
         {
           "id": "T1570",
           "reason": "Lateral tool transfer | retrieval match: Lateral Tool Transfer",
-          "score": 0.7,
+          "score": 0.8,
           "source": "llm+retrieval"
         }
       ],
@@ -153,17 +147,16 @@
       "intent": "Execute Malware via Scheduled Task",
       "behavioral_goal": "Create a scheduled task on the target host to execute the malware payload",
       "output_contract": {
-        "schema": "ExecutionStatus",
+        "schema": "ScheduledTaskStatus",
         "fields": {
-          "task_created": "boolean",
-          "task_name": "string"
+          "task_created": "boolean"
         }
       },
       "input_contract": {
         "sources": [
           {
             "task_id": "T3",
-            "schema": "TransferStatus"
+            "schema": "PayloadTransferStatus"
           }
         ]
       },
@@ -205,7 +198,7 @@
     {
       "from_task": "T3",
       "to_task": "T4",
-      "data_schema": "TransferStatus",
+      "data_schema": "PayloadTransferStatus",
       "required": true,
       "transform": null
     }
@@ -261,14 +254,14 @@
     ],
     "token_usage": {
       "prompt_tokens": 2224,
-      "completion_tokens": 1159,
-      "total_tokens": 3383,
+      "completion_tokens": 1156,
+      "total_tokens": 3380,
       "attempts": 1
     },
     "normalized_intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:57:19.304943+00:00",
+  "ts_utc": "2026-06-24T13:22:27.567351+00:00",
   "model_used": "gpt-4o",
   "task_count": 4,
   "original_intent": "Enumerate domain users and shared network drives using Windows API calls, copy the malware payload to a remote share, and execute it remotely via scheduled task creation on the target host.",

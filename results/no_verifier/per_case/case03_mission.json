@@ -1,7 +1,7 @@
 {
-  "mission_id": "lsass_memory_dump",
-  "intent": "Identify and access lsass.exe to dump its memory and extract NTLM password hashes.",
-  "malware_type": "credential-dumper",
+  "mission_id": "lsass_ntlm_dump",
+  "intent": "Identify and access lsass.exe to extract NTLM password hashes by dumping its process memory to a local file.",
+  "malware_type": "dumper",
   "global_constraints": {
     "target_os_family": "windows",
     "language_target": "python",
@@ -173,7 +173,7 @@
     "selected_examples": [
       "credential_dumper",
       "browser_stealer",
-      "rat"
+      "injector"
     ],
     "selection_mode": "dynamic_few_shot_top3",
     "planner_temperature": 0.25,
@@ -182,21 +182,33 @@
         "id": "T1003.001",
         "stage": "credential-access",
         "name": "LSASS Memory",
-        "score": 1.0
+        "score": 0.95
+      },
+      {
+        "id": "T1057",
+        "stage": "discovery",
+        "name": "Process Discovery",
+        "score": 0.58
+      },
+      {
+        "id": "T1005",
+        "stage": "collection",
+        "name": "Data from Local System",
+        "score": 0.3
       }
     ],
     "token_usage": {
-      "prompt_tokens": 2693,
-      "completion_tokens": 968,
-      "total_tokens": 3661,
+      "prompt_tokens": 2722,
+      "completion_tokens": 973,
+      "total_tokens": 3695,
       "attempts": 1
     },
-    "normalized_intent": "Identify and access lsass.exe to dump its memory and extract NTLM password hashes.",
+    "normalized_intent": "Identify and access lsass.exe to extract NTLM password hashes by dumping its process memory to a local file.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:51:50.449672+00:00",
+  "ts_utc": "2026-06-24T13:16:50.054541+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Enumerate all running processes to locate lsass.exe, open a handle with PROCESS_ALL_ACCESS, dump the process memory to a local file, and parse the output to extract NTLM password hashes.",
-  "normalized_intent": "Identify and access lsass.exe to dump its memory and extract NTLM password hashes."
+  "normalized_intent": "Identify and access lsass.exe to extract NTLM password hashes by dumping its process memory to a local file."
 }

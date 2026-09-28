@@ -6,21 +6,22 @@
     "target_os_family": "windows",
     "language_target": "python",
     "stealth_level": "high",
-    "execution_model": "event-driven",
+    "execution_model": "modular",
     "forbidden_capabilities": [
       "self_propagation"
     ]
   },
   "validation_rules": {
-    "max_execution_time_seconds": 120,
-    "max_memory_mb": 50,
+    "max_execution_time_seconds": 60,
+    "max_memory_mb": 100,
     "allowed_modules": [
-      "System.Management.Automation",
-      "System.Management"
+      "System.Management",
+      "System.Diagnostics",
+      "System.IO"
     ],
     "forbidden_patterns": [
-      "Invoke-Expression",
-      "iex"
+      "eval\\(",
+      "exec\\("
     ]
   },
   "execution_graph": [
@@ -46,7 +47,7 @@
       "mitre_candidates": [
         {
           "id": "T1027",
-          "reason": "Obfuscate PowerShell script | retrieval match: Obfuscated Files or Information",
+          "reason": "obfuscate PowerShell script | retrieval match: Obfuscated Files or Information",
           "score": 0.92,
           "source": "llm+retrieval"
         },
@@ -62,7 +63,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1027"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1027",
+      "_mission_intent": "Create a WMI event subscription to execute an obfuscated PowerShell payload at system startup, disguising the process as a legitimate Windows service name."
     },
     {
       "task_id": "T2",
@@ -94,7 +96,7 @@
         {
           "id": "T1546.003",
           "reason": "WMI event subscription for persistence",
-          "score": 0.85,
+          "score": 0.8,
           "source": "llm"
         },
         {
@@ -110,23 +112,21 @@
           "source": "retrieval"
         }
       ],
-      "mitre_techniques": [
-        "T1547.001",
-        "T1543.003"
-      ],
-      "mitre_status": "verified",
-      "mapping_confidence": "high",
-      "ambiguity_notes": "conservative verified: 2 planner + 0 extra; top=T1547.001"
+      "mitre_techniques": [],
+      "mitre_status": "unmapped",
+      "mapping_confidence": "low",
+      "ambiguity_notes": "top candidate after ontology cleanup below threshold",
+      "_mission_intent": "Create a WMI event subscription to execute an obfuscated PowerShell payload at system startup, disguising the process as a legitimate Windows service name."
     },
     {
       "task_id": "T3",
       "stage": "defense-evasion",
       "intent": "Masquerade as Legitimate Service",
-      "behavioral_goal": "Disguise the process as a legitimate Windows service name",
+      "behavioral_goal": "Disguise the PowerShell execution process as a legitimate Windows service name",
       "output_contract": {
-        "schema": "MasqueradedService",
+        "schema": "MasqueradedProcess",
         "fields": {
-          "service_name": "string"
+          "process_name": "string"
         }
       },
       "input_contract": {
@@ -140,14 +140,14 @@
       "error_contract": {
         "on_failure": "return_partial",
         "required_fields": [
-          "service_name"
+          "process_name"
         ],
         "fallback_value": null
       },
       "mitre_candidates": [
         {
           "id": "T1036.005",
-          "reason": "Masquerading as a legitimate service | retrieval match: Masquerading",
+          "reason": "masquerading process as legitimate service | retrieval match: Masquerading",
           "score": 1.0,
           "source": "llm+retrieval"
         }
@@ -157,7 +157,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1036.005"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1036.005",
+      "_mission_intent": "Create a WMI event subscription to execute an obfuscated PowerShell payload at system startup, disguising the process as a legitimate Windows service name."
     }
   ],
   "dataflow": [
@@ -225,22 +226,22 @@
     ],
     "token_usage": {
       "prompt_tokens": 2209,
-      "completion_tokens": 972,
-      "total_tokens": 3181,
+      "completion_tokens": 978,
+      "total_tokens": 3187,
       "attempts": 1
     },
     "normalized_intent": "Create a WMI event subscription to execute an obfuscated PowerShell payload at system startup, disguising the process as a legitimate Windows service name.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T10:00:49.270177+00:00",
+  "ts_utc": "2026-06-24T13:12:34.471818+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Register a WMI event subscription that triggers on system startup, execute an obfuscated PowerShell payload stored in the WMI repository, and masquerade the process as a legitimate Windows service name to avoid suspicion.",
   "normalized_intent": "Create a WMI event subscription to execute an obfuscated PowerShell payload at system startup, disguising the process as a legitimate Windows service name.",
   "verifier_summary": {
     "backend": "HybridVerifierV9",
-    "dataset_example_count": 36592,
-    "technique_count": 50,
+    "dataset_example_count": 36662,
+    "technique_count": 55,
     "mode": "hybrid_planner_prior_rules_scibert_with_fallback",
     "rep_per_technique": 200
   },
@@ -312,29 +313,28 @@
         "T1547.001",
         "T1543.003"
       ],
-      "final_mitre_techniques": [
-        "T1547.001",
-        "T1543.003"
-      ],
-      "mitre_status": "verified",
-      "mapping_confidence": "high",
+      "final_mitre_techniques": [],
+      "mitre_status": "unmapped",
+      "mapping_confidence": "low",
       "decision_trace": {
         "fallback_used": false,
         "planner_candidate_count": 3,
         "top_candidate_after_hybrid": "T1547.001",
-        "top_candidate_score": 0.821
+        "top_candidate_score": 0.521
       },
       "candidate_scores": [
         {
           "technique_id": "T1547.001",
-          "final_score": 0.821,
+          "final_score": 0.521,
           "scibert_score": 0.8479,
           "planner_prior": 0.53,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
           "support_count": 462,
           "source": "candidate_rerank",
-          "rule_notes": [],
+          "rule_notes": [
+            "persistence technique penalized: WMI event subscription context"
+          ],
           "top_reasons": [
             "tram2: To achieve persistence, if configured, the crypter's loader DLL initiates a new thread which loads an additional DLL from the compressed fil",
             "tram2: In order to establish persistence, the crypter, when so configured, utilizes its loader DLL to spawn a new thread, loading an additional DLL",
@@ -343,14 +343,16 @@
         },
         {
           "technique_id": "T1543.003",
-          "final_score": 0.7877,
+          "final_score": 0.4877,
           "scibert_score": 0.8106,
           "planner_prior": 0.45,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
           "support_count": 336,
           "source": "candidate_rerank",
-          "rule_notes": [],
+          "rule_notes": [
+            "persistence technique penalized: WMI event subscription context"
+          ],
           "top_reasons": [
             "tram2: Chinese state-sponsored cyber actors have employed a tactic categorized as T1543, specifically the T1543.003 sub-technique, involving the ex",
             "tram2: Chinese state-sponsored cyber actors have been known to leverage the creation of new Windows services through the execution of malware shell",
@@ -363,7 +365,7 @@
       "task_id": "T3",
       "stage": "defense-evasion",
       "intent": "Masquerade as Legitimate Service",
-      "behavioral_goal": "Disguise the process as a legitimate Windows service name",
+      "behavioral_goal": "Disguise the PowerShell execution process as a legitimate Windows service name",
       "planner_candidate_ids": [
         "T1036.005"
       ],
@@ -376,13 +378,13 @@
         "fallback_used": false,
         "planner_candidate_count": 1,
         "top_candidate_after_hybrid": "T1036.005",
-        "top_candidate_score": 0.9661
+        "top_candidate_score": 0.9658
       },
       "candidate_scores": [
         {
           "technique_id": "T1036.005",
-          "final_score": 0.9661,
-          "scibert_score": 0.8644,
+          "final_score": 0.9658,
+          "scibert_score": 0.8632,
           "planner_prior": 1.0,
           "stage_fit": 1.0,
           "support_bonus": 1.0,

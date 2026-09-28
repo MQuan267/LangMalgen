@@ -1,7 +1,7 @@
 {
   "mission_id": "persistence_setup",
   "intent": "Ensure persistence by writing a registry Run key under HKCU for logon execution, creating a scheduled task to run every 60 minutes, and dropping a payload copy in a hidden directory under C:\\Users\\Public\\.",
-  "malware_type": "persistence",
+  "malware_type": "persistence_tool",
   "global_constraints": {
     "target_os_family": "windows",
     "language_target": "python",
@@ -17,7 +17,8 @@
     "allowed_modules": [
       "os",
       "subprocess",
-      "winreg"
+      "winreg",
+      "shutil"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -31,7 +32,7 @@
       "intent": "Create Registry Run Key",
       "behavioral_goal": "Write a registry Run key under HKCU for logon execution",
       "output_contract": {
-        "schema": "RegistryModification",
+        "schema": "RegistryKeyCreation",
         "fields": {
           "key_path": "string",
           "value_name": "string",
@@ -42,8 +43,7 @@
       "error_contract": {
         "on_failure": "return_partial",
         "required_fields": [
-          "key_path",
-          "value_name"
+          "key_path"
         ],
         "fallback_value": null
       },
@@ -72,10 +72,11 @@
       "intent": "Create Scheduled Task",
       "behavioral_goal": "Create a scheduled task to run every 60 minutes",
       "output_contract": {
-        "schema": "ScheduledTask",
+        "schema": "ScheduledTaskCreation",
         "fields": {
           "task_name": "string",
-          "execution_time": "integer"
+          "schedule": "string",
+          "action": "string"
         }
       },
       "input_contract": null,
@@ -195,14 +196,14 @@
     ],
     "token_usage": {
       "prompt_tokens": 2248,
-      "completion_tokens": 862,
-      "total_tokens": 3110,
+      "completion_tokens": 871,
+      "total_tokens": 3119,
       "attempts": 1
     },
     "normalized_intent": "Ensure persistence by writing a registry Run key under HKCU for logon execution, creating a scheduled task to run every 60 minutes, and dropping a payload copy in a hidden directory under C:\\Users\\Public\\.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:09:14.128836+00:00",
+  "ts_utc": "2026-06-24T12:56:51.176772+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Write a registry Run key under HKCU to ensure execution on logon, create a scheduled task using schtasks to run every 60 minutes, and drop a copy of the payload to a hidden directory under C:\\Users\\Public\\.",

@@ -1,7 +1,7 @@
 {
   "agent": "DeveloperAgent",
-  "mission_id": "lsass_memory_dump",
-  "timestamp": "2026-06-23T07:08:29.751265+00:00",
+  "mission_id": "lsass_ntlm_dump",
+  "timestamp": "2026-06-24T12:55:49.400700+00:00",
   "model": "gpt-4o",
   "total": 3,
   "successful": 3,
@@ -15,13 +15,13 @@
         "T1134.001"
       ],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_070759_336314\\01_T1_privilege_escalation.py",
+      "path": "artifacts\\modules\\runtime_20260624_125517_657389\\01_T1_privilege_escalation.py",
       "metrics": {
         "syntax_valid": true,
         "required_packages": [
           "pywin32"
         ],
-        "lines": 54,
+        "lines": 55,
         "has_main": true,
         "has_typing": true,
         "has_timeout": false,
@@ -40,16 +40,17 @@
       "intent": "Access LSASS",
       "stage": "credential-access",
       "mitre_techniques": [
-        "T1003.001"
+        "T1003.001",
+        "T1552.001"
       ],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_070759_336314\\02_T2_credential_access.py",
+      "path": "artifacts\\modules\\runtime_20260624_125517_657389\\02_T2_credential_access.py",
       "metrics": {
         "syntax_valid": true,
         "required_packages": [
           "psutil"
         ],
-        "lines": 92,
+        "lines": 55,
         "has_main": true,
         "has_typing": true,
         "has_timeout": false,
@@ -68,16 +69,17 @@
       "intent": "Dump Memory",
       "stage": "credential-access",
       "mitre_techniques": [
-        "T1003.001"
+        "T1003.001",
+        "T1552.001"
       ],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_070759_336314\\03_T3_credential_access.py",
+      "path": "artifacts\\modules\\runtime_20260624_125517_657389\\03_T3_credential_access.py",
       "metrics": {
         "syntax_valid": true,
         "required_packages": [
           "psutil"
         ],
-        "lines": 111,
+        "lines": 106,
         "has_main": true,
         "has_typing": true,
         "has_timeout": false,
@@ -89,12 +91,12 @@
         "Requires packages: psutil"
       ],
       "generation_attempt": 1,
-      "code_preview": "#!/usr/bin/env python3\n\"\"\"Create memory dump of LSASS for offline credential extraction\"\"\"\nimport sys, json, time, os\nfrom typing import Dict, Any\nimport ctypes\nfrom ctypes import wintypes"
+      "code_preview": "#!/usr/bin/env python3\n\"\"\"Dump Memory of LSASS for offline credential extraction\"\"\"\nimport sys, json, time, os\nfrom typing import Dict, Any\nimport ctypes\nfrom ctypes import wintypes\nimport psutil\n"
     }
   ],
   "module_paths": [
-    "artifacts\\modules\\runtime_20260623_070759_336314\\01_T1_privilege_escalation.py",
-    "artifacts\\modules\\runtime_20260623_070759_336314\\02_T2_credential_access.py",
-    "artifacts\\modules\\runtime_20260623_070759_336314\\03_T3_credential_access.py"
+    "artifacts\\modules\\runtime_20260624_125517_657389\\01_T1_privilege_escalation.py",
+    "artifacts\\modules\\runtime_20260624_125517_657389\\02_T2_credential_access.py",
+    "artifacts\\modules\\runtime_20260624_125517_657389\\03_T3_credential_access.py"
   ]
 }

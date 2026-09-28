@@ -1,35 +1,38 @@
 #!/usr/bin/env python3
-"""Merged Modules for Defensive Malware Research Framework"""
+"""Defensive Malware Research Framework"""
 
 import sys
 import json
 import time
 import subprocess
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Use 'netstat' command to get active network connections and listening ports
-        result = {'connections': None, 'listening_ports': None}
+        # Use netstat to get active connections and listening ports
+        result = {'connections': [], 'listening_ports': []}
         
-        # Run the netstat command to get active connections
-        netstat_output = subprocess.run(['netstat', '-an'], capture_output=True, text=True, timeout=10)
-        if netstat_output.returncode == 0:
-            connections = []
-            listening_ports = []
-            for line in netstat_output.stdout.splitlines():
-                if 'LISTENING' in line:
-                    listening_ports.append(line.strip())
-                else:
-                    connections.append(line.strip())
-            result['connections'] = connections
-            result['listening_ports'] = listening_ports
-
+        # Run netstat command to get network connections
+        netstat_output = subprocess.run(
+            ['netstat', '-an'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        ).stdout
+        
+        # Process the netstat output
+        for line in netstat_output.splitlines():
+            if 'LISTENING' in line:
+                result['listening_ports'].append(line.strip())
+            elif 'ESTABLISHED' in line:
+                result['connections'].append(line.strip())
+        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
+        # Return partial results if possible
         return {'success': False, 'data': {'connections': None, 'listening_ports': None},
                 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
@@ -41,48 +44,49 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     hosts = []
     
     try:
-        # Use PowerShell to scan the local subnet for open ports 445 and 3389
-        command = (
-            "powershell -Command \""
-            "$subnet = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -ne '127.0.0.1' }).IPAddress -replace '\\.\\d+$', '.0';"
-            "1..254 | ForEach-Object {"
-            "  $ip = $subnet + $_;"
-            "  $ports = @();"
-            "  if (Test-NetConnection -ComputerName $ip -Port 445 -InformationLevel Quiet) { $ports += 445 };"
-            "  if (Test-NetConnection -ComputerName $ip -Port 3389 -InformationLevel Quiet) { $ports += 3389 };"
-            "  if ($ports.Count -gt 0) {"
-            "    [PSCustomObject]@{ IPAddress = $ip; OpenPorts = $ports }"
-            "  }"
-            "} | ConvertTo-Json\""
-        )
+        # Define the ports to scan
+        ports_to_scan = [445, 3389]
         
-        result = subprocess.run(command, capture_output=True, text=True, shell=True, timeout=60)
+        # Use 'arp -a' to get the list of local network hosts
+        arp_result = subprocess.run(['arp', '-a'], capture_output=True, text=True, timeout=10)
+        arp_output = arp_result.stdout.splitlines()
         
-        if result.returncode == 0:
-            scan_results = json.loads(result.stdout)
-            if isinstance(scan_results, list):
-                for entry in scan_results:
-                    hosts.append(entry['IPAddress'])
-                    open_ports.extend(entry['OpenPorts'])
+        # Extract IP addresses from the arp output
+        for line in arp_output:
+            if 'dynamic' in line or 'static' in line:
+                parts = line.split()
+                if len(parts) > 1:
+                    hosts.append(parts[0])
         
-        return {'success': True, 'data': {'open_ports': open_ports, 'hosts': hosts},
+        # Scan each host for the specified ports
+        for host in hosts:
+            for port in ports_to_scan:
+                # Use 'Test-NetConnection' PowerShell command to check port status
+                command = f"powershell -Command Test-NetConnection -ComputerName {host} -Port {port}"
+                result = subprocess.run(command, capture_output=True, text=True, shell=True, timeout=5)
+                if 'TcpTestSucceeded : True' in result.stdout:
+                    open_ports.append({'host': host, 'port': port})
+        
+        result = {'open_ports': open_ports, 'hosts': hosts}
+        return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'open_ports': None, 'hosts': None},
-                'error': f'{type(e).__name__}: {e}',
+        # Return partial results on failure
+        result = {'open_ports': open_ports or None, 'hosts': hosts or None}
+        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Execute the command to get ARP table entries
+        # Execute the command to gather ARP table entries
         result = subprocess.run(['arp', '-a'], capture_output=True, text=True, timeout=10)
-        arp_entries = result.stdout.splitlines()
-
-        # Prepare the result data
+        arp_entries = result.stdout.splitlines() if result.returncode == 0 else None
+        
+        # Prepare the result dictionary
         result_data = {'arp_entries': arp_entries}
-
+        
         return {'success': True, 'data': result_data,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:

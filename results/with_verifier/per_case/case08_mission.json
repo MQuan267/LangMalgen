@@ -1,5 +1,5 @@
 {
-  "mission_id": "domain_user_network_drive_enumeration_and_remote_execution",
+  "mission_id": "network_enumeration_and_execution",
   "intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host.",
   "malware_type": "multi-stage",
   "global_constraints": {
@@ -15,9 +15,9 @@
     "max_execution_time_seconds": 60,
     "max_memory_mb": 200,
     "allowed_modules": [
-      "advapi32",
-      "netapi32",
-      "kernel32"
+      "win32api",
+      "os",
+      "shutil"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -29,7 +29,7 @@
       "task_id": "T1",
       "stage": "discovery",
       "intent": "Enumerate Domain Users",
-      "behavioral_goal": "Retrieve a list of domain users using Windows API calls",
+      "behavioral_goal": "List all domain users using Windows API calls",
       "output_contract": {
         "schema": "DomainUserList",
         "fields": {
@@ -47,7 +47,7 @@
       "mitre_candidates": [
         {
           "id": "T1087.002",
-          "reason": "Domain account discovery",
+          "reason": "Domain account enumeration",
           "score": 0.7,
           "source": "llm"
         },
@@ -84,22 +84,22 @@
       },
       "mitre_candidates": [
         {
+          "id": "T1135",
+          "reason": "Network share discovery",
+          "score": 0.65,
+          "source": "llm"
+        },
+        {
           "id": "T1016",
           "reason": "retrieval match: System Network Configuration Discovery",
           "score": 0.62,
           "source": "retrieval"
-        },
-        {
-          "id": "T1135",
-          "reason": "Network share discovery",
-          "score": 0.6,
-          "source": "llm"
         }
       ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
       "mapping_confidence": "low",
-      "ambiguity_notes": "close scores: T1016 vs T1135"
+      "ambiguity_notes": "close scores: T1135 vs T1016"
     },
     {
       "task_id": "T3",
@@ -127,7 +127,14 @@
         ],
         "fallback_value": false
       },
-      "mitre_candidates": [],
+      "mitre_candidates": [
+        {
+          "id": "T1105",
+          "reason": "Ingress tool transfer",
+          "score": 0.6,
+          "source": "llm"
+        }
+      ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
       "mapping_confidence": "low",
@@ -136,7 +143,7 @@
     {
       "task_id": "T4",
       "stage": "persistence",
-      "intent": "Create Scheduled Task for Payload Execution",
+      "intent": "Create Scheduled Task to Execute Payload",
       "behavioral_goal": "Set up a scheduled task on the target host to execute the malware payload",
       "output_contract": {
         "schema": "ScheduledTaskStatus",
@@ -162,7 +169,7 @@
       "mitre_candidates": [
         {
           "id": "T1053.005",
-          "reason": "Scheduled task creation | retrieval match: Scheduled Task",
+          "reason": "Scheduled task creation for persistence | retrieval match: Scheduled Task",
           "score": 1.0,
           "source": "llm+retrieval"
         },
@@ -244,14 +251,14 @@
     ],
     "token_usage": {
       "prompt_tokens": 2224,
-      "completion_tokens": 1158,
-      "total_tokens": 3382,
+      "completion_tokens": 1152,
+      "total_tokens": 3376,
       "attempts": 1
     },
     "normalized_intent": "Use Windows API calls to enumerate domain users and shared network drives, then copy and execute the malware payload on a remote share via scheduled task creation on the target host.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:13:56.496920+00:00",
+  "ts_utc": "2026-06-24T13:03:52.149888+00:00",
   "model_used": "gpt-4o",
   "task_count": 4,
   "original_intent": "Enumerate domain users and shared network drives using Windows API calls, copy the malware payload to a remote share, and execute it remotely via scheduled task creation on the target host.",

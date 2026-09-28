@@ -1,7 +1,7 @@
 {
   "mission_id": "wmi_event_subscription_persistence",
   "intent": "Create a WMI event subscription to execute an obfuscated PowerShell payload at system startup, disguising the process as a legitimate Windows service name.",
-  "malware_type": "persistence",
+  "malware_type": "persistence_tool",
   "global_constraints": {
     "target_os_family": "windows",
     "language_target": "python",
@@ -13,14 +13,13 @@
   },
   "validation_rules": {
     "max_execution_time_seconds": 120,
-    "max_memory_mb": 50,
+    "max_memory_mb": 150,
     "allowed_modules": [
       "System.Management.Automation",
       "System.Management"
     ],
     "forbidden_patterns": [
-      "Invoke-WebRequest",
-      "DownloadFile"
+      "Invoke-Expression"
     ]
   },
   "execution_graph": [
@@ -46,7 +45,7 @@
       "mitre_candidates": [
         {
           "id": "T1027",
-          "reason": "Obfuscate PowerShell script | retrieval match: Obfuscated Files or Information",
+          "reason": "Obfuscated Files or Information | retrieval match: Obfuscated Files or Information",
           "score": 0.92,
           "source": "llm+retrieval"
         },
@@ -66,7 +65,7 @@
       "task_id": "T2",
       "stage": "persistence",
       "intent": "Create WMI Event Subscription",
-      "behavioral_goal": "Establish a WMI event subscription to trigger the obfuscated PowerShell payload at system startup",
+      "behavioral_goal": "Create a WMI event subscription to execute the obfuscated PowerShell payload at system startup",
       "output_contract": {
         "schema": "WMISubscription",
         "fields": {
@@ -91,7 +90,7 @@
       "mitre_candidates": [
         {
           "id": "T1546.003",
-          "reason": "WMI event subscription for persistence",
+          "reason": "Event Triggered Execution: Windows Management Instrumentation Event Subscription",
           "score": 0.8,
           "source": "llm"
         },
@@ -117,11 +116,11 @@
       "task_id": "T3",
       "stage": "defense-evasion",
       "intent": "Masquerade as Legitimate Service",
-      "behavioral_goal": "Disguise the process as a legitimate Windows service name",
+      "behavioral_goal": "Disguise the PowerShell process as a legitimate Windows service name",
       "output_contract": {
-        "schema": "MasqueradeInfo",
+        "schema": "MasqueradedProcess",
         "fields": {
-          "service_name": "string"
+          "process_name": "string"
         }
       },
       "input_contract": {
@@ -135,14 +134,14 @@
       "error_contract": {
         "on_failure": "return_partial",
         "required_fields": [
-          "service_name"
+          "process_name"
         ],
         "fallback_value": null
       },
       "mitre_candidates": [
         {
           "id": "T1036.005",
-          "reason": "Masquerade process as legitimate service | retrieval match: Masquerading",
+          "reason": "Masquerading: Match Legitimate Name or Location | retrieval match: Masquerading",
           "score": 1.0,
           "source": "llm+retrieval"
         }
@@ -218,14 +217,14 @@
     ],
     "token_usage": {
       "prompt_tokens": 2209,
-      "completion_tokens": 974,
-      "total_tokens": 3183,
+      "completion_tokens": 979,
+      "total_tokens": 3188,
       "attempts": 1
     },
     "normalized_intent": "Create a WMI event subscription to execute an obfuscated PowerShell payload at system startup, disguising the process as a legitimate Windows service name.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T10:07:25.092903+00:00",
+  "ts_utc": "2026-06-24T13:34:25.086620+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Register a WMI event subscription that triggers on system startup, execute an obfuscated PowerShell payload stored in the WMI repository, and masquerade the process as a legitimate Windows service name to avoid suspicion.",

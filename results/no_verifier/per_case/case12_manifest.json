@@ -1,7 +1,7 @@
 {
   "agent": "DeveloperAgent",
   "mission_id": "uac_bypass_fodhelper",
-  "timestamp": "2026-06-23T07:40:11.045900+00:00",
+  "timestamp": "2026-06-24T13:28:16.234826+00:00",
   "model": "gpt-4o",
   "total": 3,
   "successful": 3,
@@ -13,10 +13,10 @@
       "stage": "discovery",
       "mitre_techniques": [],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_073957_134921\\01_T1_discovery.py",
+      "path": "artifacts\\modules\\runtime_20260624_132750_442541\\01_T1_discovery.py",
       "metrics": {
         "syntax_valid": true,
-        "lines": 39,
+        "lines": 47,
         "has_main": true,
         "has_typing": true,
         "has_timeout": true,
@@ -34,7 +34,7 @@
       "stage": "privilege-escalation",
       "mitre_techniques": [],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_073957_134921\\02_T2_privilege_escalation.py",
+      "path": "artifacts\\modules\\runtime_20260624_132750_442541\\02_T2_privilege_escalation.py",
       "metrics": {
         "syntax_valid": true,
         "required_packages": [
@@ -56,29 +56,29 @@
     },
     {
       "task_id": "T3",
-      "intent": "Bypass UAC with Fodhelper",
+      "intent": "Spawn Elevated Process",
       "stage": "privilege-escalation",
       "mitre_techniques": [],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_073957_134921\\03_T3_privilege_escalation.py",
+      "path": "artifacts\\modules\\runtime_20260624_132750_442541\\03_T3_privilege_escalation.py",
       "metrics": {
         "syntax_valid": true,
-        "lines": 53,
+        "lines": 72,
         "has_main": true,
         "has_typing": true,
-        "has_timeout": true,
+        "has_timeout": false,
         "has_try": true,
-        "import_count": 3,
-        "quality": 10.0
+        "import_count": 5,
+        "quality": 9.0
       },
       "warnings": [],
       "generation_attempt": 1,
-      "code_preview": "#!/usr/bin/env python3\n\"\"\"Bypass UAC with Fodhelper to spawn an elevated process\"\"\"\nimport sys, json, time, subprocess\nfrom typing import Dict, Any\nimport os\n"
+      "code_preview": "#!/usr/bin/env python3\n\"\"\"Spawn Elevated Process using duplicated token via fodhelper.exe\"\"\"\nimport sys, json, time\nfrom typing import Dict, Any\nimport subprocess\nimport ctypes\nimport os\n"
     }
   ],
   "module_paths": [
-    "artifacts\\modules\\runtime_20260623_073957_134921\\01_T1_discovery.py",
-    "artifacts\\modules\\runtime_20260623_073957_134921\\02_T2_privilege_escalation.py",
-    "artifacts\\modules\\runtime_20260623_073957_134921\\03_T3_privilege_escalation.py"
+    "artifacts\\modules\\runtime_20260624_132750_442541\\01_T1_discovery.py",
+    "artifacts\\modules\\runtime_20260624_132750_442541\\02_T2_privilege_escalation.py",
+    "artifacts\\modules\\runtime_20260624_132750_442541\\03_T3_privilege_escalation.py"
   ]
 }

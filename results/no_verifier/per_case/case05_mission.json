@@ -18,7 +18,8 @@
       "os",
       "socket",
       "subprocess",
-      "ipaddress"
+      "scapy",
+      "json"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -30,7 +31,7 @@
       "task_id": "T1",
       "stage": "discovery",
       "intent": "Identify Active Network Connections",
-      "behavioral_goal": "Enumerate active network connections and listening ports on the local machine",
+      "behavioral_goal": "List all active network connections and listening ports on the system",
       "output_contract": {
         "schema": "NetworkConnections",
         "fields": {
@@ -49,8 +50,8 @@
       "mitre_candidates": [
         {
           "id": "T1049",
-          "reason": "network service scanning",
-          "score": 0.75,
+          "reason": "active network connections enumeration",
+          "score": 0.85,
           "source": "llm"
         },
         {
@@ -58,11 +59,17 @@
           "reason": "retrieval match: System Network Configuration Discovery",
           "score": 0.62,
           "source": "retrieval"
+        },
+        {
+          "id": "T1082",
+          "reason": "retrieval match: System Information Discovery",
+          "score": 0.53,
+          "source": "retrieval"
         }
       ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
-      "mapping_confidence": "medium",
+      "mapping_confidence": "high",
       "ambiguity_notes": ""
     },
     {
@@ -89,7 +96,7 @@
         {
           "id": "T1046",
           "reason": "network service scanning",
-          "score": 0.8,
+          "score": 0.9,
           "source": "llm"
         },
         {
@@ -101,14 +108,14 @@
       ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
-      "mapping_confidence": "medium",
+      "mapping_confidence": "high",
       "ambiguity_notes": ""
     },
     {
       "task_id": "T3",
       "stage": "discovery",
       "intent": "Gather ARP Table Entries",
-      "behavioral_goal": "Collect ARP table entries to map internal network topology",
+      "behavioral_goal": "Collect ARP table entries to map the internal network topology",
       "output_contract": {
         "schema": "ARPTable",
         "fields": {
@@ -126,8 +133,8 @@
       "mitre_candidates": [
         {
           "id": "T1016",
-          "reason": "system network configuration discovery | retrieval match: System Network Configuration Discovery",
-          "score": 0.72,
+          "reason": "network configuration discovery | retrieval match: System Network Configuration Discovery",
+          "score": 0.8,
           "source": "llm+retrieval"
         },
         {
@@ -139,8 +146,8 @@
       ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
-      "mapping_confidence": "low",
-      "ambiguity_notes": "close scores: T1016 vs T1005"
+      "mapping_confidence": "medium",
+      "ambiguity_notes": ""
     }
   ],
   "dataflow": [],
@@ -169,14 +176,14 @@
     ],
     "token_usage": {
       "prompt_tokens": 2145,
-      "completion_tokens": 830,
-      "total_tokens": 2975,
+      "completion_tokens": 833,
+      "total_tokens": 2978,
       "attempts": 1
     },
     "normalized_intent": "Identify active network connections and listening ports, scan the local subnet for open ports 445 and 3389, and gather ARP table entries to map the internal network topology.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:53:46.167222+00:00",
+  "ts_utc": "2026-06-24T13:18:53.746787+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Enumerate all active network connections and listening ports, scan the local subnet for open ports 445 and 3389 using raw TCP sockets, and collect ARP table entries to map the internal network topology.",

@@ -1,26 +1,27 @@
 {
   "mission_id": "reflective_pe_loader",
-  "intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels to erase execution evidence.",
-  "malware_type": "reflective_loader",
+  "intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels with wevtutil to erase execution evidence.",
+  "malware_type": "loader",
   "global_constraints": {
     "target_os_family": "windows",
-    "language_target": "python",
     "stealth_level": "high",
     "execution_model": "reflective",
     "forbidden_capabilities": [
       "self_propagation"
-    ]
+    ],
+    "language_target": "python"
   },
   "validation_rules": {
     "max_execution_time_seconds": 120,
     "max_memory_mb": 150,
     "allowed_modules": [
-      "windows.h",
-      "psapi.h"
+      "ctypes",
+      "os",
+      "subprocess"
     ],
     "forbidden_patterns": [
-      "CreateRemoteThread",
-      "WriteProcessMemory"
+      "eval\\(",
+      "exec\\("
     ]
   },
   "execution_graph": [
@@ -28,9 +29,9 @@
       "task_id": "T1",
       "stage": "execution",
       "intent": "Reflectively load PE payload",
-      "behavioral_goal": "Load a PE payload into memory using manual PE mapping techniques.",
+      "behavioral_goal": "Load a PE payload into memory using manual PE mapping techniques",
       "output_contract": {
-        "schema": "LoadedPE",
+        "schema": "MappedPE",
         "fields": {
           "memory_address": "integer",
           "size": "integer"
@@ -61,7 +62,7 @@
       "task_id": "T3",
       "stage": "defense-evasion",
       "intent": "Clear Windows Event Logs",
-      "behavioral_goal": "Clear Windows Event Logs for Security, System, and Application channels using wevtutil to erase execution evidence.",
+      "behavioral_goal": "Use wevtutil to clear Windows Event Logs for Security, System, and Application channels",
       "output_contract": {
         "schema": "LogClearanceStatus",
         "fields": {
@@ -87,7 +88,7 @@
       "mitre_candidates": [
         {
           "id": "T1070.001",
-          "reason": "clear Windows Event Logs to evade detection",
+          "reason": "clearing Windows Event Logs to evade detection",
           "score": 0.95,
           "source": "llm"
         },
@@ -107,7 +108,7 @@
       "task_id": "T2",
       "stage": "execution",
       "intent": "Execute PE payload",
-      "behavioral_goal": "Execute the loaded PE payload within a legitimate host process.",
+      "behavioral_goal": "Execute the loaded PE payload within a legitimate host process",
       "output_contract": {
         "schema": "ExecutionStatus",
         "fields": {
@@ -119,7 +120,7 @@
         "sources": [
           {
             "task_id": "T1",
-            "schema": "LoadedPE"
+            "schema": "MappedPE"
           }
         ]
       },
@@ -135,9 +136,9 @@
       "mitre_candidates": [
         {
           "id": "T1055",
-          "reason": "execute code within another process",
+          "reason": "execution of injected process | retrieval match: Process Injection",
           "score": 0.9,
-          "source": "llm"
+          "source": "llm+retrieval"
         },
         {
           "id": "T1204.002",
@@ -156,7 +157,7 @@
     {
       "from_task": "T1",
       "to_task": "T2",
-      "data_schema": "LoadedPE",
+      "data_schema": "MappedPE",
       "required": true,
       "transform": null
     }
@@ -210,14 +211,14 @@
     ],
     "token_usage": {
       "prompt_tokens": 2226,
-      "completion_tokens": 991,
-      "total_tokens": 3217,
+      "completion_tokens": 982,
+      "total_tokens": 3208,
       "attempts": 1
     },
     "normalized_intent": "Reflectively load a PE payload into memory using manual PE mapping, execute it within a legitimate host process, and clear Windows Event Logs for Security, System, and Application channels with wevtutil to erase execution evidence.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:42:56.524659+00:00",
+  "ts_utc": "2026-06-24T13:35:30.771600+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Reflectively load a PE payload directly into memory without writing to disk using manual PE mapping, execute it within the context of a legitimate host process, then clear Windows Event Logs for Security, System, and Application channels using wevtutil to erase evidence of execution.",

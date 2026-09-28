@@ -1,6 +1,6 @@
 {
-  "mission_id": "ransomware_encrypt_delete_note",
-  "intent": "Encrypt all user files, securely delete originals, and place a ransom note",
+  "mission_id": "encrypt_and_ransom_note",
+  "intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory.",
   "malware_type": "ransomware",
   "global_constraints": {
     "target_os_family": "windows",
@@ -73,7 +73,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "medium",
-      "ambiguity_notes": "conservative verified: 2 planner + 0 extra; top=T1083"
+      "ambiguity_notes": "conservative verified: 2 planner + 0 extra; top=T1083",
+      "_mission_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory."
     },
     {
       "task_id": "T2",
@@ -125,17 +126,19 @@
         }
       ],
       "mitre_techniques": [
+        "T1486",
         "T1204.002"
       ],
       "mitre_status": "verified",
-      "mapping_confidence": "medium",
-      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1204.002"
+      "mapping_confidence": "high",
+      "ambiguity_notes": "conservative verified: 3 planner + 0 extra; top=T1486",
+      "_mission_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory."
     },
     {
       "task_id": "T3",
       "stage": "defense-evasion",
       "intent": "Securely Delete Original Files",
-      "behavioral_goal": "Overwrite and delete original files to prevent recovery",
+      "behavioral_goal": "Securely delete the original files after encryption",
       "output_contract": {
         "schema": "DeletionStatus",
         "fields": {
@@ -162,7 +165,7 @@
       "mitre_candidates": [
         {
           "id": "T1070.004",
-          "reason": "file deletion to evade detection | retrieval match: File Deletion",
+          "reason": "file deletion to cover tracks | retrieval match: File Deletion",
           "score": 1.0,
           "source": "llm+retrieval"
         }
@@ -172,13 +175,14 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1070.004"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1070.004",
+      "_mission_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory."
     },
     {
       "task_id": "T4",
       "stage": "execution",
       "intent": "Drop Ransom Note",
-      "behavioral_goal": "Place a ransom note in each affected directory",
+      "behavioral_goal": "Place a ransom note in each directory containing encrypted files",
       "output_contract": {
         "schema": "RansomNoteStatus",
         "fields": {
@@ -204,25 +208,26 @@
       },
       "mitre_candidates": [
         {
+          "id": "T1486",
+          "reason": "retrieval match: Data Encrypted for Impact",
+          "score": 0.72,
+          "source": "retrieval"
+        },
+        {
           "id": "T1491.001",
           "reason": "note-dropping visible to user",
           "score": 0.61,
           "source": "llm"
-        },
-        {
-          "id": "T1486",
-          "reason": "retrieval match: Data Encrypted for Impact",
-          "score": 0.53,
-          "source": "retrieval"
         }
       ],
       "mitre_techniques": [
-        "T1491.001",
-        "T1486"
+        "T1486",
+        "T1491.001"
       ],
-      "mitre_status": "needs_verification",
-      "mapping_confidence": "low",
-      "ambiguity_notes": "no representative examples — kept planner candidate"
+      "mitre_status": "verified",
+      "mapping_confidence": "medium",
+      "ambiguity_notes": "ransom note may map differently depending on ontology | conservative verified: 2 planner + 0 extra; top=T1486",
+      "_mission_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory."
     }
   ],
   "dataflow": [
@@ -298,23 +303,23 @@
       }
     ],
     "token_usage": {
-      "prompt_tokens": 2641,
-      "completion_tokens": 1259,
-      "total_tokens": 3900,
+      "prompt_tokens": 2636,
+      "completion_tokens": 1276,
+      "total_tokens": 3912,
       "attempts": 1
     },
-    "normalized_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode with a randomly generated key, securely delete the originals, and place a ransom note in each affected directory.",
+    "normalized_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T09:56:51.275171+00:00",
+  "ts_utc": "2026-06-24T13:05:42.797604+00:00",
   "model_used": "gpt-4o",
   "task_count": 4,
   "original_intent": "Enumerate all user files on the local filesystem, encrypt each file using AES-256 in CBC mode with a randomly generated key, delete the original files securely, and write a ransom note to each affected directory.",
-  "normalized_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode with a randomly generated key, securely delete the originals, and place a ransom note in each affected directory.",
+  "normalized_intent": "Encrypt all user files on the local filesystem using AES-256 in CBC mode, securely delete the originals, and place a ransom note in each affected directory.",
   "verifier_summary": {
     "backend": "HybridVerifierV9",
-    "dataset_example_count": 36592,
-    "technique_count": 50,
+    "dataset_example_count": 36662,
+    "technique_count": 55,
     "mode": "hybrid_planner_prior_rules_scibert_with_fallback",
     "rep_per_technique": 200
   },
@@ -339,13 +344,13 @@
         "fallback_used": false,
         "planner_candidate_count": 3,
         "top_candidate_after_hybrid": "T1083",
-        "top_candidate_score": 1.0487
+        "top_candidate_score": 1.0481
       },
       "candidate_scores": [
         {
           "technique_id": "T1083",
-          "final_score": 1.0487,
-          "scibert_score": 0.8668,
+          "final_score": 1.0481,
+          "scibert_score": 0.8644,
           "planner_prior": 0.94,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -362,8 +367,8 @@
         },
         {
           "technique_id": "T1005",
-          "final_score": 0.6736,
-          "scibert_score": 0.8542,
+          "final_score": 0.6727,
+          "scibert_score": 0.8507,
           "planner_prior": 0.7,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -380,8 +385,8 @@
         },
         {
           "technique_id": "T1033",
-          "final_score": 0.5072,
-          "scibert_score": 0.885,
+          "final_score": 0.5055,
+          "scibert_score": 0.8778,
           "planner_prior": 0.62,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -409,21 +414,38 @@
         "T1204.002"
       ],
       "final_mitre_techniques": [
+        "T1486",
         "T1204.002"
       ],
       "mitre_status": "verified",
-      "mapping_confidence": "medium",
+      "mapping_confidence": "high",
       "decision_trace": {
         "fallback_used": false,
         "planner_candidate_count": 3,
-        "top_candidate_after_hybrid": "T1204.002",
-        "top_candidate_score": 0.7951
+        "top_candidate_after_hybrid": "T1486",
+        "top_candidate_score": 0.8537
       },
       "candidate_scores": [
         {
+          "technique_id": "T1486",
+          "final_score": 0.8537,
+          "scibert_score": 0.7747,
+          "planner_prior": 1.0,
+          "stage_fit": 0.7,
+          "support_bonus": 1.0,
+          "support_count": 20,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: Generate encryption keys and encrypt sensitive files",
+            "tram2: Encrypt files stored on network shares",
+            "tram2: Use AES encryption to lock victim documents"
+          ]
+        },
+        {
           "technique_id": "T1204.002",
-          "final_score": 0.7951,
-          "scibert_score": 0.8405,
+          "final_score": 0.7945,
+          "scibert_score": 0.8378,
           "planner_prior": 0.45,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -435,6 +457,22 @@
             "tram2: The process then involves directing the user to a malicious download, which disguises the Crypter and its payload within a seemingly legitim",
             "tram2: If a user opens an attachment or clicks on a link within these emails, which may be malicious, they could unintentionally allow a cyber acto"
           ]
+        },
+        {
+          "technique_id": "T1485",
+          "final_score": 0.6773,
+          "scibert_score": 0.7293,
+          "planner_prior": 0.45,
+          "stage_fit": 0.7,
+          "support_bonus": 1.0,
+          "support_count": 20,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: Delete critical files from local storage",
+            "tram2: Overwrite files with random bytes",
+            "tram2: Permanently erase files to prevent recovery"
+          ]
         }
       ]
     },
@@ -442,7 +480,7 @@
       "task_id": "T3",
       "stage": "defense-evasion",
       "intent": "Securely Delete Original Files",
-      "behavioral_goal": "Overwrite and delete original files to prevent recovery",
+      "behavioral_goal": "Securely delete the original files after encryption",
       "planner_candidate_ids": [
         "T1070.004"
       ],
@@ -455,13 +493,13 @@
         "fallback_used": false,
         "planner_candidate_count": 1,
         "top_candidate_after_hybrid": "T1070.004",
-        "top_candidate_score": 1.0558
+        "top_candidate_score": 1.0556
       },
       "candidate_scores": [
         {
           "technique_id": "T1070.004",
-          "final_score": 1.0558,
-          "scibert_score": 0.8233,
+          "final_score": 1.0556,
+          "scibert_score": 0.8224,
           "planner_prior": 1.0,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -482,22 +520,57 @@
       "task_id": "T4",
       "stage": "execution",
       "intent": "Drop Ransom Note",
-      "behavioral_goal": "Place a ransom note in each affected directory",
+      "behavioral_goal": "Place a ransom note in each directory containing encrypted files",
       "planner_candidate_ids": [
-        "T1491.001",
-        "T1486"
+        "T1486",
+        "T1491.001"
       ],
       "final_mitre_techniques": [
-        "T1491.001",
-        "T1486"
+        "T1486",
+        "T1491.001"
       ],
-      "mitre_status": "needs_verification",
-      "mapping_confidence": "low",
+      "mitre_status": "verified",
+      "mapping_confidence": "medium",
       "decision_trace": {
         "fallback_used": false,
-        "reason": "no_examples_keep_planner"
+        "planner_candidate_count": 2,
+        "top_candidate_after_hybrid": "T1486",
+        "top_candidate_score": 0.7663
       },
-      "candidate_scores": []
+      "candidate_scores": [
+        {
+          "technique_id": "T1486",
+          "final_score": 0.7663,
+          "scibert_score": 0.7612,
+          "planner_prior": 0.72,
+          "stage_fit": 0.7,
+          "support_bonus": 1.0,
+          "support_count": 20,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: Generate encryption keys and encrypt sensitive files",
+            "tram2: Encrypt files stored on network shares",
+            "tram2: Use AES encryption to lock victim documents"
+          ]
+        },
+        {
+          "technique_id": "T1491.001",
+          "final_score": 0.7426,
+          "scibert_score": 0.7985,
+          "planner_prior": 0.61,
+          "stage_fit": 0.7,
+          "support_bonus": 1.0,
+          "support_count": 10,
+          "source": "candidate_rerank",
+          "rule_notes": [],
+          "top_reasons": [
+            "tram2: Display a ransom note on the victim desktop",
+            "tram2: Show an attacker-controlled ransom message to the user",
+            "tram2: Modify the user interface to display attacker demands"
+          ]
+        }
+      ]
     }
   ]
 }

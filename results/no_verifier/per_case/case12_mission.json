@@ -1,7 +1,7 @@
 {
   "mission_id": "uac_bypass_fodhelper",
-  "intent": "Identify and duplicate a high-integrity process token to spawn an elevated process by bypassing UAC using the fodhelper.exe auto-elevation technique.",
-  "malware_type": "privilege-escalation",
+  "intent": "Identify and duplicate a high-integrity process token to spawn an elevated process using the fodhelper.exe auto-elevation technique, bypassing UAC.",
+  "malware_type": "elevation_tool",
   "global_constraints": {
     "target_os_family": "windows",
     "language_target": "python",
@@ -15,11 +15,9 @@
     "max_execution_time_seconds": 60,
     "max_memory_mb": 150,
     "allowed_modules": [
-      "ctypes",
-      "win32api",
-      "win32process",
-      "win32security",
-      "os"
+      "windows.h",
+      "processthreadsapi.h",
+      "securitybaseapi.h"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -31,7 +29,7 @@
       "task_id": "T1",
       "stage": "discovery",
       "intent": "Identify High-Integrity Process",
-      "behavioral_goal": "Enumerate running processes to find a high-integrity process for token duplication",
+      "behavioral_goal": "Discover a running process with high integrity level to duplicate its token",
       "output_contract": {
         "schema": "ProcessInfo",
         "fields": {
@@ -43,15 +41,14 @@
       "error_contract": {
         "on_failure": "return_partial",
         "required_fields": [
-          "process_id",
-          "integrity_level"
+          "process_id"
         ],
         "fallback_value": null
       },
       "mitre_candidates": [
         {
           "id": "T1057",
-          "reason": "process discovery | retrieval match: Process Discovery",
+          "reason": "Process Discovery | retrieval match: Process Discovery",
           "score": 1.0,
           "source": "llm+retrieval"
         }
@@ -65,7 +62,7 @@
       "task_id": "T2",
       "stage": "privilege-escalation",
       "intent": "Duplicate Process Token",
-      "behavioral_goal": "Duplicate the token of a high-integrity process to use for spawning an elevated process",
+      "behavioral_goal": "Duplicate the token of the identified high-integrity process",
       "output_contract": {
         "schema": "TokenInfo",
         "fields": {
@@ -91,15 +88,9 @@
       "mitre_candidates": [
         {
           "id": "T1134.001",
-          "reason": "access token manipulation | retrieval match: Access Token Manipulation",
+          "reason": "Access Token Manipulation | retrieval match: Access Token Manipulation",
           "score": 0.75,
           "source": "llm+retrieval"
-        },
-        {
-          "id": "T1548.002",
-          "reason": "retrieval match: Bypass User Account Control",
-          "score": 0.45,
-          "source": "retrieval"
         }
       ],
       "mitre_techniques": [],
@@ -110,10 +101,10 @@
     {
       "task_id": "T3",
       "stage": "privilege-escalation",
-      "intent": "Bypass UAC with Fodhelper",
-      "behavioral_goal": "Use the fodhelper.exe auto-elevation technique to spawn an elevated process",
+      "intent": "Spawn Elevated Process",
+      "behavioral_goal": "Use the duplicated token to spawn an elevated process via fodhelper.exe",
       "output_contract": {
-        "schema": "ExecutionResult",
+        "schema": "ProcessCreationStatus",
         "fields": {
           "process_id": "integer",
           "elevated": "boolean"
@@ -136,15 +127,21 @@
       },
       "mitre_candidates": [
         {
+          "id": "T1134.001",
+          "reason": "retrieval match: Access Token Manipulation",
+          "score": 0.75,
+          "source": "retrieval"
+        },
+        {
           "id": "T1548.002",
-          "reason": "bypass user account control | retrieval match: Bypass User Account Control",
-          "score": 1.0,
-          "source": "llm+retrieval"
+          "reason": "retrieval match: Bypass User Account Control",
+          "score": 0.45,
+          "source": "retrieval"
         }
       ],
       "mitre_techniques": [],
       "mitre_status": "needs_verification",
-      "mapping_confidence": "high",
+      "mapping_confidence": "medium",
       "ambiguity_notes": ""
     }
   ],
@@ -175,12 +172,6 @@
     "planner_temperature": 0.3,
     "intent_retrieval_hints": [
       {
-        "id": "T1548",
-        "stage": "privilege-escalation",
-        "name": "Abuse Elevation Control Mechanism",
-        "score": 0.6
-      },
-      {
         "id": "T1057",
         "stage": "discovery",
         "name": "Process Discovery",
@@ -193,24 +184,24 @@
         "score": 0.5
       },
       {
-        "id": "T1548.002",
+        "id": "T1548",
         "stage": "privilege-escalation",
-        "name": "Bypass User Account Control",
-        "score": 0.4
+        "name": "Abuse Elevation Control Mechanism",
+        "score": 0.35
       }
     ],
     "token_usage": {
-      "prompt_tokens": 2210,
-      "completion_tokens": 1008,
-      "total_tokens": 3218,
+      "prompt_tokens": 2185,
+      "completion_tokens": 985,
+      "total_tokens": 3170,
       "attempts": 1
     },
-    "normalized_intent": "Identify and duplicate a high-integrity process token to spawn an elevated process by bypassing UAC using the fodhelper.exe auto-elevation technique.",
+    "normalized_intent": "Identify and duplicate a high-integrity process token to spawn an elevated process using the fodhelper.exe auto-elevation technique, bypassing UAC.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:39:55.977949+00:00",
+  "ts_utc": "2026-06-24T13:27:48.454320+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Enumerate running processes to find a token belonging to a high-integrity process, duplicate the token using DuplicateTokenEx, and use it to spawn a new elevated process while bypassing UAC via the fodhelper.exe auto-elevation technique.",
-  "normalized_intent": "Identify and duplicate a high-integrity process token to spawn an elevated process by bypassing UAC using the fodhelper.exe auto-elevation technique."
+  "normalized_intent": "Identify and duplicate a high-integrity process token to spawn an elevated process using the fodhelper.exe auto-elevation technique, bypassing UAC."
 }

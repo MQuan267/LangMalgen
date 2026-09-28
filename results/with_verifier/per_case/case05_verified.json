@@ -16,9 +16,9 @@
     "max_memory_mb": 100,
     "allowed_modules": [
       "os",
-      "subprocess",
       "socket",
-      "ipaddress"
+      "subprocess",
+      "json"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -49,7 +49,7 @@
       "mitre_candidates": [
         {
           "id": "T1049",
-          "reason": "active network connections enumeration",
+          "reason": "active network connection enumeration",
           "score": 0.85,
           "source": "llm"
         },
@@ -65,7 +65,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "verified via hybrid scoring; top=T1016"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1016",
+      "_mission_intent": "Identify active network connections and listening ports, scan the local subnet for open ports 445 and 3389, and gather ARP table entries to map the internal network topology."
     },
     {
       "task_id": "T2",
@@ -105,15 +106,16 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "medium",
-      "ambiguity_notes": "verified via hybrid scoring; top=T1016"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1016",
+      "_mission_intent": "Identify active network connections and listening ports, scan the local subnet for open ports 445 and 3389, and gather ARP table entries to map the internal network topology."
     },
     {
       "task_id": "T3",
       "stage": "discovery",
       "intent": "Gather ARP Table Entries",
-      "behavioral_goal": "Collect ARP table entries to map the internal network topology",
+      "behavioral_goal": "Collect ARP table entries to map internal network topology",
       "output_contract": {
-        "schema": "ARPTable",
+        "schema": "ARPEntries",
         "fields": {
           "arp_entries": "array"
         }
@@ -129,8 +131,8 @@
       "mitre_candidates": [
         {
           "id": "T1016",
-          "reason": "ARP table discovery | retrieval match: System Network Configuration Discovery",
-          "score": 0.88,
+          "reason": "network configuration discovery | retrieval match: System Network Configuration Discovery",
+          "score": 0.75,
           "source": "llm+retrieval"
         },
         {
@@ -146,7 +148,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "multi-label verified via hybrid scoring; both supported (T1005, T1016) | scores are close and both retained"
+      "ambiguity_notes": "close scores: T1016 vs T1005 | conservative verified: 2 planner + 0 extra; top=T1005",
+      "_mission_intent": "Identify active network connections and listening ports, scan the local subnet for open ports 445 and 3389, and gather ARP table entries to map the internal network topology."
     }
   ],
   "dataflow": [],
@@ -175,22 +178,22 @@
     ],
     "token_usage": {
       "prompt_tokens": 2145,
-      "completion_tokens": 824,
-      "total_tokens": 2969,
+      "completion_tokens": 822,
+      "total_tokens": 2967,
       "attempts": 1
     },
     "normalized_intent": "Identify active network connections and listening ports, scan the local subnet for open ports 445 and 3389, and gather ARP table entries to map the internal network topology.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:10:28.523744+00:00",
+  "ts_utc": "2026-06-24T12:58:50.630794+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Enumerate all active network connections and listening ports, scan the local subnet for open ports 445 and 3389 using raw TCP sockets, and collect ARP table entries to map the internal network topology.",
   "normalized_intent": "Identify active network connections and listening ports, scan the local subnet for open ports 445 and 3389, and gather ARP table entries to map the internal network topology.",
   "verifier_summary": {
     "backend": "HybridVerifierV9",
-    "dataset_example_count": 36592,
-    "technique_count": 50,
+    "dataset_example_count": 36662,
+    "technique_count": 55,
     "mode": "hybrid_planner_prior_rules_scibert_with_fallback",
     "rep_per_technique": 200
   },
@@ -277,7 +280,7 @@
       "task_id": "T3",
       "stage": "discovery",
       "intent": "Gather ARP Table Entries",
-      "behavioral_goal": "Collect ARP table entries to map the internal network topology",
+      "behavioral_goal": "Collect ARP table entries to map internal network topology",
       "planner_candidate_ids": [
         "T1016",
         "T1005"
@@ -292,13 +295,13 @@
         "fallback_used": false,
         "planner_candidate_count": 2,
         "top_candidate_after_hybrid": "T1005",
-        "top_candidate_score": 0.9571
+        "top_candidate_score": 0.9579
       },
       "candidate_scores": [
         {
           "technique_id": "T1005",
-          "final_score": 0.9571,
-          "scibert_score": 0.8123,
+          "final_score": 0.9579,
+          "scibert_score": 0.8157,
           "planner_prior": 0.68,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -315,9 +318,9 @@
         },
         {
           "technique_id": "T1016",
-          "final_score": 0.926,
-          "scibert_score": 0.8479,
-          "planner_prior": 0.88,
+          "final_score": 0.8876,
+          "scibert_score": 0.8505,
+          "planner_prior": 0.75,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
           "support_count": 383,

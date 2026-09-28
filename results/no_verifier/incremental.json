@@ -10,7 +10,6 @@
     "errors": [],
     "predicted_ttps": [
       "T1005",
-      "T1027",
       "T1071.001"
     ],
     "ground_truth_tram2": [
@@ -26,19 +25,19 @@
       "T1071.001"
     ],
     "metrics_tram2": {
-      "precision": 0.6667,
-      "recall": 0.5,
-      "f1": 0.5714,
-      "tp": 2,
+      "precision": 0.5,
+      "recall": 0.25,
+      "f1": 0.3333,
+      "tp": 1,
       "fp": 1,
-      "fn": 2
+      "fn": 3
     },
     "metrics_full": {
-      "precision": 0.3333,
+      "precision": 0.5,
       "recall": 0.25,
-      "f1": 0.2857,
+      "f1": 0.3333,
       "tp": 1,
-      "fp": 2,
+      "fp": 1,
       "fn": 3
     },
     "verifier_fallback": {},
@@ -47,8 +46,8 @@
       "total_modules": 3,
       "successful_modules": 3,
       "success_rate": 1.0,
-      "avg_quality_score": 8.6667,
-      "avg_loc": 49.3,
+      "avg_quality_score": 8.8333,
+      "avg_loc": 48.3,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -70,7 +69,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 2,
@@ -116,7 +117,7 @@
       "successful_modules": 3,
       "success_rate": 1.0,
       "avg_quality_score": 8.8333,
-      "avg_loc": 53.7,
+      "avg_loc": 52.7,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -129,7 +130,7 @@
         "task_T3"
       ],
       "task_fn_count": 3,
-      "loc": 198,
+      "loc": 197,
       "reason": null
     },
     "token_usage": {
@@ -138,7 +139,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 3,
@@ -184,7 +187,7 @@
       "successful_modules": 3,
       "success_rate": 1.0,
       "avg_quality_score": 8.8333,
-      "avg_loc": 59.3,
+      "avg_loc": 73.7,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -197,7 +200,7 @@
         "task_T3"
       ],
       "task_fn_count": 3,
-      "loc": 218,
+      "loc": 261,
       "reason": null
     },
     "token_usage": {
@@ -206,7 +209,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 4,
@@ -255,8 +260,8 @@
       "successful_modules": 3,
       "success_rate": 1.0,
       "avg_quality_score": 9.0,
-      "avg_loc": 31.0,
-      "avg_attempts": 1.0
+      "avg_loc": 33.0,
+      "avg_attempts": 1.67
     },
     "artifact_validity": {
       "artifact_valid": true,
@@ -268,7 +273,7 @@
         "task_T3"
       ],
       "task_fn_count": 3,
-      "loc": 135,
+      "loc": 142,
       "reason": null
     },
     "token_usage": {
@@ -277,7 +282,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 5,
@@ -325,7 +332,7 @@
       "successful_modules": 3,
       "success_rate": 1.0,
       "avg_quality_score": 9.6667,
-      "avg_loc": 38.7,
+      "avg_loc": 40.0,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -338,7 +345,7 @@
         "task_T3"
       ],
       "task_fn_count": 3,
-      "loc": 159,
+      "loc": 163,
       "reason": null
     },
     "token_usage": {
@@ -347,7 +354,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 6,
@@ -398,9 +407,9 @@
       "total_modules": 5,
       "successful_modules": 5,
       "success_rate": 1.0,
-      "avg_quality_score": 8.7,
+      "avg_quality_score": 8.5,
       "avg_loc": 50.6,
-      "avg_attempts": 1.2
+      "avg_attempts": 1.0
     },
     "artifact_validity": {
       "artifact_valid": true,
@@ -414,7 +423,7 @@
         "task_T5"
       ],
       "task_fn_count": 5,
-      "loc": 300,
+      "loc": 301,
       "reason": null
     },
     "token_usage": {
@@ -423,7 +432,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 7,
@@ -471,8 +482,8 @@
       "total_modules": 3,
       "successful_modules": 3,
       "success_rate": 1.0,
-      "avg_quality_score": 8.6667,
-      "avg_loc": 46.0,
+      "avg_quality_score": 9.0,
+      "avg_loc": 42.3,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -485,7 +496,7 @@
         "task_T3"
       ],
       "task_fn_count": 3,
-      "loc": 171,
+      "loc": 162,
       "reason": null
     },
     "token_usage": {
@@ -494,7 +505,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 8,
@@ -544,7 +557,7 @@
       "successful_modules": 4,
       "success_rate": 1.0,
       "avg_quality_score": 9.75,
-      "avg_loc": 39.8,
+      "avg_loc": 37.5,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -558,7 +571,7 @@
         "task_T4"
       ],
       "task_fn_count": 4,
-      "loc": 202,
+      "loc": 193,
       "reason": null
     },
     "token_usage": {
@@ -567,7 +580,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 9,
@@ -575,7 +590,7 @@
     "mode": "no_verifier",
     "intent": "Enumerate all user files on the local filesystem, encrypt each file using AES-256 in CBC mode with a...",
     "ground_truth_stage": "Ransomware Behavior",
-    "evaluation_note": "T1491 is outside the TRAM2 50-technique index and is excluded from the main verifier score.",
+    "evaluation_note": "T1486, T1485, and T1491.001 have been added to the expanded TRAM2 verifier index; ransomware behavior is evaluated through file discovery, data encryption, data destruction, and ransom-note/internal defacement behavior.",
     "status": "success",
     "errors": [],
     "predicted_ttps": [
@@ -586,21 +601,22 @@
     "ground_truth_tram2": [
       "T1083",
       "T1486",
-      "T1485"
+      "T1485",
+      "T1491.001"
     ],
     "ground_truth_full": [
       "T1083",
       "T1486",
       "T1485",
-      "T1491"
+      "T1491.001"
     ],
     "metrics_tram2": {
       "precision": 0.6667,
-      "recall": 0.6667,
-      "f1": 0.6667,
+      "recall": 0.5,
+      "f1": 0.5714,
       "tp": 2,
       "fp": 1,
-      "fn": 1
+      "fn": 2
     },
     "metrics_full": {
       "precision": 0.6667,
@@ -617,7 +633,7 @@
       "successful_modules": 4,
       "success_rate": 1.0,
       "avg_quality_score": 8.375,
-      "avg_loc": 45.8,
+      "avg_loc": 47.8,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -640,7 +656,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 10,
@@ -692,8 +710,8 @@
       "successful_modules": 4,
       "success_rate": 1.0,
       "avg_quality_score": 9.5,
-      "avg_loc": 46.0,
-      "avg_attempts": 1.25
+      "avg_loc": 47.2,
+      "avg_attempts": 1.0
     },
     "artifact_validity": {
       "artifact_valid": true,
@@ -706,7 +724,7 @@
         "task_T4"
       ],
       "task_fn_count": 4,
-      "loc": 193,
+      "loc": 200,
       "reason": null
     },
     "token_usage": {
@@ -715,7 +733,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 11,
@@ -723,19 +743,20 @@
     "mode": "no_verifier",
     "intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifact...",
     "ground_truth_stage": "Anti-Analysis + Sandbox Evasion",
-    "evaluation_note": "The anti-sandbox TTPs are outside the TRAM2 index. This case should be used as an out-of-coverage stress test, not as part of the main verifier score.",
+    "evaluation_note": "T1497.001 and T1497.003 have been added to the expanded TRAM2 verifier index. Debugger detection is represented in full ATT&CK as T1622, but it is not part of the current verifier index and is excluded from the TRAM2 score.",
     "status": "success",
     "errors": [],
     "predicted_ttps": [
       "T1012"
     ],
     "ground_truth_tram2": [
-      "T1027"
+      "T1497.001",
+      "T1497.003"
     ],
     "ground_truth_full": [
       "T1497.001",
       "T1497.003",
-      "T1027.002"
+      "T1622"
     ],
     "metrics_tram2": {
       "precision": 0.0,
@@ -743,7 +764,7 @@
       "f1": 0.0,
       "tp": 0,
       "fp": 1,
-      "fn": 1
+      "fn": 2
     },
     "metrics_full": {
       "precision": 0.0,
@@ -780,7 +801,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 12,
@@ -793,8 +816,7 @@
     "errors": [],
     "predicted_ttps": [
       "T1057",
-      "T1134.001",
-      "T1548.002"
+      "T1134.001"
     ],
     "ground_truth_tram2": [
       "T1057",
@@ -807,20 +829,20 @@
       "T1078.003"
     ],
     "metrics_tram2": {
-      "precision": 0.6667,
-      "recall": 0.6667,
-      "f1": 0.6667,
-      "tp": 2,
+      "precision": 0.5,
+      "recall": 0.3333,
+      "f1": 0.4,
+      "tp": 1,
       "fp": 1,
-      "fn": 1
+      "fn": 2
     },
     "metrics_full": {
-      "precision": 0.3333,
-      "recall": 0.3333,
-      "f1": 0.3333,
-      "tp": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
       "fp": 2,
-      "fn": 2
+      "fn": 3
     },
     "verifier_fallback": {},
     "task_summary": [],
@@ -828,8 +850,8 @@
       "total_modules": 3,
       "successful_modules": 3,
       "success_rate": 1.0,
-      "avg_quality_score": 9.5,
-      "avg_loc": 49.7,
+      "avg_quality_score": 9.1667,
+      "avg_loc": 58.7,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -842,7 +864,7 @@
         "task_T3"
       ],
       "task_fn_count": 3,
-      "loc": 185,
+      "loc": 211,
       "reason": null
     },
     "token_usage": {
@@ -851,7 +873,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 13,
@@ -865,6 +889,7 @@
     "predicted_ttps": [
       "T1115",
       "T1036.005",
+      "T1005",
       "T1041"
     ],
     "ground_truth_tram2": [
@@ -877,19 +902,19 @@
       "T1041"
     ],
     "metrics_tram2": {
-      "precision": 0.3333,
+      "precision": 0.25,
       "recall": 0.5,
-      "f1": 0.4,
+      "f1": 0.3333,
       "tp": 1,
-      "fp": 2,
+      "fp": 3,
       "fn": 1
     },
     "metrics_full": {
-      "precision": 0.6667,
+      "precision": 0.5,
       "recall": 0.6667,
-      "f1": 0.6667,
+      "f1": 0.5714,
       "tp": 2,
-      "fp": 1,
+      "fp": 2,
       "fn": 1
     },
     "verifier_fallback": {},
@@ -913,7 +938,7 @@
         "task_T4"
       ],
       "task_fn_count": 4,
-      "loc": 225,
+      "loc": 226,
       "reason": null
     },
     "token_usage": {
@@ -922,7 +947,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 14,
@@ -971,7 +998,7 @@
       "successful_modules": 3,
       "success_rate": 1.0,
       "avg_quality_score": 9.0,
-      "avg_loc": 36.7,
+      "avg_loc": 37.0,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -984,7 +1011,7 @@
         "task_T3"
       ],
       "task_fn_count": 3,
-      "loc": 146,
+      "loc": 149,
       "reason": null
     },
     "token_usage": {
@@ -993,7 +1020,9 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   },
   {
     "sample_id": 15,
@@ -1039,8 +1068,8 @@
       "total_modules": 3,
       "successful_modules": 3,
       "success_rate": 1.0,
-      "avg_quality_score": 9.6667,
-      "avg_loc": 44.0,
+      "avg_quality_score": 9.3333,
+      "avg_loc": 48.0,
       "avg_attempts": 1.0
     },
     "artifact_validity": {
@@ -1053,7 +1082,7 @@
         "task_T3"
       ],
       "task_fn_count": 3,
-      "loc": 168,
+      "loc": 182,
       "reason": null
     },
     "token_usage": {
@@ -1062,6 +1091,8 @@
       "total": 0,
       "cost_usd": 0,
       "by_stage": {}
-    }
+    },
+    "elapsed_sec": 0.0,
+    "model": "unknown"
   }
 ]

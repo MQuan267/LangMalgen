@@ -13,11 +13,11 @@
   },
   "validation_rules": {
     "max_execution_time_seconds": 120,
-    "max_memory_mb": 150,
+    "max_memory_mb": 50,
     "allowed_modules": [
       "os",
-      "base64",
-      "xor"
+      "subprocess",
+      "base64"
     ],
     "forbidden_patterns": [
       "eval\\(",
@@ -215,15 +215,15 @@
       }
     ],
     "token_usage": {
-      "prompt_tokens": 4521,
-      "completion_tokens": 1934,
-      "total_tokens": 6455,
-      "attempts": 2
+      "prompt_tokens": 2240,
+      "completion_tokens": 970,
+      "total_tokens": 3210,
+      "attempts": 1
     },
     "normalized_intent": "Place a malicious DLL in a system PATH directory to exploit DLL search order hijacking, encode the payload with base64 and XOR to evade detection, and delete the original dropper file to eliminate forensic evidence.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:56:18.785719+00:00",
+  "ts_utc": "2026-06-24T13:21:14.011215+00:00",
   "model_used": "gpt-4o",
   "task_count": 3,
   "original_intent": "Copy a malicious DLL to a directory in the system PATH to exploit DLL search order hijacking, encode the payload using base64 and XOR obfuscation to evade static detection, and delete the original dropper file to remove forensic evidence.",

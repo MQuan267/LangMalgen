@@ -1,51 +1,54 @@
 #!/usr/bin/env python3
-"""Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox)"""
+"""Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts."""
 import sys
 import json
 import time
 import os
-import subprocess
 import platform
+import subprocess
 from typing import Dict, Any
 import winreg
 
-def check_system_uptime() -> bool:
-    """Check if the system uptime is less than a threshold (e.g., 10 minutes)"""
+def check_uptime() -> bool:
+    """Check if the system uptime is suspiciously low (e.g., less than 10 minutes)."""
     try:
         output = subprocess.run(['net', 'stats', 'srv'], capture_output=True, text=True, timeout=5)
         if output.returncode == 0:
             for line in output.stdout.splitlines():
                 if "Statistics since" in line:
+                    # Extract the uptime timestamp and calculate the difference
                     uptime_str = line.split("since")[1].strip()
-                    # Simplified uptime check logic
-                    return "minutes" in uptime_str and int(uptime_str.split()[0]) < 10
+                    uptime_time = time.strptime(uptime_str, "%m/%d/%Y %I:%M:%S %p")
+                    uptime_seconds = time.mktime(time.localtime()) - time.mktime(uptime_time)
+                    return uptime_seconds < 600  # Less than 10 minutes
     except Exception:
         pass
     return False
 
 def check_ram_size() -> bool:
-    """Check if the RAM size is less than a threshold (e.g., 2GB)"""
+    """Check if the system has a small amount of RAM (e.g., less than 2GB)."""
     try:
-        mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
-        mem_gb = mem_bytes / (1024. ** 3)
-        return mem_gb < 2
-    except (ValueError, AttributeError, OSError):
+        output = subprocess.run(['wmic', 'ComputerSystem', 'get', 'TotalPhysicalMemory'], capture_output=True, text=True, timeout=5)
+        if output.returncode == 0:
+            lines = output.stdout.splitlines()
+            if len(lines) > 1:
+                total_memory = int(lines[1].strip())
+                return total_memory < 2 * 1024 * 1024 * 1024  # Less than 2GB
+    except Exception:
         pass
     return False
 
-def check_virtual_machine_artifacts() -> bool:
-    """Check for VMware/VirtualBox artifacts in the registry"""
-    vm_artifacts = [
+def check_vm_artifacts() -> bool:
+    """Check for virtual machine artifacts in the registry."""
+    vm_indicators = [
         r"SYSTEM\CurrentControlSet\Services\VBoxGuest",
-        r"SYSTEM\CurrentControlSet\Services\VBoxService",
-        r"SYSTEM\CurrentControlSet\Services\vmci",
-        r"SYSTEM\CurrentControlSet\Services\vmhgfs",
-        r"SYSTEM\CurrentControlSet\Services\vmusbmouse"
+        r"SYSTEM\CurrentControlSet\Services\vmicheartbeat",
+        r"SOFTWARE\VMware, Inc.\VMware Tools"
     ]
     try:
-        for artifact in vm_artifacts:
+        for indicator in vm_indicators:
             try:
-                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, artifact) as key:
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, indicator) as key:
                     return True
             except FileNotFoundError:
                 continue
@@ -57,9 +60,13 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        is_sandbox = check_system_uptime() or check_ram_size() or check_virtual_machine_artifacts()
-        status = "sandbox_detected" if is_sandbox else "environment_safe"
-        result = {"uptime_check": check_system_uptime(), "ram_check": check_ram_size(), "vm_check": check_virtual_machine_artifacts()}
+        sandbox_detected = check_uptime() or check_ram_size() or check_vm_artifacts()
+        status = "sandbox_detected" if sandbox_detected else "environment_safe"
+        result = {
+            "uptime_check": check_uptime(),
+            "ram_check": check_ram_size(),
+            "vm_artifacts_check": check_vm_artifacts()
+        }
         return {'success': True, 'data': {'status': status, 'result': json.dumps(result)},
                 'metadata': {'task_id': 'T1', 'execution_time': time.time()-start}}
     except Exception as e:

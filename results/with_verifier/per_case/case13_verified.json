@@ -1,6 +1,6 @@
 {
   "mission_id": "crypto_wallet_clipper",
-  "intent": "Monitor clipboard to detect and replace cryptocurrency wallet addresses, log clipboard content for exfiltration",
+  "intent": "Monitor clipboard to detect and replace cryptocurrency wallet addresses, and log clipboard content for exfiltration",
   "malware_type": "clipper",
   "global_constraints": {
     "target_os_family": "windows",
@@ -108,7 +108,8 @@
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1036.005"
+      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1036.005",
+      "_mission_intent": "Monitor the Windows clipboard to detect and replace cryptocurrency wallet addresses with an attacker-controlled address using regex, while logging all clipboard content for periodic exfiltration to a C2 server."
     },
     {
       "task_id": "T3",
@@ -116,10 +117,9 @@
       "intent": "Log Clipboard Content",
       "behavioral_goal": "Log all clipboard content for later exfiltration",
       "output_contract": {
-        "schema": "LogStatus",
+        "schema": "LogFile",
         "fields": {
-          "logged": "boolean",
-          "log_file_path": "string"
+          "log_path": "string"
         }
       },
       "input_contract": {
@@ -133,11 +133,10 @@
       "error_contract": {
         "on_failure": "return_partial",
         "required_fields": [
-          "logged"
+          "log_path"
         ],
         "fallback_value": {
-          "logged": false,
-          "log_file_path": ""
+          "log_path": ""
         }
       },
       "mitre_candidates": [],
@@ -150,28 +149,28 @@
       "task_id": "T4",
       "stage": "exfiltration",
       "intent": "Exfiltrate Logs",
-      "behavioral_goal": "Periodically exfiltrate logged clipboard content to a C2 server",
+      "behavioral_goal": "Periodically exfiltrate clipboard log content to a C2 server",
       "output_contract": {
         "schema": "ExfiltrationStatus",
         "fields": {
-          "exfiltrated": "boolean"
+          "success": "boolean"
         }
       },
       "input_contract": {
         "sources": [
           {
             "task_id": "T3",
-            "schema": "LogStatus"
+            "schema": "LogFile"
           }
         ]
       },
       "error_contract": {
         "on_failure": "retry",
         "required_fields": [
-          "exfiltrated"
+          "success"
         ],
         "fallback_value": {
-          "exfiltrated": false
+          "success": false
         }
       },
       "mitre_candidates": [
@@ -182,24 +181,26 @@
           "source": "llm+retrieval"
         },
         {
+          "id": "T1071.001",
+          "reason": "exfiltration using web protocols | retrieval match: Web Protocols",
+          "score": 0.75,
+          "source": "llm+retrieval"
+        },
+        {
           "id": "T1105",
           "reason": "retrieval match: Ingress Tool Transfer",
           "score": 0.55,
           "source": "retrieval"
-        },
-        {
-          "id": "T1071.001",
-          "reason": "exfiltration using web protocols | retrieval match: Web Protocols",
-          "score": 0.5,
-          "source": "llm+retrieval"
         }
       ],
       "mitre_techniques": [
-        "T1041"
+        "T1041",
+        "T1071.001"
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
-      "ambiguity_notes": "conservative verified: 1 planner + 0 extra; top=T1041"
+      "ambiguity_notes": "conservative verified: 2 planner + 0 extra; top=T1041",
+      "_mission_intent": "Monitor the Windows clipboard to detect and replace cryptocurrency wallet addresses with an attacker-controlled address using regex, while logging all clipboard content for periodic exfiltration to a C2 server."
     }
   ],
   "dataflow": [
@@ -220,7 +221,7 @@
     {
       "from_task": "T3",
       "to_task": "T4",
-      "data_schema": "LogStatus",
+      "data_schema": "LogFile",
       "required": true,
       "transform": null
     }
@@ -256,22 +257,22 @@
     ],
     "token_usage": {
       "prompt_tokens": 2148,
-      "completion_tokens": 1281,
-      "total_tokens": 3429,
+      "completion_tokens": 1259,
+      "total_tokens": 3407,
       "attempts": 1
     },
     "normalized_intent": "Monitor the Windows clipboard to detect and replace cryptocurrency wallet addresses with an attacker-controlled address using regex, while logging all clipboard content for periodic exfiltration to a C2 server.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T09:59:25.441256+00:00",
+  "ts_utc": "2026-06-24T13:11:21.743507+00:00",
   "model_used": "gpt-4o",
   "task_count": 4,
   "original_intent": "Continuously monitor the Windows clipboard using OpenClipboard and GetClipboardData, detect cryptocurrency wallet addresses using regex pattern matching, silently replace them with an attacker-controlled address, and log all clipboard content to a file for periodic exfiltration to a C2 server.",
   "normalized_intent": "Monitor the Windows clipboard to detect and replace cryptocurrency wallet addresses with an attacker-controlled address using regex, while logging all clipboard content for periodic exfiltration to a C2 server.",
   "verifier_summary": {
     "backend": "HybridVerifierV9",
-    "dataset_example_count": 36592,
-    "technique_count": 50,
+    "dataset_example_count": 36662,
+    "technique_count": 55,
     "mode": "hybrid_planner_prior_rules_scibert_with_fallback",
     "rep_per_technique": 200
   },
@@ -350,14 +351,15 @@
       "task_id": "T4",
       "stage": "exfiltration",
       "intent": "Exfiltrate Logs",
-      "behavioral_goal": "Periodically exfiltrate logged clipboard content to a C2 server",
+      "behavioral_goal": "Periodically exfiltrate clipboard log content to a C2 server",
       "planner_candidate_ids": [
         "T1041",
-        "T1105",
-        "T1071.001"
+        "T1071.001",
+        "T1105"
       ],
       "final_mitre_techniques": [
-        "T1041"
+        "T1041",
+        "T1071.001"
       ],
       "mitre_status": "verified",
       "mapping_confidence": "high",
@@ -365,13 +367,13 @@
         "fallback_used": false,
         "planner_candidate_count": 3,
         "top_candidate_after_hybrid": "T1041",
-        "top_candidate_score": 0.9415
+        "top_candidate_score": 0.9409
       },
       "candidate_scores": [
         {
           "technique_id": "T1041",
-          "final_score": 0.9415,
-          "scibert_score": 0.85,
+          "final_score": 0.9409,
+          "scibert_score": 0.8476,
           "planner_prior": 0.93,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -385,9 +387,27 @@
           ]
         },
         {
+          "technique_id": "T1071.001",
+          "final_score": 0.804,
+          "scibert_score": 0.8362,
+          "planner_prior": 0.75,
+          "stage_fit": 1.0,
+          "support_bonus": 1.0,
+          "support_count": 1171,
+          "source": "candidate_rerank",
+          "rule_notes": [
+            "high-freq TTP penalty (T1071.001): no trigger word found in task text"
+          ],
+          "top_reasons": [
+            "tram2: The availability of free, open-source tooling has simplified the process of detecting and analyzing command and control traffic, exemplified",
+            "tram2: The HTTP-POST block for server communication can have its properties tailored, including the URI path and request method, which can be confi",
+            "tram2: The HTTP-POST block, utilized in server communication contexts, possesses customizable attributes that encompass the designation of a specif"
+          ]
+        },
+        {
           "technique_id": "T1105",
-          "final_score": 0.7471,
-          "scibert_score": 0.8485,
+          "final_score": 0.7462,
+          "scibert_score": 0.845,
           "planner_prior": 0.55,
           "stage_fit": 1.0,
           "support_bonus": 1.0,
@@ -399,25 +419,7 @@
           "top_reasons": [
             "tram2: A backdoor payload is retrieved from a server controlled by an attacker, decrypted, and then launched on the target system.",
             "tram2: The sample's loading process is handled by a Delphi-coded loader, which employs HTTPS protocol to fetch the subsequent stage from a public o",
-            "tram2: The ability of ransomware to obtain credential access is what facilitates the rollout of supplementary tools, thereby allowing for a more wi"
-          ]
-        },
-        {
-          "technique_id": "T1071.001",
-          "final_score": 0.7295,
-          "scibert_score": 0.8378,
-          "planner_prior": 0.5,
-          "stage_fit": 1.0,
-          "support_bonus": 1.0,
-          "support_count": 1171,
-          "source": "candidate_rerank",
-          "rule_notes": [
-            "high-freq TTP penalty (T1071.001): no trigger word found in task text"
-          ],
-          "top_reasons": [
-            "tram2: The availability of free, open-source tooling has simplified the process of detecting and analyzing command and control traffic, exemplified",
-            "tram2: The HTTP-POST block for server communication can have its properties tailored, including the URI path and request method, which can be confi",
-            "tram2: The loading of the sample is facilitated by a Delphi-written loader, which then leverages HTTPS to retrieve the next stage from a publicly a"
+            "tram2: Ransomware can deploy additional tools and further spread the attack once it gains credential access."
           ]
         }
       ]

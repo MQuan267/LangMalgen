@@ -1,7 +1,7 @@
 {
   "agent": "DeveloperAgent",
-  "mission_id": "lsass_memory_dump",
-  "timestamp": "2026-06-23T07:52:11.601360+00:00",
+  "mission_id": "lsass_ntlm_dump",
+  "timestamp": "2026-06-24T13:17:12.289768+00:00",
   "model": "gpt-4o",
   "total": 3,
   "successful": 3,
@@ -13,13 +13,13 @@
       "stage": "privilege-escalation",
       "mitre_techniques": [],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_075151_669037\\01_T1_privilege_escalation.py",
+      "path": "artifacts\\modules\\runtime_20260624_131651_293772\\01_T1_privilege_escalation.py",
       "metrics": {
         "syntax_valid": true,
         "required_packages": [
           "pywin32"
         ],
-        "lines": 46,
+        "lines": 53,
         "has_main": true,
         "has_typing": true,
         "has_timeout": false,
@@ -39,10 +39,10 @@
       "stage": "credential-access",
       "mitre_techniques": [],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_075151_669037\\02_T2_credential_access.py",
+      "path": "artifacts\\modules\\runtime_20260624_131651_293772\\02_T2_credential_access.py",
       "metrics": {
         "syntax_valid": true,
-        "lines": 57,
+        "lines": 98,
         "has_main": true,
         "has_typing": true,
         "has_timeout": false,
@@ -60,10 +60,10 @@
       "stage": "credential-access",
       "mitre_techniques": [],
       "status": "success",
-      "path": "artifacts\\modules\\runtime_20260623_075151_669037\\03_T3_credential_access.py",
+      "path": "artifacts\\modules\\runtime_20260624_131651_293772\\03_T3_credential_access.py",
       "metrics": {
         "syntax_valid": true,
-        "lines": 75,
+        "lines": 70,
         "has_main": true,
         "has_typing": true,
         "has_timeout": false,
@@ -77,8 +77,8 @@
     }
   ],
   "module_paths": [
-    "artifacts\\modules\\runtime_20260623_075151_669037\\01_T1_privilege_escalation.py",
-    "artifacts\\modules\\runtime_20260623_075151_669037\\02_T2_credential_access.py",
-    "artifacts\\modules\\runtime_20260623_075151_669037\\03_T3_credential_access.py"
+    "artifacts\\modules\\runtime_20260624_131651_293772\\01_T1_privilege_escalation.py",
+    "artifacts\\modules\\runtime_20260624_131651_293772\\02_T2_credential_access.py",
+    "artifacts\\modules\\runtime_20260624_131651_293772\\03_T3_credential_access.py"
   ]
 }

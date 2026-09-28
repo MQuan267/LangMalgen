@@ -1,5 +1,5 @@
 {
-  "mission_id": "fallback_31263182",
+  "mission_id": "fallback_60bcda9f",
   "intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",
   "malware_type": "generic",
   "global_constraints": {
@@ -94,8 +94,8 @@
     "normalized_intent": "Identify sandbox environments by checking uptime, RAM size, and virtual machine artifacts, delay execution to evade analysis, and terminate if a debugger is detected.",
     "token_usage": {
       "prompt_tokens": 6886,
-      "completion_tokens": 3862,
-      "total_tokens": 10748,
+      "completion_tokens": 3959,
+      "total_tokens": 10845,
       "attempts": 3
     },
     "fallback_errors": [
@@ -108,7 +108,7 @@
     "fallback plan used after repeated generation failures",
     "generation errors: ['Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis', 'Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis', 'Validation error: Plan likely over-generated (moderate): T1: discovery task may be padding for this intent | T2: discovery task may be padding for this intent | T3: dis']"
   ],
-  "ts_utc": "2026-06-23T07:39:03.623898+00:00",
+  "ts_utc": "2026-06-24T13:26:57.194233+00:00",
   "model_used": "gpt-4o",
   "task_count": 1,
   "original_intent": "Detect sandbox environments by checking for low uptime, small RAM size, and virtual machine artifacts (VMware/VirtualBox registry keys and process names), delay execution using sleep loops calibrated to evade timeout-based analysis, and terminate if a debugger is detected via IsDebuggerPresent or CheckRemoteDebuggerPresent.",

@@ -12,7 +12,7 @@
     ]
   },
   "validation_rules": {
-    "max_execution_time_seconds": 300,
+    "max_execution_time_seconds": 180,
     "max_memory_mb": 200,
     "allowed_modules": [
       "os",
@@ -70,13 +70,12 @@
     {
       "task_id": "T2",
       "stage": "data-processing",
-      "intent": "Compress and XOR-Encode Files",
-      "behavioral_goal": "Compress and XOR-encode collected files to prepare for exfiltration",
+      "intent": "Compress Files",
+      "behavioral_goal": "Compress collected files to reduce size for transfer",
       "output_contract": {
-        "schema": "EncodedPayload",
+        "schema": "CompressedFiles",
         "fields": {
-          "encoded_data": "bytes",
-          "encoding": "string"
+          "compressed_data": "bytes"
         }
       },
       "input_contract": {
@@ -90,7 +89,7 @@
       "error_contract": {
         "on_failure": "abort_mission",
         "required_fields": [
-          "encoded_data"
+          "compressed_data"
         ],
         "fallback_value": null
       },
@@ -102,20 +101,72 @@
     },
     {
       "task_id": "T3",
-      "stage": "exfiltration",
-      "intent": "Exfiltrate Encoded Data",
-      "behavioral_goal": "Send encoded data to a C2 server over HTTPS via periodic POST requests",
+      "stage": "defense-evasion",
+      "intent": "XOR Encode Payload",
+      "behavioral_goal": "XOR encode compressed file data to evade detection during transfer",
       "output_contract": {
-        "schema": "ExfiltrationStatus",
+        "schema": "EncodedPayload",
         "fields": {
-          "success": "boolean",
-          "attempts": "integer"
+          "encoded_data": "bytes",
+          "encoding": "string"
         }
       },
       "input_contract": {
         "sources": [
           {
             "task_id": "T2",
+            "schema": "CompressedFiles"
+          }
+        ]
+      },
+      "error_contract": {
+        "on_failure": "return_partial",
+        "required_fields": [
+          "encoded_data"
+        ],
+        "fallback_value": null
+      },
+      "mitre_candidates": [
+        {
+          "id": "T1027",
+          "reason": "obfuscated files or information | retrieval match: Obfuscated Files or Information",
+          "score": 0.85,
+          "source": "llm+retrieval"
+        },
+        {
+          "id": "T1564.001",
+          "reason": "retrieval match: Hidden Files and Directories",
+          "score": 0.55,
+          "source": "retrieval"
+        },
+        {
+          "id": "T1070.004",
+          "reason": "retrieval match: File Deletion",
+          "score": 0.45,
+          "source": "retrieval"
+        }
+      ],
+      "mitre_techniques": [],
+      "mitre_status": "needs_verification",
+      "mapping_confidence": "high",
+      "ambiguity_notes": ""
+    },
+    {
+      "task_id": "T4",
+      "stage": "exfiltration",
+      "intent": "Exfiltrate Data to C2 Server",
+      "behavioral_goal": "Send encoded data to C2 server over HTTPS via periodic POST requests",
+      "output_contract": {
+        "schema": "ExfiltrationStatus",
+        "fields": {
+          "success": "boolean",
+          "response_code": "integer"
+        }
+      },
+      "input_contract": {
+        "sources": [
+          {
+            "task_id": "T3",
             "schema": "EncodedPayload"
           }
         ]
@@ -166,12 +217,20 @@
     {
       "from_task": "T2",
       "to_task": "T3",
+      "data_schema": "CompressedFiles",
+      "required": true,
+      "transform": null
+    },
+    {
+      "from_task": "T3",
+      "to_task": "T4",
       "data_schema": "EncodedPayload",
       "required": true,
       "transform": null
     }
   ],
   "planner_warnings": [
+    "task T3: override abort_mission → return_partial for stage=defense-evasion",
     "task T1 may not be atomic"
   ],
   "planner_summary": {
@@ -222,16 +281,16 @@
     ],
     "token_usage": {
       "prompt_tokens": 2248,
-      "completion_tokens": 1011,
-      "total_tokens": 3259,
+      "completion_tokens": 1283,
+      "total_tokens": 3531,
       "attempts": 1
     },
     "normalized_intent": "Exfiltrate sensitive .pdf, .docx, and .xlsx files from the local filesystem by compressing and XOR-encoding them, then sending the data to a C2 server over HTTPS via periodic POST requests.",
     "mitre_selection_mode": "retrieval_constrained_candidate_generation"
   },
-  "ts_utc": "2026-06-23T07:05:07.589674+00:00",
+  "ts_utc": "2026-06-24T12:51:54.660394+00:00",
   "model_used": "gpt-4o",
-  "task_count": 3,
+  "task_count": 4,
   "original_intent": "Collect sensitive files with extensions .pdf, .docx, and .xlsx from the local filesystem, compress and XOR-encode the contents, then exfiltrate the data to a C2 server over HTTPS using periodic POST requests.",
   "normalized_intent": "Exfiltrate sensitive .pdf, .docx, and .xlsx files from the local filesystem by compressing and XOR-encoding them, then sending the data to a C2 server over HTTPS via periodic POST requests."
 }
